@@ -17,6 +17,10 @@ public class UserService {
     @Autowired
     private UserRepo userRepo;
 
+    public UserService(){
+        super();
+    }
+
     // Retrieves all users from the database.
     @Operation(summary = "Get all users", description = "Fetches all users from the database")
     public List<UserEntity> getAllUsers() {
@@ -52,7 +56,13 @@ public class UserService {
 
     // Deletes a user by their ID.
     @Operation(summary = "Delete a user", description = "Removes a user from the database")
-    public void deleteUser(int id) {
-        userRepo.deleteById(id);
+    public String deleteUser(int id) {
+        String msg = " ";
+        if (userRepo.findById(id)!=null){
+            userRepo.deleteById(id);
+            msg = "User record successfully deleted!";
+        }else
+            msg = id + "NOT FOUND!";
+        return msg;
     }
 }

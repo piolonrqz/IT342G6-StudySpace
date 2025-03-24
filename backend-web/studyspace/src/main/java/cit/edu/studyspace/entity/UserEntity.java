@@ -61,6 +61,24 @@ public class UserEntity {
     private UserRole role;
     
     // Constructors
+    public UserEntity(int id, String firstName, String lastName, String email, String password, String phoneNumber, 
+                    boolean emailVerified, LocalDateTime createdAt, LocalDateTime updatedAt, LocalDateTime lastLogin, 
+                    UserRole role) {
+        this.id = id;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.email = email;
+        this.password = password;
+        this.phoneNumber = phoneNumber;
+        this.emailVerified = emailVerified;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+        this.lastLogin = lastLogin;
+        this.role = role;
+        this.booking = new HashSet<>();
+    }
+
+    // Default constructor
     public UserEntity() {
     }
     
