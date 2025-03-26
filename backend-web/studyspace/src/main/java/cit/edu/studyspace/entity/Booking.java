@@ -21,7 +21,7 @@ public class Booking {
     private UserEntity user;
     
     @ManyToOne
-    @JoinColumn(name = "space_id", nullable = false)
+    @JoinColumn(name = "space_id", nullable = true)
     @Schema(description = "Space that was booked")
     private Space space;
     

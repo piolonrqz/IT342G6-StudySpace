@@ -28,7 +28,6 @@ public class UserService {
     }
 
     // Retrieves a user by their ID.
-
     @Operation(summary = "Get user by ID", description = "Fetches a user based on the given ID")
     public Optional<UserEntity> getUserById(int id) {
         return userRepo.findById(id);
