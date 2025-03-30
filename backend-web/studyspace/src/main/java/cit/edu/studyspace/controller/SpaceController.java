@@ -1,10 +1,11 @@
 package cit.edu.studyspace.controller;
 
-import cit.edu.studyspace.entity.Space;
+import cit.edu.studyspace.entity.SpaceEntity;
 import cit.edu.studyspace.service.SpaceService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -26,16 +27,21 @@ public class SpaceController {
 
     @GetMapping("/getAll")
     @Operation(summary = "Get all space", description = "Fetches all spaces in the system")
-    public List<Space> getAllSpaces() {
+    public List<SpaceEntity> getAllSpaces() {
         return spaceService.getAllSpaces();
     }
 
     @PostMapping("/save")
     @Operation(summary = "Create a new space", description = "Adds a new space to the system")
-    public Space saveBooking(@RequestBody Space space) {
+    public ResponseEntity<SpaceEntity> saveSpace(@RequestBody SpaceEntity space) {
 
-        Space savedSpace = space;
+        SpaceEntity savedSpace = spaceService.saveSpace(space);
         
-        return savedSpace;
+        return ResponseEntity.ok(savedSpace);
+    }
+
+    @DeleteMapping("/delete/{id}")
+    public String deleteSpace(@PathVariable int id){
+        return spaceService.deleteSpace(id);
     }
 }

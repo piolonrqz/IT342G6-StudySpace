@@ -8,7 +8,7 @@ import java.util.Set;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Entity
-@Table(name = "UserEntity")
+@Table(name = "User_Entity")
 public class UserEntity {
     
     @Id
@@ -53,7 +53,7 @@ public class UserEntity {
     private LocalDateTime lastLogin;
     
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private Set<Booking> booking = new HashSet<>();
+    private Set<BookingEntity> booking = new HashSet<>();
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -163,11 +163,11 @@ public class UserEntity {
         this.lastLogin = lastLogin;
     }
 
-    public Set<Booking> getBooking() {
+    public Set<BookingEntity> getBooking() {
         return booking;
     }
 
-    public void setBooking(Set<Booking> booking) {
+    public void setBooking(Set<BookingEntity> booking) {
         this.booking = booking;
     }
 

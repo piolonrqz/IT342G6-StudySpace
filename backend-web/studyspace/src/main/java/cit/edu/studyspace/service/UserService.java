@@ -35,7 +35,7 @@ public class UserService {
 
     // Creates a new user.
     @Operation(summary = "Create a new user", description = "Adds a new user to the system")
-    public UserEntity createUser(UserEntity user) {
+    public UserEntity saveUser(UserEntity user) {
         return userRepo.save(user);
     }
 

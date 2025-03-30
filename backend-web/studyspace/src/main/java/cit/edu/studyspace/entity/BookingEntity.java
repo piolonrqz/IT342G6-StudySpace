@@ -6,9 +6,9 @@ import java.time.LocalDateTime;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Entity
-@Table(name = "Booking")
+@Table(name = "Booking_Entity")
 @Schema(description = "Booking entity representing space reservations made by users")
-public class Booking {
+public class BookingEntity {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,7 +23,7 @@ public class Booking {
     @ManyToOne
     @JoinColumn(name = "space_id", nullable = true)
     @Schema(description = "Space that was booked")
-    private Space space;
+    private SpaceEntity space;
     
     @Column(nullable = false)
     @Schema(description = "Start time of the booking", example = "2025-04-01T09:00:00")
@@ -59,7 +59,7 @@ public class Booking {
     private int numberOfPeople;
     
     // Constructors
-    public Booking() {
+    public BookingEntity() {
     }
     
     // Getters and Setters
@@ -79,11 +79,11 @@ public class Booking {
         this.user = user;
     }
 
-    public Space getSpace() {
+    public SpaceEntity getSpace() {
         return space;
     }
 
-    public void setSpace(Space space) {
+    public void setSpace(SpaceEntity space) {
         this.space = space;
     }
 

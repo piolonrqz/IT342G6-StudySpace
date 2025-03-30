@@ -5,6 +5,7 @@ import cit.edu.studyspace.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -33,11 +34,11 @@ public class UserController {
 
     @PostMapping("/save")
     @Operation(summary = "Create a new user", description = "Adds a new user to the system")
-    public UserEntity saveUser(@RequestBody UserEntity user) {
+    public ResponseEntity<UserEntity> saveUser(@RequestBody UserEntity user) {
 
-        UserEntity savedUser = user;
+        UserEntity savedUser = userService.saveUser(user);
         
-        return savedUser;
+        return ResponseEntity.ok(savedUser);
     }
 
     @PutMapping("/update/{id}")

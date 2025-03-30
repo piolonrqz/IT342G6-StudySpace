@@ -1,6 +1,6 @@
 package cit.edu.studyspace.service;
 
-import cit.edu.studyspace.entity.Space;
+import cit.edu.studyspace.entity.SpaceEntity;
 import cit.edu.studyspace.repository.SpaceRepo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -23,20 +23,35 @@ public class SpaceService {
 
     // Retrieves all spaces from the database.
     @Operation(summary = "Get all spaces", description = "Fetches all spaces from the database")
-    public List<Space> getAllSpaces() {
+    public List<SpaceEntity> getAllSpaces() {
         return spaceRepo.findAll();
     }
 
     // Retrieves a space by its ID.
     @Operation(summary = "Get space by ID", description = "Fetches a space based on the given ID")
-    public Optional<Space> getSpaceById(int id) {
+    public Optional<SpaceEntity> getSpaceById(int id) {
         return spaceRepo.findById(id);
     }
 
     // Creates a new space.
     @Operation(summary = "Create a new space", description = "Adds a new space to the system")
-    public Space createSpace(Space space) {
+    public SpaceEntity saveSpace(SpaceEntity space) {
         return spaceRepo.save(space);
     }
 
+    // Update an existing space
+    // to add
+
+
+    // Deletes a user by their ID.
+    @Operation(summary = "Delete a space", description = "Removes a space from the database")
+    public String deleteSpace(int id) {
+        String msg = " ";
+        if (spaceRepo.findById(id)!=null){
+            spaceRepo.deleteById(id);
+            msg = "Space record successfully deleted!";
+        }else
+            msg = id + "NOT FOUND!";
+        return msg;
+    }
 }

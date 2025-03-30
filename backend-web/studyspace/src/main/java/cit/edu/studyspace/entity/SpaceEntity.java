@@ -8,9 +8,9 @@ import java.util.Set;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Entity
-@Table(name = "Space")
+@Table(name = "Space_Entity")
 @Schema(description = "Space entity representing available co-working spaces")
-public class Space {
+public class SpaceEntity {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -59,10 +59,10 @@ public class Space {
     private LocalDateTime updatedAt;
     
     @OneToMany(mappedBy = "space", cascade = CascadeType.ALL)
-    private Set<Booking> bookings = new HashSet<>();
+    private Set<BookingEntity> bookings = new HashSet<>();
     
     // Constructors
-    public Space() {
+    public SpaceEntity() {
     }
     
     // Getters and Setters
@@ -154,11 +154,11 @@ public class Space {
         this.updatedAt = updatedAt;
     }
 
-    public Set<Booking> getBookings() {
+    public Set<BookingEntity> getBookings() {
         return bookings;
     }
 
-    public void setBookings(Set<Booking> bookings) {
+    public void setBookings(Set<BookingEntity> bookings) {
         this.bookings = bookings;
     }
     
