@@ -1,26 +1,23 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import Homepage from './pages/Homepage';
-import LoginForm from './Components/LoginForm';
-import RegisterForm from './Components/RegisterForm';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Homepage from './pages/Homepage.jsx';
+import SpacesPage from './pages/SpacesPage.jsx';
+import LoginPage from './pages/LoginPage.jsx';
+import RegisterPage from './pages/RegisterPage.jsx';
+// ... other page imports
 
 function App() {
   return (
-    <BrowserRouter>
+    <Router>
       <Routes>
         <Route path="/" element={<Homepage />} />
-        {/* Route for Login Page */}
-        <Route 
-          path="/LoginPage" 
-          element={<LoginForm mode="login" />} 
-        />
-        
-        {/* Route for Register Page */}
-        <Route 
-          path="/RegisterPage" 
-          element={<RegisterForm mode="register" />} 
-        />
+        {/* Make sure you have this route defined */}
+        <Route path="/SpacesPage" element={<SpacesPage />} />
+        <Route path="/LoginPage" element={<LoginPage />} />
+        <Route path="/RegisterPage" element={<RegisterPage />} />
+        {/* ... other routes ... */}
       </Routes>
-    </BrowserRouter>
+    </Router>
   );
 }
 
