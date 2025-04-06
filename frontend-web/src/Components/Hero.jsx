@@ -1,44 +1,27 @@
 import React, { useState } from 'react';
 
-function Hero() {
-  const [searchQuery, setSearchQuery] = useState('');
-  
-  const handleSearch = (e) => {
-    e.preventDefault();
-    console.log('Searching for:', searchQuery);
-  };
-
+export const Hero = () => {
   return (
-    <section 
-      className="relative bg-cover bg-center h-[60vh] min-h-[400px]" 
-      style={{ backgroundImage: "url('/path-to-library-background.jpg')" }}
-    >
-      <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-        <div className="text-center text-white px-4 max-w-3xl mx-auto">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">Find your space here</h1>
-          <p className="text-xl md:text-2xl mb-8">Discover study spaces that increase your productivity</p>
-          <form 
-            className="flex flex-col sm:flex-row gap-4 justify-center"
-            onSubmit={handleSearch}
-          >
-            <input 
-              type="text" 
-              placeholder="Enter location" 
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="px-4 py-2 rounded-lg text-black w-full sm:w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <button 
-              type="submit"
-              className="bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded-lg font-semibold transition-colors duration-200"
-            >
-              Search
-            </button>
-          </form>
-        </div>
+    <section className="grid grid-cols-2 px-12 py-12">
+      <div className="flex flex-col justify-center">
+        <h1 className="text-7xl font-md mb-4 font-poppins">Find Your Space</h1>
+        <p className="text-lg text-gray-900 mb-4 font-poppins leading-tight max-w-sm">
+          Anytime, Anywhere. Discover and book the perfect space for study and work.
+        </p>
+        <button className="px-6 py-3 w-32 h-14 text-white bg-sky-500 rounded-3xl hover:bg-sky-400 font-poppins">
+          Book now
+        </button>
+      </div>
+      <div className="flex justify-center">
+        <img
+          src="/hero-image.png"
+          alt="Students studying"
+          className="rounded-lg shadow-md w-full object-cover"
+        />
       </div>
     </section>
   );
-}
+};
+
 
 export default Hero;
