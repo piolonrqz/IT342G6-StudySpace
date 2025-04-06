@@ -1,5 +1,6 @@
 package cit.edu.studyspace.service;
 
+import cit.edu.studyspace.config.JwtUtil;
 import cit.edu.studyspace.entity.UserEntity;
 import cit.edu.studyspace.repository.UserRepo;
 import io.swagger.v3.oas.annotations.Operation;
@@ -16,6 +17,8 @@ public class UserService {
 
     @Autowired
     private UserRepo userRepo;
+    @Autowired
+    private JwtUtil jwtUtil;
 
     public UserService(){
         super();
@@ -25,6 +28,22 @@ public class UserService {
     @Operation(summary = "Get all users", description = "Fetches all users from the database")
     public List<UserEntity> getAllUsers() {
         return userRepo.findAll();
+    }
+
+    public boolean existsByEmail(String email) {
+        return userRepo.existsByEmail(email);
+    }
+
+
+    public String authenticateUser(String email, String password) {
+        UserEntity user = userRepo.findByEmail(email);
+        
+        if (user != null && user.getPassword().equals(password)) { 
+            // Generate JWT token
+            return jwtUtil.generateToken(user);
+        } else {
+            throw new RuntimeException("Invalid email or password");
+        }
     }
 
     // Retrieves a user by their ID.

@@ -7,5 +7,7 @@ import cit.edu.studyspace.entity.UserEntity;
 
 @Repository
 public interface UserRepo extends JpaRepository<UserEntity, Integer>{
-    
+    UserEntity findByEmail(String email);
+  
+    boolean existsByEmail(String email);
 }
