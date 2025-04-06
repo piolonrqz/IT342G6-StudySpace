@@ -3,27 +3,6 @@ package cit.edu.studyspace.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.web.SecurityFilterChain;
-
-@Configuration
-public class SecurityConfig {
-
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-            .csrf(csrf -> csrf.disable())  // Disable CSRF for testing
-            .authorizeHttpRequests(auth -> auth.anyRequest().permitAll()); // Allow all requests
-
-        return http.build();
-    }
-}
-
-/*
- package com.wachichaw.backend.auth;
-
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
@@ -35,7 +14,6 @@ import org.springframework.web.filter.CorsFilter;
 import java.util.List;
 
 import static org.springframework.security.config.Customizer.withDefaults;
-
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
@@ -53,9 +31,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable()) // Disable CSRF for stateless APIs
                 .authorizeHttpRequests(authorize -> authorize
 
-                        .requestMatchers("/user/login","/user/save", "admin/login", "/user/update","/user/check-email","/verify").permitAll() // Allow login without authentication
-                        .requestMatchers("/uploads/**","/profile_pictures/**").permitAll() 
-
+                        .requestMatchers("/user/login","/user/save", "/user/update","/user/check-email","/verify").permitAll() // Allow login without authentication
 
                         .anyRequest().authenticated()) // Other requests need authentication
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)); // Stateless session management
@@ -77,10 +53,19 @@ public class SecurityConfig {
         // Register CORS for all paths
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration); // For all paths
-        source.registerCorsConfiguration("/uploads/**", configuration); 
-        source.registerCorsConfiguration("/profile_pictures/**", configuration);
 
         return new CorsFilter(source);
     }
 }
+
+// For Testing ONLY (disabled authentication)
+/*
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+            .csrf(csrf -> csrf.disable())  // Disable CSRF for testing
+            .authorizeHttpRequests(auth -> auth.anyRequest().permitAll()); // Allow all requests
+
+        return http.build();
+    }
  */
