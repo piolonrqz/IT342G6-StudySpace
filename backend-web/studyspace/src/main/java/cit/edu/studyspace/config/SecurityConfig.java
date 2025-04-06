@@ -27,25 +27,29 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .cors(withDefaults())
-                .csrf(csrf -> csrf.disable()) // Disable CSRF for stateless APIs
-                .authorizeHttpRequests(authorize -> authorize
-
-                        .requestMatchers("/user/login","/user/save", "/user/update","/user/check-email","/verify").permitAll() // Allow login without authentication
-
-                        .anyRequest().authenticated()) // Other requests need authentication
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)); // Stateless session management
-
-        // Add the JWT filter before the UsernamePasswordAuthenticationFilter
-        http.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
-
+            .csrf(csrf -> csrf.disable())
+            .cors(withDefaults())
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers(
+                    "/swagger-ui/**", 
+                    "/api-docs/**", 
+                    "/swagger-resources/**",
+                    "/swagger-ui.html",
+                    "/webjars/**"
+                ).permitAll() // Allow Swagger access without token
+                .anyRequest().authenticated() // Other endpoints require JWT
+            )
+            .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
+    
         return http.build();
     }
+    
 
     @Bean
     public CorsFilter corsFilter() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:5173")); // Specify allowed origins
+        configuration.setAllowedOrigins(List.of("http://localhost:8080")); // Specify allowed origins
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS")); // Allowed HTTP methods
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
