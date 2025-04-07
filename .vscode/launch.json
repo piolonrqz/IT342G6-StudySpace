@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-StudyspaceApplication<studyspace>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "cit.edu.studyspace.StudyspaceApplication",
+            "projectName": "studyspace",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}
