@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @Tag(name = "User Service", description = "Business logic for user operations")
@@ -48,8 +47,9 @@ public class UserService {
 
     // Retrieves a user by their ID.
     @Operation(summary = "Get user by ID", description = "Fetches a user based on the given ID")
-    public Optional<UserEntity> getUserById(int id) {
-        return userRepo.findById(id);
+    public UserEntity getUserById(int id) {
+        return userRepo.findById(id)
+        .orElseThrow(() -> new RuntimeException("User not found"));
     }
 
     // Creates a new user.
