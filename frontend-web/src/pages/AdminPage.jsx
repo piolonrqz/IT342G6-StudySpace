@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
-import { HomeIcon, CalendarIcon, EditIcon, TrashIcon, User } from "lucide-react";
+import { HomeIcon, CalendarIcon, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UserFormModal } from '@/Components/UserFormModal';
+import { ConfirmationModal } from "@/Components/ConfirmationModal"; 
 
 // TODO: Import or create Modal components for Add/Edit forms
 // import UserFormModal from '@/components/UserFormModal';
@@ -154,6 +155,9 @@ const AdminPage = () => {
   const [isLoading, setIsLoading] = useState(false); // Loading state
   const [error, setError] = useState(null); // Error state
 
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false); // State for delete confirmation modal
+  const [userToDeleteId, setUserToDeleteId] = useState(null); // State to store the ID of the user to be deleted
+
   const [isUserModalOpen, setIsUserModalOpen] = useState(false); // State for user modal
   const [editingUser, setEditingUser] = useState(null); // State for user being edited
 
@@ -167,7 +171,7 @@ const AdminPage = () => {
       const response = await fetch(`${API_BASE_URL}/users/getAll`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
-      }
+      } 
       const data = await response.json();
       setUsers(data);
     } catch (e) {
@@ -214,31 +218,40 @@ const AdminPage = () => {
   };
 
   // Delete User
-  const handleDeleteUser = async (userId) => {
-     // Optional: Add a confirmation dialog here
-     if (!window.confirm(`Are you sure you want to delete user ID: ${userId}?`)) {
-         return;
-     }
+  // Function to open the confirmation modal
+  const handleOpenDeleteConfirm = (userId) => {
+    setUserToDeleteId(userId);    // Store the ID of the user to delete
+    setIsConfirmModalOpen(true); // Open the confirmation modal
+  };
 
-    console.log("Attempting to delete user:", userId);
-    setIsLoading(true); // Indicate activity
+  // Function to actually perform the deletion (called by ConfirmationModal)
+  const performDeleteUser = async () => {
+    if (!userToDeleteId) return; // Safety check
+
+    console.log("Attempting to delete user:", userToDeleteId);
+    // Set loading specifically for the delete action if needed, 
+    // or use the general isLoading state. We'll use general for simplicity here.
+    setIsLoading(true); 
     setError(null);
     try {
-      const response = await fetch(`${API_BASE_URL}/users/delete/${userId}`, {
+      const response = await fetch(`${API_BASE_URL}/users/delete/${userToDeleteId}`, {
         method: 'DELETE',
       });
       if (!response.ok) {
-          const errorData = await response.text(); // Or response.json() if backend returns JSON error
+          const errorData = await response.text(); 
           throw new Error(`Failed to delete user: ${response.status} - ${errorData}`);
       }
-       console.log("User deleted successfully:", userId);
-      // Refresh user list after deleting
-      fetchUsers();
+       console.log("User deleted successfully:", userToDeleteId);
+      fetchUsers(); // Refresh user list
+      setIsConfirmModalOpen(false); // Close the confirmation modal on success
+      setUserToDeleteId(null); // Clear the stored ID
     } catch (e) {
       console.error("Failed to delete user:", e);
       setError(`Failed to delete user. ${e.message}`);
+      // Optionally keep the confirmation modal open on error, or close it
+      // setIsConfirmModalOpen(false); 
     } finally {
-      setIsLoading(false);
+      setIsLoading(false); // Ensure loading is turned off
     }
   };
 
@@ -290,7 +303,12 @@ const AdminPage = () => {
 
     switch (activeItem) {
       case "user-management":
-        return <UserManagement users={users} onEdit={handleEditUserClick} onDelete={handleDeleteUser} onAdd={handleAddUserClick} />;
+        return <UserManagement 
+          users={users} 
+          onEdit={handleEditUserClick} 
+          onDelete={handleOpenDeleteConfirm} // Pass the function to open the confirm modal
+          onAdd={handleAddUserClick} 
+        />;
       case "space-management":
         // TODO: Render SpaceManagement component with fetched spaces and handlers
         return <SpaceManagement />;
@@ -319,7 +337,7 @@ const AdminPage = () => {
           <div className="flex items-center gap-4 mb-8">
             {/* Use the blue logo background */}
             <div className="w-12 h-12 rounded-lg bg-[#2F9FE5] flex items-center justify-center text-white"> 
-              <img src="../public/images/logoW.png" alt="StudySpace" className="h-8" />
+              <img src="/images/logoW.png" alt="StudySpace" className="h-8" />
             </div>
             {/* Keep text blue */}
             <h1 className="text-2xl font-semibold text-[#2F9FE5]">StudySpace Admin</h1> 
@@ -350,8 +368,26 @@ const AdminPage = () => {
               onSave={handleSaveUser}
               user={editingUser}
               isLoading={isLoading}
-              error={error}
+              error={error} // Pass error state specific to the form if needed
             />
+          )}
+
+          {/* Delete Confirmation Modal */}
+          {isConfirmModalOpen && (
+             <ConfirmationModal
+                 isOpen={isConfirmModalOpen}
+                 onClose={() => {
+                     setIsConfirmModalOpen(false);
+                     setUserToDeleteId(null);
+                     // Optionally clear error if it's specific to delete
+                     // setError(null); 
+                 }}
+                 onConfirm={performDeleteUser} // Pass the actual delete function
+                 title="Delete User?"
+                 description={`Are you sure you want to delete user ID: ${userToDeleteId}? This action cannot be undone.`}
+                 confirmText="Delete"
+                 isLoading={isLoading} // Indicate loading during delete operation
+             />
           )}
 
       </div> {/* End Main Content Area */}
