@@ -36,7 +36,10 @@ public class SecurityConfig {
                     "/api-docs/**", 
                     "/swagger-resources/**",
                     "/swagger-ui.html",
-                    "/webjars/**"
+                    "/webjars/**",
+                    "/api/users/**",
+                    "/api/space/**",
+                    "/api/booking/**"
                 ).permitAll() // Allow Swagger access without token
                 .anyRequest().authenticated() // Other endpoints require JWT
             )
@@ -49,7 +52,7 @@ public class SecurityConfig {
     @Bean
     public CorsFilter corsFilter() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:8080")); // Specify allowed origins
+        configuration.setAllowedOrigins(List.of("http://localhost:5173")); // Specify allowed origins
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS")); // Allowed HTTP methods
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
