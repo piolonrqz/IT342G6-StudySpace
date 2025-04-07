@@ -12,6 +12,7 @@
   "dependencies": {
     "@fontsource/poppins": "^5.2.5",
     "frontend-web": "file:",
+    "lucide-react": "^0.487.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-router-dom": "^7.4.0"
