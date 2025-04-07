@@ -14,7 +14,7 @@ export const NavigationBar = () => {
         <Link to="/" className="text-gray-900 hover:text-indigo-400 font-poppins">Home</Link>
         <Link to="/SpacesPage" className="text-gray-900 hover:text-indigo-400 font-poppins">Spaces</Link>
         <Link to="/WhyStudySpace" className="text-gray-900 hover:text-indigo-400 font-poppins">Why StudySpace</Link>
-        <Link to="/bookings" className="text-gray-900 hover:text-indigo-400 font-poppins">Bookings</Link>
+        <Link to="/Bookings" className="text-gray-900 hover:text-indigo-400 font-poppins">Bookings</Link>
       </div>
 
       <div className="flex space-x-4">
