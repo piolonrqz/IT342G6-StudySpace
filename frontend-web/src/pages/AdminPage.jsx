@@ -1,27 +1,21 @@
 import { useState, useEffect, useCallback } from "react";
-import { HomeIcon, CalendarIcon, EditIcon, TrashIcon } from "lucide-react";
+import { HomeIcon, CalendarIcon, EditIcon, TrashIcon, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { UserFormModal } from '@/Components/UserFormModal';
+
 // TODO: Import or create Modal components for Add/Edit forms
 // import UserFormModal from '@/components/UserFormModal';
 
-// DashboardLayout Component
-const DashboardLayout = ({ children }) => {
-  return (
-    <div className="min-h-screen bg-white">
-      <div className="container mx-auto px-4 py-8">
-        {children}
-      </div>
-    </div>
-  );
-};
 
 // StatsCard Component
 const StatsCard = ({ title, value }) => {
   return (
-    <div className="bg-[#EBF6FC] shadow-sm rounded-xl p-6 flex flex-col justify-center min-w-[250px] flex-1">
+    // Changed background to white to sit inside the main content area
+    <div className="bg-white shadow rounded-xl p-6 flex flex-col justify-center min-w-[250px] flex-1">
       <div>
-        <h3 className="text-gray-700 text-base mb-1">{title}</h3>
-        <p className="text-4xl font-medium text-gray-900">{value}</p>
+        {/* Adjusted text colors/sizes for white background */}
+        <h3 className="text-gray-500 text-sm mb-1">{title}</h3>
+        <p className="text-3xl font-semibold text-gray-900">{value}</p>
       </div>
     </div>
   );
@@ -33,24 +27,27 @@ const Sidebar = ({
   onItemClick
 }) => {
   return (
-    <nav className="bg-[#EBF6FC] rounded-lg h-full flex flex-col py-8 px-4">
+    // Removed background, rounded corners, adjusted padding/margins
+    <nav className="h-full flex flex-col py-6 px-4"> 
+      {/* Use mt-0 for the first button, adjust text/icon colors for light blue background */}
       <button
         onClick={() => onItemClick("user-management")}
-        className={`w-full text-left px-6 py-4 rounded-lg transition-colors ${
+        className={`w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 transition-colors mb-4 ${ // Added mb-4 for spacing
           activeItem === "user-management"
-            ? "bg-[#2F9FE5] text-white"
-            : "hover:bg-[#d9eefa]"
+            ? "bg-[#2F9FE5] text-white" // Active state
+            : "hover:bg-[#d0eaf8] text-gray-700" // Inactive state - darker text for contrast
         }`}
       >
+        <User className="h-5 w-5" />
         <span className="font-medium">User Management</span>
       </button>
       
       <button
         onClick={() => onItemClick("space-management")}
-        className={`w-full text-left mt-6 px-6 py-4 rounded-lg flex items-center gap-3 transition-colors ${
+        className={`w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 transition-colors mb-4 ${
           activeItem === "space-management"
             ? "bg-[#2F9FE5] text-white"
-            : "hover:bg-[#d9eefa]"
+            : "hover:bg-[#d0eaf8] text-gray-700"
         }`}
       >
         <HomeIcon className="h-5 w-5" />
@@ -59,10 +56,10 @@ const Sidebar = ({
       
       <button
         onClick={() => onItemClick("booking-management")}
-        className={`w-full text-left mt-6 px-6 py-4 rounded-lg flex items-center gap-3 transition-colors ${
+        className={`w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 transition-colors ${
           activeItem === "booking-management"
             ? "bg-[#2F9FE5] text-white"
-            : "hover:bg-[#d9eefa]"
+            : "hover:bg-[#d0eaf8] text-gray-700"
         }`}
       >
         <CalendarIcon className="h-5 w-5" />
@@ -81,10 +78,11 @@ const UserManagement = ({ users, onEdit, onDelete, onAdd }) => {
   }
 
   return (
-    <div className="bg-white shadow-sm rounded-xl mt-8 p-6">
+    // Ensure this container has a white background
+    <div className="bg-white shadow rounded-xl p-6"> 
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-medium text-gray-900">User Management</h2>
-        <Button onClick={onAdd} className="bg-[#2F9FE5] rounded-full"> {/* Link Add button */}
+        <h2 className="text-xl font-semibold text-gray-800">User Management</h2> {/* Adjusted size */}
+        <Button onClick={onAdd} className="bg-[#2F9FE5] text-white hover:bg-[#2387c9] rounded-md px-4 py-2 text-sm"> {/* Adjusted styling */}
           Add New User
         </Button>
       </div>
@@ -92,37 +90,44 @@ const UserManagement = ({ users, onEdit, onDelete, onAdd }) => {
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
-            <tr className="border-b text-sm font-medium text-gray-700">
-              <th className="text-left pb-3 pl-2">ID</th> {/* Added ID */}
-              <th className="text-left pb-3 pl-2">Name</th>
-              <th className="text-left pb-3">Email</th>
-              <th className="text-left pb-3">Role</th> {/* Changed Status to Role */}
-              <th className="text-right pb-3 pr-2">Actions</th>
+            {/* Adjusted table header styling */}
+            <tr className="border-b text-sm font-medium text-gray-500">
+              {/* Added ID column header */}
+              <th className="text-left pb-3 pt-2 px-3 w-16">ID</th> 
+              <th className="text-left pb-3 pt-2 px-3">Name</th>
+              <th className="text-left pb-3 pt-2 px-3">Email</th>
+              <th className="text-left pb-3 pt-2 px-3">Role</th> 
+              <th className="text-right pb-3 pt-2 px-3">Actions</th>
             </tr>
           </thead>
           <tbody>
             {users.map((user) => (
-              <tr key={user.id} className="border-b last:border-b-0"> {/* Use user.id as key */}
-                <td className="py-4 pl-2">{user.id}</td> {/* Display ID */}
-                <td className="py-4 pl-2">{`${user.firstName} ${user.lastName}`}</td> {/* Combine names */}
-                <td className="py-4">{user.email}</td>
-                <td className="py-4">
-                  <span className={`px-3 py-1 rounded-full text-sm ${user.role === 'ADMIN' ? 'bg-red-100 text-red-700' : 'bg-[#EBF6FC] text-[#2F9FE5]' }`}>
-                    {user.role} {/* Display Role */}
+              // Adjusted table row styling
+              <tr key={user.id} className="border-b last:border-b-0 hover:bg-gray-50 text-sm text-gray-700">
+                {/* Added ID cell */}
+                <td className="py-3 px-3">{user.id}</td> 
+                {/* Adjusted cell padding */}
+                <td className="py-3 px-3">{`${user.firstName} ${user.lastName}`}</td>
+                <td className="py-3 px-3">{user.email}</td>
+                <td className="py-3 px-3">
+                  {/* Display user.role and adjust badge styling based on role */}
+                  <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${user.role === 'ADMIN' ? 'bg-red-100 text-red-700' : 'bg-[#EBF6FC] text-[#2F9FE5]' }`}>
+                     {user.role} {/* Display the actual role */}
                   </span>
                 </td>
-                <td className="py-4 pr-2 text-right">
+                <td className="py-3 px-3 text-right">
+                   {/* Reverted to text links as per image */}
                   <button
-                    onClick={() => onEdit(user)} // Pass user object to edit handler
-                    className="text-[#2F9FE5] mr-4 inline-flex items-center hover:underline"
+                    onClick={() => onEdit(user)}
+                    className="text-[#2F9FE5] hover:underline font-medium mr-4"
                   >
-                     <EditIcon className="h-4 w-4 mr-1" /> Edit
+                     Edit
                   </button>
                   <button
-                    onClick={() => onDelete(user.id)} // Pass user ID to delete handler
-                    className="text-red-500 inline-flex items-center hover:underline"
+                    onClick={() => onDelete(user.id)}
+                    className="text-red-500 hover:underline font-medium"
                   >
-                     <TrashIcon className="h-4 w-4 mr-1" /> Delete
+                     Delete
                   </button>
                 </td>
               </tr>
@@ -130,7 +135,7 @@ const UserManagement = ({ users, onEdit, onDelete, onAdd }) => {
           </tbody>
         </table>
       </div>
-       {users.length === 0 && <p className="text-center py-4 text-gray-500">No users found.</p>} {/* Handle empty state */}
+       {users.length === 0 && <p className="text-center py-4 text-gray-500">No users found.</p>}
     </div>
   );
 };
@@ -159,7 +164,7 @@ const AdminPage = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${API_BASE_URL}/users`);
+      const response = await fetch(`${API_BASE_URL}/users/getAll`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -299,59 +304,58 @@ const AdminPage = () => {
 
   
   return (
-    <DashboardLayout>
-      <div className="flex flex-col md:flex-row gap-6">
-        {/* Sidebar */}
-        <div className="w-full md:w-64 lg:w-72 flex-shrink-0">
-          <Sidebar activeItem={activeItem} onItemClick={setActiveItem} />
-        </div>
+    // Main flex container for full-page layout
+    <div className="flex min-h-screen"> 
+      {/* Sidebar Container: Fixed width, light blue background, full height */}
+      <div className="w-64 flex-shrink-0 bg-[#EBF6FC] h-screen sticky top-0"> 
+        {/* Optional: Add a header/logo area inside the sidebar if needed */}
+        {/* <div className="h-16 flex items-center justify-center text-[#2F9FE5] font-semibold text-lg">Admin Menu</div> */}
+        <Sidebar activeItem={activeItem} onItemClick={setActiveItem} />
+      </div>
 
-        {/* Main Content */}
-        <div className="flex-1 min-w-0">
+      {/* Main Content Area: Takes remaining space, light gray background, padding, scrollable */}
+      <div className="flex-1 bg-gray-50 overflow-y-auto p-8"> 
           {/* Header */}
           <div className="flex items-center gap-4 mb-8">
-            <div className="w-12 h-12 rounded-lg bg-[#2F9FE5] flex items-center justify-center text-white">
-              <span className="font-bold text-xl">S</span>
+            {/* Use the blue logo background */}
+            <div className="w-12 h-12 rounded-lg bg-[#2F9FE5] flex items-center justify-center text-white"> 
+              <img src="../public/images/logoW.png" alt="StudySpace" className="h-8" />
             </div>
-            <h1 className="text-3xl font-semibold text-[#2F9FE5]">StudySpace Admin</h1>
+            {/* Keep text blue */}
+            <h1 className="text-2xl font-semibold text-[#2F9FE5]">StudySpace Admin</h1> 
           </div>
           {/* End Header */}
 
-          {/* Stats Cards -> Update values dynamically */}
+          {/* Stats Cards - Now have white background */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
             <StatsCard title="Total Users" value={isLoading ? '...' : (users ? users.length : '0')} />
-            <StatsCard title="Active Spaces" value={isLoading ? '...' : (spaces ? spaces.length : '0')} /> {/* Replace with actual data when fetched */}
-            <StatsCard title="Total Bookings" value={isLoading ? '...' : (bookings ? bookings.length : '0')} /> {/* Replace with actual data when fetched */}
+            <StatsCard title="Active Spaces" value={isLoading ? '...' : (spaces ? spaces.length : '0')} />
+            <StatsCard title="Total Bookings" value={isLoading ? '...' : (bookings ? bookings.length : '0')} />
           </div>
           {/* End Stats Cards */}
 
-          {/* Dynamic Content Area */}
+          {/* Dynamic Content Area - UserManagement now has white bg */}
           {renderContent()}
           {/* End Dynamic Content Area */}
 
-          {/* --- Modal Placeholder --- */}
-          {/* TODO: Implement and render your UserFormModal component here, conditionally based on isUserModalOpen */}
-          {/* Example:
+          {/* Modal rendering logic remains the same */}
           {isUserModalOpen && (
             <UserFormModal
               isOpen={isUserModalOpen}
               onClose={() => {
                 setIsUserModalOpen(false);
-                setEditingUser(null); // Clear editing state when closing
-                setError(null); // Optionally clear errors when closing
+                setEditingUser(null);
+                setError(null);
               }}
               onSave={handleSaveUser}
-              user={editingUser} // Pass current user for editing, or null for adding
-              isLoading={isLoading} // Pass loading state to modal
-              error={error} // Pass error state to potentially display in modal
+              user={editingUser}
+              isLoading={isLoading}
+              error={error}
             />
           )}
-          */}
-          {/* --- End Modal Placeholder --- */}
 
-        </div> {/* End Main Content */}
-      </div> {/* End Flex Container */}
-    </DashboardLayout>
+      </div> {/* End Main Content Area */}
+    </div> /* End Main Flex Container */
   );
 };
 
