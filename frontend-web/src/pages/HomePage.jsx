@@ -13,7 +13,7 @@ export const NavigationBar = () => {
       <div className="flex space-x-6">
         <Link to="/" className="text-gray-900 hover:text-indigo-400 font-poppins">Home</Link>
         <Link to="/SpacesPage" className="text-gray-900 hover:text-indigo-400 font-poppins">Spaces</Link>
-        <Link to="/why-study-space" className="text-gray-900 hover:text-indigo-400 font-poppins">Why StudySpace</Link>
+        <Link to="/WhyStudySpace" className="text-gray-900 hover:text-indigo-400 font-poppins">Why StudySpace</Link>
         <Link to="/bookings" className="text-gray-900 hover:text-indigo-400 font-poppins">Bookings</Link>
       </div>
 
