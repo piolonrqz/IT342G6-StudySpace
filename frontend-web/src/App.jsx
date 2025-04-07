@@ -20,9 +20,10 @@ function App() {
         <Route path="/RegisterPage" element={<RegisterPage />} />
         <Route path="/WhyStudySpace" element={<WhyStudySpace />} />
         <Route path='/Bookings' element= {<Bookings />} />
-
+        <Route path="/AdminPage" element={<AdminPage />} />
+        
         {/* Protect the AdminPage route */}
-        <Route
+        {/* <Route
 
           path="/AdminPage"
           element={
@@ -30,7 +31,7 @@ function App() {
               <AdminPage />
             </ProtectedAdminRoute>
           }
-        />
+        /> */}
         
       </Routes>
     </Router>
