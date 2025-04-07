@@ -13,6 +13,59 @@ const RegisterForm = () => {
 
   const handleClickShowPassword = () => setShowPassword(!showPassword);
 
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+
+  //   const nameRegex = /^[A-Za-z\s]+$/;
+  //   const capitalizeName = name.replace(/\b\w/g, (char) => char.toUpperCase());
+  //   if (!nameRegex.test(name)) {
+  //     setValidationError('Name must only contain letters and spaces.');
+  //     setAdded(false);
+  //     return;
+  //   }
+
+  //   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  //   if (!emailRegex.test(email)) {
+  //     setValidationError('Please enter a valid email address.');
+  //     setAdded(false);
+  //     return;
+  //   }
+
+  //   const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
+  //   if (!passwordRegex.test(password)) {
+  //     setValidationError('Password must be at least 8 characters with letters and numbers.');
+  //     setAdded(false);
+  //     return;
+  //   }
+
+  //   try {
+  //     const response = await fetch(`http://localhost:8080/user/check-email?email=${encodeURIComponent(email)}`);
+  //     const isEmailUnique = await response.json();
+
+  //     if (!isEmailUnique) {
+  //       setValidationError('Email already exists. Please use a different email.');
+  //       return;
+  //     }
+
+  //     const student = { name: capitalizeName, email, password };
+  //     await fetch("http://localhost:8080/user/save", {
+  //       method: "POST",
+  //       headers: { "Content-Type": "application/json" },
+  //       body: JSON.stringify(student)
+  //     });
+
+  //     setAdded(true);
+  //     setValidationError('');
+
+  //     setTimeout(() => {
+  //       navigate('/login');
+  //     }, 2000);
+
+  //   } catch (error) {
+  //     setValidationError('An error occurred. Please try again.');
+  //   }
+  // };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -39,7 +92,7 @@ const RegisterForm = () => {
     }
 
     try {
-      const response = await fetch(`http://localhost:8080/user/check-email?email=${encodeURIComponent(email)}`);
+      const response = await fetch(`http://localhost:8080/api/users/check-email?email=${encodeURIComponent(email)}`);
       const isEmailUnique = await response.json();
 
       if (!isEmailUnique) {
@@ -48,7 +101,7 @@ const RegisterForm = () => {
       }
 
       const student = { name: capitalizeName, email, password };
-      await fetch("http://localhost:8080/user/save", {
+      await fetch("http://localhost:8080/api/users/save", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(student)
@@ -58,7 +111,7 @@ const RegisterForm = () => {
       setValidationError('');
 
       setTimeout(() => {
-        navigate('/login');
+        navigate('/LoginPage');
       }, 2000);
 
     } catch (error) {

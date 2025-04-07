@@ -1,6 +1,6 @@
 import React from "react";
 
-export const WhyChooseUsSection = () => {
+const WhyChooseUsSection = () => {
     return (
       <section className="px-6 py-8">
         <h2 className="text-5xl font-md text-center mb-6 font-poppins">Why people choose StudySpace</h2>
