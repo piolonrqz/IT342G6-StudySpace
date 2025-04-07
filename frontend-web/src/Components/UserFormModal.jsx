@@ -138,7 +138,7 @@ export const UserFormModal = ({
             <Button type="button" variant="outline" onClick={onClose}>
               Cancel
             </Button>
-            <Button type="submit" disabled={isLoading}>
+            <Button type="submit" disabled={isLoading} className="bg-[#2F9FE5] hover:bg-[#2387c9]">
               {isLoading ? "Saving..." : "Save User"}
             </Button>
           </div>
