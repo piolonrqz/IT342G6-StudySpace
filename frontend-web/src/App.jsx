@@ -6,6 +6,7 @@ import LoginPage from './pages/LoginPage.jsx';
 import RegisterPage from './pages/RegisterPage.jsx';
 import AdminPage from './pages/AdminPage.jsx';
 import ProtectedAdminRoute from './Components/ProtectedAdminRoute.jsx';
+import WhyStudySpace from './pages/WhyStudySpace.jsx'
 // ... other page imports
 
 function App() {
@@ -16,6 +17,7 @@ function App() {
         <Route path="/SpacesPage" element={<SpacesPage />} />
         <Route path="/LoginPage" element={<LoginPage />} />
         <Route path="/RegisterPage" element={<RegisterPage />} />
+        <Route path="/WhyStudySpace" element={<WhyStudySpace />} />
         {/* Protect the AdminPage route */}
         <Route
           path="/AdminPage"
