@@ -40,8 +40,32 @@ public class SpaceController {
         return ResponseEntity.ok(savedSpace);
     }
 
+    @PutMapping("/update/{id}") // Use PUT for updates
+    @Operation(summary = "Update an existing space", description = "Updates the details of a space identified by its ID")
+    public ResponseEntity<SpaceEntity> updateSpace(@PathVariable int id, @RequestBody SpaceEntity spaceDetails) {
+        // Call the update method in the service
+        SpaceEntity updatedSpace = spaceService.updateSpace(id, spaceDetails); 
+        // Return the updated space or appropriate response (e.g., not found)
+        if (updatedSpace != null) {
+            return ResponseEntity.ok(updatedSpace);
+        } else {
+            // Handle case where the space with the given ID was not found
+            return ResponseEntity.notFound().build(); 
+        }
+    }
+
     @DeleteMapping("/delete/{id}")
-    public String deleteSpace(@PathVariable int id){
-        return spaceService.deleteSpace(id);
+    @Operation(summary = "Delete a space", description = "Removes a space from the system by its ID") // Added Operation annotation
+    public ResponseEntity<String> deleteSpace(@PathVariable int id){ // Changed return type for clarity
+        String result = spaceService.deleteSpace(id);
+        // You might want to return specific status codes based on the result
+        if ("Space Successfully Deleted!".equals(result)) { // Compare result string
+            return ResponseEntity.ok(result);
+        } else if ("Space not found".equals(result)){
+             return ResponseEntity.notFound().build(); // Return 404 if not found
+        } else {
+            // Handle other potential errors (e.g., internal server error)
+            return ResponseEntity.status(500).body(result); 
+        }
     }
 }

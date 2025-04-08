@@ -40,18 +40,42 @@ public class SpaceService {
     }
 
     // Update an existing space
-    // to add
+    @Operation(summary = "Update an existing space", description = "Updates a space based on the given ID and details")
+    public SpaceEntity updateSpace(int id, SpaceEntity spaceDetails) {
+        Optional<SpaceEntity> optionalSpace = spaceRepo.findById(id);
+        if (optionalSpace.isPresent()) {
+            SpaceEntity existingSpace = optionalSpace.get();
+            
+            // Update fields from spaceDetails
+            existingSpace.setName(spaceDetails.getName());
+            existingSpace.setDescription(spaceDetails.getDescription());
+            existingSpace.setLocation(spaceDetails.getLocation());
+            existingSpace.setCapacity(spaceDetails.getCapacity());
+            existingSpace.setSpaceType(spaceDetails.getSpaceType());
+            existingSpace.setAvailable(spaceDetails.isAvailable());
+            existingSpace.setOpeningTime(spaceDetails.getOpeningTime());
+            existingSpace.setClosingTime(spaceDetails.getClosingTime());
+            existingSpace.setImageUrl(spaceDetails.getImageUrl()); // Update image URL
+            
+            // The @PreUpdate annotation in SpaceEntity handles updatedAt
+            return spaceRepo.save(existingSpace); // Save the updated entity
+        } else {
+            // Return null or throw an exception if the space is not found
+            return null; 
+        }
+    }
 
 
     // Deletes a user by their ID.
+    // Refactored to use Optional and return clearer messages
     @Operation(summary = "Delete a space", description = "Removes a space from the database")
     public String deleteSpace(int id) {
-        String msg = " ";
-        if (spaceRepo.findById(id)!=null){
+        Optional<SpaceEntity> optionalSpace = spaceRepo.findById(id);
+        if (optionalSpace.isPresent()){
             spaceRepo.deleteById(id);
-            msg = "Space record successfully deleted!";
-        }else
-            msg = id + "NOT FOUND!";
-        return msg;
+            return "Space Successfully Deleted!";
+        } else {
+            return "Space not found";
+        }
     }
 }
