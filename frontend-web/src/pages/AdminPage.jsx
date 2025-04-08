@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
 import { HomeIcon, CalendarIcon, User } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { UserFormModal } from '@/Components/UserFormModal';
 import { ConfirmationModal } from "@/Components/ConfirmationModal"; 
 import { UserManagement } from '@/Components/UserManagement';
+import { SpaceManagement } from '@/Components/SpaceManagement'; 
 
 // TODO: Import or create Modal components for Add/Edit forms
 // import UserFormModal from '@/components/UserFormModal';
@@ -71,25 +71,32 @@ const Sidebar = ({
   );
 };
 
-// Placeholder components for other sections
-const SpaceManagement = () => <div>Space Management Section - TODO</div>;
-const BookingManagement = () => <div>Booking Management Section - TODO</div>;
 
 
 // --- Main AdminPage Component ---
 const AdminPage = () => {
   const [activeItem, setActiveItem] = useState("user-management");
   const [users, setUsers] = useState(null); // State for users data
-  const [spaces, setSpaces] = useState(null); // State for spaces data (TODO)
+  const [spaces, setSpaces] = useState(null); // State for spaces data
   const [bookings, setBookings] = useState(null); // State for bookings data (TODO)
   const [isLoading, setIsLoading] = useState(false); // Loading state
   const [error, setError] = useState(null); // Error state
 
-  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false); // State for delete confirmation modal
+  // User Delete Confirmation State
+  const [isUserConfirmModalOpen, setIsUserConfirmModalOpen] = useState(false); // State for delete confirmation modal
   const [userToDeleteId, setUserToDeleteId] = useState(null); // State to store the ID of the user to be deleted
 
+  // User Add/Edit Modal State
   const [isUserModalOpen, setIsUserModalOpen] = useState(false); // State for user modal
   const [editingUser, setEditingUser] = useState(null); // State for user being edited
+  
+   // Space Delete Confirmation State
+   const [isSpaceConfirmModalOpen, setIsSpaceConfirmModalOpen] = useState(false); // New state for space delete modal
+   const [spaceToDeleteId, setSpaceToDeleteId] = useState(null); // New state for space ID to delete
+
+   // Space Add/Edit Modal State
+  const [isSpaceModalOpen, setIsSpaceModalOpen] = useState(false); // New state for space modal
+  const [editingSpace, setEditingSpace] = useState(null); // New state for space being edited
 
   const API_BASE_URL = "http://localhost:8080/api"; // Adjust if your API URL is different
 
@@ -113,20 +120,38 @@ const AdminPage = () => {
     }
   }, [API_BASE_URL]); // Dependency array includes API_BASE_URL
 
+  // Fetch Spaces Function
+  const fetchSpaces = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await fetch(`${API_BASE_URL}/space/getAll`); // Use the space endpoint
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      } 
+      const data = await response.json();
+      setSpaces(data); // Update the spaces state
+    } catch (e) {
+      console.error("Failed to fetch spaces:", e);
+      setError("Failed to load spaces. Please try again.");
+      setSpaces([]); // Set to empty array on error
+    } finally {
+      setIsLoading(false);
+    }
+  }, [API_BASE_URL]); // Dependency array 
+
   // Fetch data based on active item
   useEffect(() => {
     if (activeItem === "user-management") {
       fetchUsers();
     } else if (activeItem === "space-management") {
-      // TODO: Fetch spaces -> Similar pattern to fetchUsers
-      console.log("Fetching Spaces (TODO)");
-       setSpaces([]); // Placeholder
+      fetchSpaces();
     } else if (activeItem === "booking-management") {
       // TODO: Fetch bookings -> Similar pattern to fetchUsers
        console.log("Fetching Bookings (TODO)");
        setBookings([]); // Placeholder
     }
-  }, [activeItem, fetchUsers]); // Rerun when activeItem or fetchUsers changes
+  }, [activeItem, fetchUsers, fetchSpaces]); // Rerun when activeItem or fetchUsers changes
 
 
   // --- CRUD Handlers ---
@@ -149,9 +174,9 @@ const AdminPage = () => {
 
   // Delete User
   // Function to open the confirmation modal
-  const handleOpenDeleteConfirm = (userId) => {
+  const handleOpenUserDeleteConfirm = (userId) => {
     setUserToDeleteId(userId);    // Store the ID of the user to delete
-    setIsConfirmModalOpen(true); // Open the confirmation modal
+    setIsUserConfirmModalOpen(true); // Open the confirmation modal
   };
 
   // Function to actually perform the deletion (called by ConfirmationModal)
@@ -173,7 +198,7 @@ const AdminPage = () => {
       }
        console.log("User deleted successfully:", userToDeleteId);
       fetchUsers(); // Refresh user list
-      setIsConfirmModalOpen(false); // Close the confirmation modal on success
+      setIsUserConfirmModalOpen(false); // Close the confirmation modal on success
       setUserToDeleteId(null); // Clear the stored ID
     } catch (e) {
       console.error("Failed to delete user:", e);
@@ -221,11 +246,117 @@ const AdminPage = () => {
      }
    };
 
+   // --- SPACE CRUD Handlers ---
+
+  // Add Space
+  const handleAddSpaceClick = () => {
+    setEditingSpace(null); // Ensure we are adding, not editing
+    setIsSpaceModalOpen(true);
+    setError(null); // Clear previous errors
+    console.log("Open Add Space Modal");
+  };
+
+  // Edit Space
+  const handleEditSpaceClick = (space) => {
+    setEditingSpace(space);
+    setIsSpaceModalOpen(true);
+    setError(null); // Clear previous errors
+    console.log("Open Edit Space Modal for:", space);
+  };
+
+  // Open Delete Space Confirmation
+  const handleOpenSpaceDeleteConfirm = (spaceId) => {
+    setSpaceToDeleteId(spaceId);    // Store the ID of the space to delete
+    setIsSpaceConfirmModalOpen(true); // Open the space confirmation modal
+    setError(null); // Clear previous errors
+  };
+
+  // Perform Delete Space
+  const performDeleteSpace = async () => {
+    if (!spaceToDeleteId) return; 
+
+    console.log("Attempting to delete space:", spaceToDeleteId);
+    setIsLoading(true); 
+    setError(null);
+    try {
+      const response = await fetch(`${API_BASE_URL}/space/delete/${spaceToDeleteId}`, {
+        method: 'DELETE',
+      });
+      
+      const responseText = await response.text(); // Read response text regardless of status
+
+      if (!response.ok) {
+          // Use specific message from backend if available, otherwise use status
+          throw new Error(`Failed to delete space: ${response.status} - ${responseText || 'Unknown error'}`);
+      }
+       console.log("Space deleted successfully:", spaceToDeleteId, "Response:", responseText);
+      fetchSpaces(); // Refresh space list
+      setIsSpaceConfirmModalOpen(false); // Close the confirmation modal on success
+      setSpaceToDeleteId(null); // Clear the stored ID
+    } catch (e) {
+      console.error("Failed to delete space:", e);
+      setError(`Failed to delete space. ${e.message}`);
+      // Optionally keep the confirmation modal open on error
+    } finally {
+      setIsLoading(false); 
+    }
+  };
+
+  // Save Space (Add & Edit)
+  const handleSaveSpace = async (spaceData) => {
+     console.log("Saving space:", spaceData);
+     setIsLoading(true);
+     setError(null);
+     const isEditing = !!editingSpace; 
+     const url = isEditing ? `${API_BASE_URL}/space/update/${editingSpace.id}` : `${API_BASE_URL}/space/save`;
+     const method = isEditing ? 'PUT' : 'POST';
+
+     try {
+         // Ensure capacity is a number
+         const payload = {
+           ...spaceData,
+           capacity: parseInt(spaceData.capacity, 10) || 0, // Convert capacity to integer
+           available: Boolean(spaceData.available) // Ensure available is boolean
+         };
+
+         console.log("Payload:", JSON.stringify(payload)); // Log the payload being sent
+
+         const response = await fetch(url, {
+             method: method,
+             headers: {
+                 'Content-Type': 'application/json',
+             },
+             body: JSON.stringify(payload),
+         });
+
+         const responseData = await response.json(); // Assuming backend returns JSON on success/error
+
+         if (!response.ok) {
+             console.error("Error response from backend:", responseData);
+             throw new Error(`Failed to save space: ${response.status} - ${responseData.message || responseData.error || 'Unknown error'}`);
+         }
+
+         console.log("Space saved successfully:", responseData);
+         setIsSpaceModalOpen(false); // Close modal on success
+         setEditingSpace(null);
+         fetchSpaces(); // Refresh list
+     } catch (e) {
+         console.error("Failed to save space:", e);
+         setError(`Failed to save space. ${e.message}`);
+         // Keep modal open on error
+     } finally {
+         setIsLoading(false);
+     }
+   };
+
 
   // --- Render Logic ---
   const renderContent = () => {
     if (isLoading && activeItem === 'user-management' && !users) {
-         return <div className="text-center py-10">Loading...</div>;
+         return <div className="text-center py-10">Loading Users...</div>;
+    }
+    if (isLoading && activeItem === 'space-management' && !spaces) {
+      return <div className="text-center py-10">Loading Spaces...</div>;
     }
      if (error) {
          return <div className="text-center py-10 text-red-600">Error: {error}</div>;
@@ -236,12 +367,16 @@ const AdminPage = () => {
         return <UserManagement 
           users={users} 
           onEdit={handleEditUserClick} 
-          onDelete={handleOpenDeleteConfirm} // Pass the function to open the confirm modal
+          onDelete={handleOpenUserDeleteConfirm} // Pass the function to open the confirm modal
           onAdd={handleAddUserClick} 
         />;
       case "space-management":
-        // TODO: Render SpaceManagement component with fetched spaces and handlers
-        return <SpaceManagement />;
+        return <SpaceManagement 
+          spaces={spaces} 
+          onEdit={handleEditSpaceClick} 
+          onDelete={handleOpenSpaceDeleteConfirm} 
+          onAdd={handleAddSpaceClick} 
+        />;
       case "booking-management":
         // TODO: Render BookingManagement component with fetched bookings and handlers
         return <BookingManagement />;
@@ -303,20 +438,69 @@ const AdminPage = () => {
           )}
 
           {/* Delete Confirmation Modal */}
-          {isConfirmModalOpen && (
+          {isUserConfirmModalOpen && (
              <ConfirmationModal
-                 isOpen={isConfirmModalOpen}
+                 isOpen={isUserConfirmModalOpen}
                  onClose={() => {
-                     setIsConfirmModalOpen(false);
+                  setIsUserConfirmModalOpen(false);
                      setUserToDeleteId(null);
-                     // Optionally clear error if it's specific to delete
-                     // setError(null); 
+                     setError(null); // Clear error on close
                  }}
                  onConfirm={performDeleteUser} // Pass the actual delete function
                  title="Delete User?"
                  description={`Are you sure you want to delete user ID: ${userToDeleteId}? This action cannot be undone.`}
                  confirmText="Delete"
                  isLoading={isLoading} // Indicate loading during delete operation
+             />
+          )}
+
+          {/* User Delete Confirmation Modal */}
+          {isUserConfirmModalOpen && ( // Use renamed state
+             <ConfirmationModal
+                 isOpen={isUserConfirmModalOpen} // Use renamed state
+                 onClose={() => {
+                     setIsUserConfirmModalOpen(false); // Use renamed state setter
+                     setUserToDeleteId(null);
+                     setError(null); // Clear error on close
+                 }}
+                 onConfirm={performDeleteUser} 
+                 title="Delete User?"
+                 description={`Are you sure you want to delete user ID: ${userToDeleteId}? This action cannot be undone.`}
+                 confirmText="Delete"
+                 isLoading={isLoading}
+             />
+          )}
+
+          {/* Space Form Modal */}
+          {isSpaceModalOpen && (
+            <SpaceFormModal
+              isOpen={isSpaceModalOpen}
+              onClose={() => {
+                setIsSpaceModalOpen(false);
+                setEditingSpace(null);
+                setError(null); // Clear error on close
+              }}
+              onSave={handleSaveSpace}
+              space={editingSpace}
+              isLoading={isLoading}
+              error={error} 
+            />
+          )}
+
+          {/* Space Delete Confirmation Modal */}
+           {isSpaceConfirmModalOpen && (
+             <ConfirmationModal
+                 isOpen={isSpaceConfirmModalOpen}
+                 onClose={() => {
+                     setIsSpaceConfirmModalOpen(false);
+                     setSpaceToDeleteId(null);
+                     setError(null); // Clear error on close
+                 }}
+                 onConfirm={performDeleteSpace} // Pass the space delete function
+                 title="Delete Space?" // Updated title
+                 description={`Are you sure you want to delete space ID: ${spaceToDeleteId}? This also deletes associated bookings and cannot be undone.`} // Updated description
+                 confirmText="Delete"
+                 isLoading={isLoading} 
              />
           )}
 
