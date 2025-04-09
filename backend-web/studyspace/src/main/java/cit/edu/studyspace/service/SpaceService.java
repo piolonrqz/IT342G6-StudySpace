@@ -55,7 +55,12 @@ public class SpaceService {
             existingSpace.setAvailable(spaceDetails.isAvailable());
             existingSpace.setOpeningTime(spaceDetails.getOpeningTime());
             existingSpace.setClosingTime(spaceDetails.getClosingTime());
-            existingSpace.setImageUrl(spaceDetails.getImageUrl());
+                if (spaceDetails.getImageFilename() != null) {
+                    // Optional: Add logic here to delete the old file associated with existingSpace.getImageFilename()
+                    // using the FileStorageService before updating the filename.
+                    existingSpace.setImageFilename(spaceDetails.getImageFilename());
+            }
+            // If spaceDetails.getImageFilename() is null, we don't touch existingSpace.imageFilename
             existingSpace.setPrice(spaceDetails.getPrice());
             
             // The @PreUpdate annotation in SpaceEntity handles updatedAt

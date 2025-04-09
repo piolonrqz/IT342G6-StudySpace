@@ -64,9 +64,8 @@ public class SpaceEntity {
     @Schema(description = "Last update timestamp of the space listing")
     private LocalDateTime updatedAt;
 
-    @Column(length = 500) // Allow a reasonable length for the URL
-    @Schema(description = "URL of an image representing the space", example = "https://example.com/images/space1.jpg")
-    private String imageUrl;
+    @Column(name = "image_filename")
+    private String imageFilename; 
     
     @OneToMany(mappedBy = "space", cascade = CascadeType.ALL)
     private Set<BookingEntity> bookings = new HashSet<>();
@@ -172,12 +171,12 @@ public class SpaceEntity {
         this.updatedAt = updatedAt;
     }
 
-    public String getImageUrl() {
-        return imageUrl;
+    public String getImageFilename() {
+        return imageFilename;
     }
 
-    public void setImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
+    public void setImageFilename(String imageFilename) {
+        this.imageFilename = imageFilename;
     }
 
     public Set<BookingEntity> getBookings() {
