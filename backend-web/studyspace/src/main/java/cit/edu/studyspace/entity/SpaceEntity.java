@@ -1,6 +1,8 @@
 package cit.edu.studyspace.entity;
 
 import jakarta.persistence.*;
+
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
@@ -49,6 +51,10 @@ public class SpaceEntity {
     @Column(nullable = false)
     @Schema(description = "Closing time of the space", example = "20:00")
     private String closingTime;
+
+    @Column(precision = 10, scale = 2) 
+    @Schema(description = "Price per hour for booking the space", example = "15.50")
+    private BigDecimal price;
     
     @Column(nullable = false)
     @Schema(description = "Creation timestamp of the space listing")
@@ -140,6 +146,14 @@ public class SpaceEntity {
 
     public void setClosingTime(String closingTime) {
         this.closingTime = closingTime;
+    }
+
+    public BigDecimal getPrice() {
+        return price;
+    }
+
+    public void setPrice(BigDecimal price) {
+        this.price = price;
     }
 
     public LocalDateTime getCreatedAt() {

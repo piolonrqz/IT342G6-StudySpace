@@ -4,6 +4,7 @@ import { UserFormModal } from '@/Components/UserFormModal';
 import { ConfirmationModal } from "@/Components/ConfirmationModal"; 
 import { UserManagement } from '@/Components/UserManagement';
 import { SpaceManagement } from '@/Components/SpaceManagement'; 
+import { SpaceFormModal } from '@/Components/SpaceFormModal';
 
 // TODO: Import or create Modal components for Add/Edit forms
 // import UserFormModal from '@/components/UserFormModal';
@@ -312,11 +313,21 @@ const AdminPage = () => {
      const method = isEditing ? 'PUT' : 'POST';
 
      try {
+        // Ensure numeric types are correct, parse price
+        const capacityInt = parseInt(spaceData.capacity, 10) || 0;
+        const priceFloat = parseFloat(spaceData.price); // Parse price as float
+
+         // Basic frontend validation check again before sending
+         if (isNaN(priceFloat) || priceFloat < 0) {
+           throw new Error("Invalid price value provided."); 
+         }
+
          // Ensure capacity is a number
          const payload = {
            ...spaceData,
-           capacity: parseInt(spaceData.capacity, 10) || 0, // Convert capacity to integer
-           available: Boolean(spaceData.available) // Ensure available is boolean
+           capacity: capacityInt, // Convert capacity to integer
+           available: Boolean(spaceData.available), // Ensure available is boolean
+           price: priceFloat, // Include parsed price
          };
 
          console.log("Payload:", JSON.stringify(payload)); // Log the payload being sent
@@ -332,9 +343,9 @@ const AdminPage = () => {
          const responseData = await response.json(); // Assuming backend returns JSON on success/error
 
          if (!response.ok) {
-             console.error("Error response from backend:", responseData);
-             throw new Error(`Failed to save space: ${response.status} - ${responseData.message || responseData.error || 'Unknown error'}`);
-         }
+          console.error("Error response from backend:", responseData);
+          throw new Error(`Failed to save space: ${response.status} - ${responseData.message || responseData.error || 'Unknown error'}`);
+      }
 
          console.log("Space saved successfully:", responseData);
          setIsSpaceModalOpen(false); // Close modal on success

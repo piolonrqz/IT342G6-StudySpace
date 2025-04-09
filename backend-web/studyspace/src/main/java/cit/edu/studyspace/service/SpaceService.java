@@ -55,7 +55,8 @@ public class SpaceService {
             existingSpace.setAvailable(spaceDetails.isAvailable());
             existingSpace.setOpeningTime(spaceDetails.getOpeningTime());
             existingSpace.setClosingTime(spaceDetails.getClosingTime());
-            existingSpace.setImageUrl(spaceDetails.getImageUrl()); // Update image URL
+            existingSpace.setImageUrl(spaceDetails.getImageUrl());
+            existingSpace.setPrice(spaceDetails.getPrice());
             
             // The @PreUpdate annotation in SpaceEntity handles updatedAt
             return spaceRepo.save(existingSpace); // Save the updated entity
