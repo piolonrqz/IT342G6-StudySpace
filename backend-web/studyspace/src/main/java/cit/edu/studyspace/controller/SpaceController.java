@@ -1,7 +1,6 @@
 package cit.edu.studyspace.controller;
 
 import cit.edu.studyspace.entity.SpaceEntity;
-import cit.edu.studyspace.entity.SpaceType;
 import cit.edu.studyspace.service.SpaceService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -11,9 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import cit.edu.studyspace.service.FileStorageService;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.math.BigDecimal;
 import java.util.List;
-import java.util.Locale;
 
 @RestController
 @RequestMapping("/api/space")
