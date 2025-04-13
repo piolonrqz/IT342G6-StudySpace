@@ -6,6 +6,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  DialogClose,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -39,41 +40,42 @@ export const SpaceFormModal = ({
     available: true, // Default to true
     openingTime: "08:00", // Default opening time
     closingTime: "20:00", // Default closing time
-    imageUrl: "", 
     price: "",
   });
 
+   // Add state for file handling
+   const [selectedFile, setSelectedFile] = useState(null);
+   const [previewUrl, setPreviewUrl] = useState("");
+
   useEffect(() => {
     if (space) {
-      // Populate form if editing an existing space
       setFormData({
         name: space.name || "",
         description: space.description || "",
         location: space.location || "",
-        capacity: space.capacity?.toString() || "", // Convert number to string for input
+        capacity: space.capacity?.toString() || "",
         spaceType: space.spaceType || SPACE_TYPES[0],
-        available: space.available !== undefined ? space.available : true, // Handle boolean
+        available: space.available !== undefined ? space.available : true,
         openingTime: space.openingTime || "08:00",
         closingTime: space.closingTime || "20:00",
-        imageUrl: space.imageUrl || "",
         price: space.price?.toString() || "",
       });
-    } else {
-      // Reset form if adding a new space
-      setFormData({
-        name: "",
-        description: "",
-        location: "",
-        capacity: "",
-        spaceType: SPACE_TYPES[0],
-        available: true,
-        openingTime: "08:00",
-        closingTime: "20:00",
-        imageUrl: "",
-        price: "",
-      });
+      // Set preview URL if space has an image
+      if (space.imageFilename) {
+        setPreviewUrl(`/uploads/${space.imageFilename}`); // Adjust URL as needed
+      }
     }
-  }, [space]); // Rerun effect when the space prop changes
+  }, [space]);
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setSelectedFile(file);
+      // Create preview URL
+      const fileUrl = URL.createObjectURL(file);
+      setPreviewUrl(fileUrl);
+    }
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -111,8 +113,38 @@ export const SpaceFormModal = ({
         return;
     }
 
-    onSave(formData); // Pass the form data to the save handler
-  };
+    // Create the space data object from the form state
+    const spaceDetails = {
+        name: formData.name,
+        description: formData.description,
+        location: formData.location,
+        capacity: parseInt(formData.capacity, 10), 
+        spaceType: formData.spaceType,
+        available: formData.available, 
+        openingTime: formData.openingTime,
+        closingTime: formData.closingTime,
+        price: parseFloat(formData.price), 
+    };
+
+    // Create FormData object
+    const submitFormData = new FormData();
+
+    // Convert the spaceDetails object to a JSON string
+    const spaceDetailsJson = JSON.stringify(spaceDetails);
+    // Create a Blob from the JSON string with the correct MIME type
+    const spaceDataBlob = new Blob([spaceDetailsJson], { type: 'application/json' });
+
+    // Append the Blob to FormData with the key 'spaceData'
+    submitFormData.append('spaceData', spaceDataBlob);
+
+    // Append file if selected, with the key 'imageFile'
+    if (selectedFile) {
+        submitFormData.append('imageFile', selectedFile);
+    }
+
+   // Pass FormData to onSave
+   onSave(submitFormData);
+ };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -241,19 +273,6 @@ export const SpaceFormModal = ({
             </div>
           </div>
 
-           {/* Image URL */}
-           <div>
-              <Label htmlFor="imageUrl">Image URL</Label>
-              <Input
-                  id="imageUrl"
-                  name="imageUrl"
-                  type="url" // Use url type
-                  value={formData.imageUrl}
-                  onChange={handleInputChange}
-                  placeholder="https://example.com/image.jpg"
-              />
-            </div>
-
           {/* Availability */}
           <div className="flex items-center space-x-2 pt-2">
              <Checkbox 
@@ -267,6 +286,28 @@ export const SpaceFormModal = ({
              </Label>
           </div>
 
+          {/* Add Image Upload Field */}
+          <div>
+            <Label htmlFor="imageFile">Space Image</Label>
+            <Input
+              id="imageFile"
+              name="imageFile"
+              type="file"
+              accept="image/*"
+              onChange={handleFileChange}
+              className="mt-1"
+            />
+            {/* Image Preview */}
+            {previewUrl && (
+              <div className="mt-2">
+                <img
+                  src={previewUrl}
+                  alt="Preview"
+                  className="max-w-[200px] h-auto rounded-lg"
+                />
+              </div>
+            )}
+          </div>
           {/* Error Message */}
           {error && <p className="text-red-500 text-sm pt-2">{error}</p>}
 

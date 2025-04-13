@@ -1,13 +1,31 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
 import path from "path"
+import react from "@vitejs/plugin-react"
+import { defineConfig } from "vite"
 
-// https://vite.dev/config/
+// https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "./src"), // This line configures the @ alias
+      "@": path.resolve(__dirname, "./src"),
     },
   },
+  server: {
+    proxy: {
+      // Proxy requests starting with /api to your backend
+      '/api': {
+        target: 'http://localhost:8080', // Your Spring Boot backend address
+        changeOrigin: true,
+        // secure: false, // Uncomment if backend uses self-signed HTTPS cert
+        // rewrite: (path) => path.replace(/^\/api/, ''), // Keep if your backend endpoints don't start with /api
+      },
+      // --- Add this rule for image uploads ---
+      '/uploads': {
+        target: 'http://localhost:8080', // Your Spring Boot backend address
+        changeOrigin: true, // Necessary for virtual hosted sites
+        // secure: false, // Uncomment if backend uses self-signed HTTPS cert
+        // NO rewrite here, because the backend *is* serving from /uploads/**
+      }
+    }
+  }
 })

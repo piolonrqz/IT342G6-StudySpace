@@ -56,9 +56,10 @@ export const SpaceManagement = ({ spaces, onEdit, onDelete, onAdd }) => {
               // Ensure no whitespace before first <td>
               <tr key={space.id} className="border-b last:border-b-0 hover:bg-gray-50 text-sm text-gray-700"><td className="py-3 px-3">{space.id}</td> 
                 <td className="py-2 px-3"> 
-                  {space.imageUrl ? (
+                  {space.imageFilename ? ( 
                     <img 
-                      src={space.imageUrl} 
+                      /* Change the src URL to match MvcConfig */
+                      src={`/uploads/${space.imageFilename}`} 
                       alt={space.name || 'Space image'} 
                       className="h-10 w-10 object-cover rounded" 
                       onError={(e) => { e.target.style.display='none'; }} 

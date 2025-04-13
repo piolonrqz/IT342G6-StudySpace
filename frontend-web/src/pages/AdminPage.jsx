@@ -6,9 +6,6 @@ import { UserManagement } from '@/Components/UserManagement';
 import { SpaceManagement } from '@/Components/SpaceManagement'; 
 import { SpaceFormModal } from '@/Components/SpaceFormModal';
 
-// TODO: Import or create Modal components for Add/Edit forms
-// import UserFormModal from '@/components/UserFormModal';
-
 
 // StatsCard Component
 const StatsCard = ({ title, value }) => {
@@ -121,25 +118,24 @@ const AdminPage = () => {
     }
   }, [API_BASE_URL]); // Dependency array includes API_BASE_URL
 
-  // Fetch Spaces Function
+  // Fetch spaces function
   const fetchSpaces = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${API_BASE_URL}/space/getAll`); // Use the space endpoint
+      const response = await fetch(`${API_BASE_URL}/space/getAll`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
-      } 
-      const data = await response.json();
-      setSpaces(data); // Update the spaces state
+      }
+      const data = await response.json(); // Make sure to parse JSON
+      setSpaces(data);
     } catch (e) {
       console.error("Failed to fetch spaces:", e);
       setError("Failed to load spaces. Please try again.");
-      setSpaces([]); // Set to empty array on error
     } finally {
       setIsLoading(false);
     }
-  }, [API_BASE_URL]); // Dependency array 
+  }, [API_BASE_URL]);
 
   // Fetch data based on active item
   useEffect(() => {
@@ -155,7 +151,7 @@ const AdminPage = () => {
   }, [activeItem, fetchUsers, fetchSpaces]); // Rerun when activeItem or fetchUsers changes
 
 
-  // --- CRUD Handlers ---
+  // --- CRUD Handlers --- User
 
   // Add User
   const handleAddUserClick = () => {
@@ -304,61 +300,73 @@ const AdminPage = () => {
   };
 
   // Save Space (Add & Edit)
-  const handleSaveSpace = async (spaceData) => {
-     console.log("Saving space:", spaceData);
-     setIsLoading(true);
-     setError(null);
-     const isEditing = !!editingSpace; 
-     const url = isEditing ? `${API_BASE_URL}/space/update/${editingSpace.id}` : `${API_BASE_URL}/space/save`;
-     const method = isEditing ? 'PUT' : 'POST';
+  const handleSaveSpace = async (formDataFromModal) => {
+    console.log("Saving space...");
+    
+    for (let [key, value] of formDataFromModal.entries()) {
+      console.log(`${key}:`, value);
+    }
+    setIsLoading(true);
+    setError(null);
+    const isEditing = !!editingSpace; // Use editingSpace state to determine Add vs Edit
+    const url = isEditing ? `${API_BASE_URL}/space/update/${editingSpace.id}` : `${API_BASE_URL}/space/save`;
+    const method = isEditing ? 'PUT' : 'POST';
 
-     try {
-        // Ensure numeric types are correct, parse price
-        const capacityInt = parseInt(spaceData.capacity, 10) || 0;
-        const priceFloat = parseFloat(spaceData.price); // Parse price as float
+    try {
+        
+        // --- Log FormData contents (for debugging) ---
+        // Note: You can't directly log FormData objects easily.
+        // You can iterate through entries if needed:
+        // for (let [key, value] of formData.entries()) {
+        //     console.log(`${key}:`, value);
+        // }
 
-         // Basic frontend validation check again before sending
-         if (isNaN(priceFloat) || priceFloat < 0) {
-           throw new Error("Invalid price value provided."); 
-         }
+        // --- Make the fetch request with the received FormData ---
+        const response = await fetch(url, {
+          method: method,
+          body: formDataFromModal, // Send the FormData object received from the modal
+          // NO 'Content-Type' header - browser sets it automatically for FormData
+      });
 
-         // Ensure capacity is a number
-         const payload = {
-           ...spaceData,
-           capacity: capacityInt, // Convert capacity to integer
-           available: Boolean(spaceData.available), // Ensure available is boolean
-           price: priceFloat, // Include parsed price
-         };
+         // Check response status before parsing JSON
+        if (!response.ok) {
+          // Try to get more detailed error from backend response body
+          const errorText = await response.text(); // Read as text first
+          console.error("Error response text:", errorText);
+          let errorMessage = `HTTP error! status: ${response.status} - ${response.statusText}`;
+          try { // Try parsing as JSON in case backend sends structured errors
+            const errorJson = JSON.parse(errorText);
+            errorMessage = `Failed to save space: ${response.status} - ${errorJson.message || errorJson.error || errorText}`;
+          } catch (parseError) {
+            // If JSON parsing fails, use the text content
+            errorMessage = `Failed to save space: ${response.status} - ${errorText || response.statusText}`;
+          }
+         throw new Error(errorMessage);
+       }
 
-         console.log("Payload:", JSON.stringify(payload)); // Log the payload being sent
+         // Add handling for existing image when editing
+        if (isEditing && editingSpace?.imageFilename && !formDataFromModal.has('imageFile')) {
+          // Corrected: Use formDataFromModal here
+          // Also check if a *new* file was actually selected before appending this.
+          // We only need to tell the backend about the existing image if no *new* image was uploaded.
+          formDataFromModal.append('existingImageFilename', editingSpace.imageFilename);
+        }
 
-         const response = await fetch(url, {
-             method: method,
-             headers: {
-                 'Content-Type': 'application/json',
-             },
-             body: JSON.stringify(payload),
-         });
 
-         const responseData = await response.json(); // Assuming backend returns JSON on success/error
-
-         if (!response.ok) {
-          console.error("Error response from backend:", responseData);
-          throw new Error(`Failed to save space: ${response.status} - ${responseData.message || responseData.error || 'Unknown error'}`);
-      }
-
-         console.log("Space saved successfully:", responseData);
-         setIsSpaceModalOpen(false); // Close modal on success
-         setEditingSpace(null);
-         fetchSpaces(); // Refresh list
-     } catch (e) {
-         console.error("Failed to save space:", e);
-         setError(`Failed to save space. ${e.message}`);
-         // Keep modal open on error
-     } finally {
-         setIsLoading(false);
-     }
-   };
+        // Assuming backend sends back the saved/updated space object on success
+        const responseData = await response.json(); 
+        console.log("Space saved successfully:", responseData);
+        setIsSpaceModalOpen(false); // Close modal on success
+        setEditingSpace(null);
+        fetchSpaces(); // Refresh list
+    } catch (e) {
+        console.error("Failed to save space catch block:", e);
+        setError(`Failed to save space. ${e.message}`); // Display the constructed error message
+        // Keep modal open on error
+    } finally {
+        setIsLoading(false);
+    }
+  };
 
 
   // --- Render Logic ---
@@ -372,6 +380,12 @@ const AdminPage = () => {
      if (error) {
          return <div className="text-center py-10 text-red-600">Error: {error}</div>;
      }
+     if (isLoading) {
+      return <div className="text-center py-10">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2F9FE5] mx-auto"></div>
+          <p className="mt-4 text-gray-600">Saving space details...</p>
+      </div>;
+  }
 
     switch (activeItem) {
       case "user-management":
@@ -390,7 +404,10 @@ const AdminPage = () => {
         />;
       case "booking-management":
         // TODO: Render BookingManagement component with fetched bookings and handlers
-        return <BookingManagement />;
+        return <div className="p-6 bg-white rounded-lg shadow">
+          <h2 className="text-xl font-semibold mb-4">Booking Management</h2>
+          <p className="text-gray-500">This feature is coming soon.</p>
+          </div>;
       default:
         return <div>Select an option from the sidebar.</div>;
     }
@@ -446,23 +463,6 @@ const AdminPage = () => {
               isLoading={isLoading}
               error={error} // Pass error state specific to the form if needed
             />
-          )}
-
-          {/* Delete Confirmation Modal */}
-          {isUserConfirmModalOpen && (
-             <ConfirmationModal
-                 isOpen={isUserConfirmModalOpen}
-                 onClose={() => {
-                  setIsUserConfirmModalOpen(false);
-                     setUserToDeleteId(null);
-                     setError(null); // Clear error on close
-                 }}
-                 onConfirm={performDeleteUser} // Pass the actual delete function
-                 title="Delete User?"
-                 description={`Are you sure you want to delete user ID: ${userToDeleteId}? This action cannot be undone.`}
-                 confirmText="Delete"
-                 isLoading={isLoading} // Indicate loading during delete operation
-             />
           )}
 
           {/* User Delete Confirmation Modal */}
