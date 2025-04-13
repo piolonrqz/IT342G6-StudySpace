@@ -2,11 +2,13 @@ package cit.edu.studyspace.controller;
 
 import cit.edu.studyspace.config.JwtUtil;
 import cit.edu.studyspace.entity.UserEntity;
+import cit.edu.studyspace.entity.UserRole;
 import cit.edu.studyspace.service.UserService;
 import cit.edu.studyspace.repository.UserRepo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
+import cit.edu.studyspace.dto.UserCreateDTO;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -92,12 +94,23 @@ public class UserController {
 
     @PostMapping("/save")
     @Operation(summary = "Create a new user", description = "Adds a new user to the system")
-    public ResponseEntity<UserEntity> saveUser(@RequestBody UserEntity user) {
+    public ResponseEntity<UserEntity> saveUser(@RequestBody UserCreateDTO dto) {
+        UserEntity user = new UserEntity();
+        user.setFirstName(dto.getFirstName());
+        user.setLastName(dto.getLastName());
+        user.setEmail(dto.getEmail());
+        user.setPassword(dto.getPassword());
+        user.setPhoneNumber(dto.getPhoneNumber());
+        user.setEmailVerified(dto.isEmailVerified());
+        user.setCreatedAt(dto.getCreatedAt());
+        user.setUpdatedAt(dto.getUpdatedAt());
+        user.setLastLogin(dto.getLastLogin());
+        user.setRole(UserRole.valueOf(dto.getRole()));
 
         UserEntity savedUser = userService.saveUser(user);
-        
         return ResponseEntity.ok(savedUser);
     }
+
 
     @PutMapping("/update/{id}")
     public ResponseEntity<UserEntity> updateUser(@PathVariable int id, @RequestBody UserEntity updatedUser) {
