@@ -30,21 +30,6 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
 
-        String path = request.getRequestURI();
-
-        // Exclude paths from JWT filter
-        if (path.startsWith("/swagger-ui/") ||
-            path.startsWith("/v3/api-docs/") ||
-            path.startsWith("/swagger-resources/") ||
-            path.startsWith("/webjars/") ||
-            path.startsWith("/api/users") ||
-            path.startsWith("/api/space") ||
-            path.startsWith("/api/bookings")) {
-
-            chain.doFilter(request, response);
-            return;
-        }
-
         final String authorizationHeader = request.getHeader("Authorization");
 
         String userId = null;
@@ -60,6 +45,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         }
 
         if (userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+
             Optional<UserEntity> userEntityOptional = userRepo.findById(Integer.parseInt(userId));
 
             if (userEntityOptional.isPresent() && jwtUtil.validateToken(jwt, userId)) {
@@ -67,7 +53,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(
-                                userEntity, null, Collections.emptyList());
+                                userEntity, null, Collections.emptyList()); // You can set roles here if needed.
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
