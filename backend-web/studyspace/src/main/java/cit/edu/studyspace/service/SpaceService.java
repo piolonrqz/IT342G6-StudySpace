@@ -1,5 +1,7 @@
 package cit.edu.studyspace.service;
 
+import cit.edu.studyspace.dto.SpaceCreateDTO;
+import cit.edu.studyspace.dto.SpaceUpdateDTO;
 import cit.edu.studyspace.entity.SpaceEntity;
 import cit.edu.studyspace.repository.SpaceRepo;
 import io.swagger.v3.oas.annotations.Operation;
@@ -35,36 +37,42 @@ public class SpaceService {
 
     // Creates a new space.
     @Operation(summary = "Create a new space", description = "Adds a new space to the system")
-    public SpaceEntity saveSpace(SpaceEntity space) {
+    public SpaceEntity createSpaceFromDTO(SpaceCreateDTO dto) {
+        SpaceEntity space = new SpaceEntity();
+        space.setName(dto.getName());
+        space.setDescription(dto.getDescription());
+        space.setLocation(dto.getLocation());
+        space.setCapacity(dto.getCapacity());
+        space.setSpaceType(dto.getSpaceType());
+        space.setAvailable(dto.isAvailable());
+        space.setOpeningTime(dto.getOpeningTime());
+        space.setClosingTime(dto.getClosingTime());
+        space.setImageUrl(dto.getImageUrl());
+
         return spaceRepo.save(space);
     }
 
     // Update an existing space
     @Operation(summary = "Update an existing space", description = "Updates a space based on the given ID and details")
-    public SpaceEntity updateSpace(int id, SpaceEntity spaceDetails) {
+    public SpaceEntity updateSpaceFromDTO(int id, SpaceUpdateDTO dto) {
         Optional<SpaceEntity> optionalSpace = spaceRepo.findById(id);
         if (optionalSpace.isPresent()) {
-            SpaceEntity existingSpace = optionalSpace.get();
-            
-            // Update fields from spaceDetails
-            existingSpace.setName(spaceDetails.getName());
-            existingSpace.setDescription(spaceDetails.getDescription());
-            existingSpace.setLocation(spaceDetails.getLocation());
-            existingSpace.setCapacity(spaceDetails.getCapacity());
-            existingSpace.setSpaceType(spaceDetails.getSpaceType());
-            existingSpace.setAvailable(spaceDetails.isAvailable());
-            existingSpace.setOpeningTime(spaceDetails.getOpeningTime());
-            existingSpace.setClosingTime(spaceDetails.getClosingTime());
-            existingSpace.setImageUrl(spaceDetails.getImageUrl()); // Update image URL
-            
-            // The @PreUpdate annotation in SpaceEntity handles updatedAt
-            return spaceRepo.save(existingSpace); // Save the updated entity
-        } else {
-            // Return null or throw an exception if the space is not found
-            return null; 
-        }
-    }
+            SpaceEntity space = optionalSpace.get();
 
+            space.setName(dto.getName());
+            space.setDescription(dto.getDescription());
+            space.setLocation(dto.getLocation());
+            space.setCapacity(dto.getCapacity());
+            space.setSpaceType(dto.getSpaceType());
+            space.setAvailable(dto.isAvailable());
+            space.setOpeningTime(dto.getOpeningTime());
+            space.setClosingTime(dto.getClosingTime());
+            space.setImageUrl(dto.getImageUrl());
+
+            return spaceRepo.save(space);
+        }
+        return null;
+    }
 
     // Deletes a user by their ID.
     // Refactored to use Optional and return clearer messages
