@@ -1,5 +1,7 @@
 package cit.edu.studyspace.controller;
 
+import cit.edu.studyspace.dto.SpaceCreateDTO;
+import cit.edu.studyspace.dto.SpaceUpdateDTO;
 import cit.edu.studyspace.entity.SpaceEntity;
 import cit.edu.studyspace.service.SpaceService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -33,24 +35,19 @@ public class SpaceController {
 
     @PostMapping("/save")
     @Operation(summary = "Create a new space", description = "Adds a new space to the system")
-    public ResponseEntity<SpaceEntity> saveSpace(@RequestBody SpaceEntity space) {
-
-        SpaceEntity savedSpace = spaceService.saveSpace(space);
-        
+    public ResponseEntity<SpaceEntity> saveSpace(@RequestBody SpaceCreateDTO spaceDTO) {
+        SpaceEntity savedSpace = spaceService.createSpaceFromDTO(spaceDTO);
         return ResponseEntity.ok(savedSpace);
     }
 
-    @PutMapping("/update/{id}") // Use PUT for updates
-    @Operation(summary = "Update an existing space", description = "Updates the details of a space identified by its ID")
-    public ResponseEntity<SpaceEntity> updateSpace(@PathVariable int id, @RequestBody SpaceEntity spaceDetails) {
-        // Call the update method in the service
-        SpaceEntity updatedSpace = spaceService.updateSpace(id, spaceDetails); 
-        // Return the updated space or appropriate response (e.g., not found)
-        if (updatedSpace != null) {
-            return ResponseEntity.ok(updatedSpace);
+    @PutMapping("/update/{id}")
+    @Operation(summary = "Update space", description = "Update space using DTO")
+    public ResponseEntity<SpaceEntity> updateSpace(@PathVariable int id, @RequestBody SpaceUpdateDTO dto) {
+        SpaceEntity updated = spaceService.updateSpaceFromDTO(id, dto);
+        if (updated != null) {
+            return ResponseEntity.ok(updated);
         } else {
-            // Handle case where the space with the given ID was not found
-            return ResponseEntity.notFound().build(); 
+            return ResponseEntity.notFound().build();
         }
     }
 

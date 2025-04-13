@@ -2,11 +2,14 @@ package cit.edu.studyspace.controller;
 
 import cit.edu.studyspace.config.JwtUtil;
 import cit.edu.studyspace.entity.UserEntity;
+import cit.edu.studyspace.entity.UserRole;
 import cit.edu.studyspace.service.UserService;
 import cit.edu.studyspace.repository.UserRepo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
+import cit.edu.studyspace.dto.UserCreateDTO;
+import cit.edu.studyspace.dto.UserUpdateDTO;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -92,33 +95,35 @@ public class UserController {
 
     @PostMapping("/save")
     @Operation(summary = "Create a new user", description = "Adds a new user to the system")
-    public ResponseEntity<UserEntity> saveUser(@RequestBody UserEntity user) {
+    public ResponseEntity<UserEntity> saveUser(@RequestBody UserCreateDTO dto) {
+        UserEntity user = new UserEntity();
+        user.setFirstName(dto.getFirstName());
+        user.setLastName(dto.getLastName());
+        user.setEmail(dto.getEmail());
+        user.setPassword(dto.getPassword());
+        user.setPhoneNumber(dto.getPhoneNumber());
+        user.setEmailVerified(dto.isEmailVerified());
+        user.setCreatedAt(dto.getCreatedAt());
+        user.setUpdatedAt(dto.getUpdatedAt());
+        user.setLastLogin(dto.getLastLogin());
+        user.setRole(UserRole.valueOf(dto.getRole()));
 
         UserEntity savedUser = userService.saveUser(user);
-        
         return ResponseEntity.ok(savedUser);
     }
 
+
     @PutMapping("/update/{id}")
-    public ResponseEntity<UserEntity> updateUser(@PathVariable int id, @RequestBody UserEntity updatedUser) {
-        try {
-            UserEntity existingUser = userService.getUserById(id);
-            existingUser.setFirstName(updatedUser.getFirstName());
-            existingUser.setLastName(updatedUser.getLastName());
-            existingUser.setEmail(updatedUser.getEmail());
-            existingUser.setPhoneNumber(updatedUser.getPhoneNumber());
-            existingUser.setRole(updatedUser.getRole());
-            
-            if (updatedUser.getPassword() != null && !updatedUser.getPassword().isEmpty()) {
-                existingUser.setPassword(updatedUser.getPassword());
-            }
-            
-            UserEntity savedUser = userService.saveUser(existingUser);
-            return ResponseEntity.ok(savedUser);
-        } catch (Exception e) {
-            return ResponseEntity.status(500).build();
+    @Operation(summary = "Update user", description = "Update user using DTO")
+    public ResponseEntity<UserEntity> updateUser(@PathVariable int id, @RequestBody UserUpdateDTO dto) {
+        UserEntity updated = userService.updateUserFromDTO(id, dto);
+        if (updated != null) {
+            return ResponseEntity.ok(updated);
+        } else {
+            return ResponseEntity.notFound().build();
         }
     }
+
 
     @DeleteMapping("/delete/{id}")
     public String deleteUser(@PathVariable int id){
