@@ -40,7 +40,7 @@ public class SecurityConfig {
                     "/api/users/**",
                     "/api/space/**",
                     "/api/booking/**",
-                    "/oauth2/**",
+                    "/api/oauth/**",
                     "/login/**"
                 ).permitAll() // Allow Swagger access without token
                 .anyRequest().authenticated() // Other endpoints require JWT
