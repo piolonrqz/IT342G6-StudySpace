@@ -1,12 +1,14 @@
 package cit.edu.studyspace.service;
 
 import cit.edu.studyspace.config.JwtUtil;
+import cit.edu.studyspace.dto.UserUpdateDTO;
 import cit.edu.studyspace.entity.UserEntity;
 import cit.edu.studyspace.repository.UserRepo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import java.util.Optional;
 
 import java.util.List;
 
@@ -60,16 +62,19 @@ public class UserService {
 
     // Updates an existing user.
     @Operation(summary = "Update a user", description = "Updates a user's information based on ID")
-    public UserEntity updateUser(int id, UserEntity updatedUser) {
-        return userRepo.findById(id)
-                .map(existingUser -> {
-                    existingUser.setFirstName(updatedUser.getFirstName());
-                    existingUser.setLastName(updatedUser.getLastName());
-                    existingUser.setEmail(updatedUser.getEmail());
-                    existingUser.setPhoneNumber(updatedUser.getPhoneNumber());
-                    existingUser.setRole(updatedUser.getRole());
-                    return userRepo.save(existingUser);
-                }).orElseThrow(() -> new RuntimeException("User not found"));
+    public UserEntity updateUserFromDTO(int id, UserUpdateDTO dto) {
+        Optional<UserEntity> optionalUser = userRepo.findById(id);
+        if (optionalUser.isPresent()) {
+            UserEntity user = optionalUser.get();
+
+            user.setFirstName(dto.getFirstName());
+            user.setLastName(dto.getLastName());
+            user.setEmail(dto.getEmail());
+            user.setPhoneNumber(dto.getPhoneNumber());
+
+            return userRepo.save(user);
+        }
+        return null;
     }
 
     // Deletes a user by their ID.
