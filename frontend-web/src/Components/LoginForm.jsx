@@ -12,62 +12,6 @@ const LoginForm = () => {
 
   const handleClickShowPassword = () => setShowPassword(!showPassword);
 
-  // const handleSignIn = async (e) => {
-  //   e.preventDefault();
-  //   setValidationError('');
-
-  //   try {
-  //     // Try admin login first
-  //     let response = await fetch("http://localhost:8080/admin/login", {
-  //       method: "POST",
-  //       headers: { "Content-Type": "application/json" },
-  //       body: JSON.stringify({ email, password }),
-  //     });
-
-  //     if (response.ok) {
-  //       const adminData = await response.json();
-  //       localStorage.setItem("adminToken", adminData.token);
-  //       localStorage.setItem("role", adminData.role);
-  //       localStorage.setItem("currentUser", JSON.stringify({
-  //         email,
-  //         name: adminData.name,
-  //         role: adminData.role,
-  //       }));
-  //       setName(adminData.name);
-  //       setGreat(true);
-  //       navigate("/admin");
-  //       return;
-  //     }
-
-  //     // Try user login
-  //     response = await fetch("http://localhost:8080/user/login", {
-  //       method: "POST",
-  //       headers: { "Content-Type": "application/json" },
-  //       body: JSON.stringify({ email, password }),
-  //     });
-
-  //     if (!response.ok) {
-  //       throw new Error("Invalid email or password");
-  //     }
-
-  //     const userData = await response.json();
-  //     localStorage.setItem("jwtToken", userData.token);
-  //     localStorage.setItem("role", userData.role || "User");
-  //     localStorage.setItem("currentUser", JSON.stringify({
-  //       email,
-  //       id: userData.id,
-  //       name: userData.name,
-  //       role: userData.role || "User",
-  //       prof_pic: userData.prof_pic,
-  //     }));
-  //     setName(userData.name);
-  //     setGreat(true);
-  //     navigate("/");
-  //   } catch (err) {
-  //     console.error("Error signing in:", err);
-  //     setValidationError(err.message || "Invalid email or password");
-  //   }
-  // };
   const handleSignIn = async (e) => {
     e.preventDefault();
     setValidationError('');
@@ -110,17 +54,9 @@ const LoginForm = () => {
     }
   };
 
-   const handleGoogleSignIn = () => {
-        // This function should trigger your Google OAuth login flow.
-        // Depending on your implementation, this might involve:
-        // 1. Redirecting the user to a Google-provided URL.
-        // 2. Opening a pop-up window for Google sign-in.
-        // 3. Calling a function from an OAuth library you've integrated.
-            
-        // Example (replace with your actual Google sign-up logic):
-        console.log('Initiating Google Sign Up...');
-        // window.location.href = '/auth/google'; // Example redirect URL if your backend handles the flow
-          };
+  const handleGoogleSignIn = () => {
+    window.location.href = 'http://localhost:8080/oauth2/authorization/google';
+  };
 
   return (
     <div className="flex h-screen font-poppins">
@@ -195,7 +131,7 @@ const LoginForm = () => {
           </form>
 
           <div className="mt-6">
-          <hr className="mb-4 border-t border-gray-300" />
+            <hr className="mb-4 border-t border-gray-300" />
             <div className="text-center">
               <button
                 type="button"
@@ -203,18 +139,17 @@ const LoginForm = () => {
                 className="w-full p-3 bg-white font-semibold hover:border-gray-400 transition flex items-center justify-center"
                 aria-label="Sign in with Google"
                 style={{
-                      backgroundImage: "url(/google.png)",
-                      backgroundRepeat: "no-repeat",
-                      backgroundPosition: "center",
-                      backgroundSize: "40px 40px", 
-                      padding: "20px", 
-                  }}
+                  backgroundImage: "url(/google.png)",
+                  backgroundRepeat: "no-repeat",
+                  backgroundPosition: "center",
+                  backgroundSize: "40px 40px",
+                  padding: "20px",
+                }}
               >
-                  {/* You might want to remove this empty span or add some visual cue if the background image fails to load */}
-                  <span className="sr-only">Sign up with Google</span>
-                </button>
-                </div>
+                <span className="sr-only">Sign in with Google</span>
+              </button>
             </div>
+          </div>
         </div>
       </div>
     </div>
