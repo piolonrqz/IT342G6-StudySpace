@@ -2,210 +2,235 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 
 const RegisterForm = () => {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [validationError, setValidationError] = useState('');
-  const [added, setAdded] = useState(false);
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [validationError, setValidationError] = useState('');
+  const [added, setAdded] = useState(false);
 
-  const navigate = useNavigate();
+  const navigate = useNavigate();
+  const handleClickShowPassword = () => setShowPassword(!showPassword);
 
-  const handleClickShowPassword = () => setShowPassword(!showPassword);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  // const handleSubmit = async (e) => {
-  //   e.preventDefault();
+    const nameRegex = /^[A-Za-z\s]+$/;
+    const phoneRegex = /^09\d{9}$/;
+    const capitalize = (str) => str.replace(/\b\w/g, (char) => char.toUpperCase());
 
-  //   const nameRegex = /^[A-Za-z\s]+$/;
-  //   const capitalizeName = name.replace(/\b\w/g, (char) => char.toUpperCase());
-  //   if (!nameRegex.test(name)) {
-  //     setValidationError('Name must only contain letters and spaces.');
-  //     setAdded(false);
-  //     return;
-  //   }
+    if (!nameRegex.test(firstName) || !nameRegex.test(lastName)) {
+      setValidationError('Names must only contain letters and spaces.');
+      return;
+    }
 
-  //   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  //   if (!emailRegex.test(email)) {
-  //     setValidationError('Please enter a valid email address.');
-  //     setAdded(false);
-  //     return;
-  //   }
+    if (!phoneRegex.test(phoneNumber)) {
+      setValidationError('Phone number must be a valid PH number starting with 09 and 11 digits long.');
+      return;
+    }
 
-  //   const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
-  //   if (!passwordRegex.test(password)) {
-  //     setValidationError('Password must be at least 8 characters with letters and numbers.');
-  //     setAdded(false);
-  //     return;
-  //   }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setValidationError('Please enter a valid email address.');
+      return;
+    }
 
-  //   try {
-  //     const response = await fetch(`http://localhost:8080/user/check-email?email=${encodeURIComponent(email)}`);
-  //     const isEmailUnique = await response.json();
+    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
+    if (!passwordRegex.test(password)) {
+      setValidationError('Password must be at least 8 characters with letters and numbers.');
+      return;
+    }
 
-  //     if (!isEmailUnique) {
-  //       setValidationError('Email already exists. Please use a different email.');
-  //       return;
-  //     }
+    try {
+      const checkResponse = await fetch(`http://localhost:8080/api/users/check-email?email=${encodeURIComponent(email)}`);
+      const isEmailUnique = await checkResponse.json();
 
-  //     const student = { name: capitalizeName, email, password };
-  //     await fetch("http://localhost:8080/user/save", {
-  //       method: "POST",
-  //       headers: { "Content-Type": "application/json" },
-  //       body: JSON.stringify(student)
-  //     });
+      if (!isEmailUnique) {
+        setValidationError('Email already exists. Please use a different one.');
+        return;
+      }
 
-  //     setAdded(true);
-  //     setValidationError('');
+      const user = {
+        firstName: capitalize(firstName),
+        lastName: capitalize(lastName),
+        email,
+        password,
+        phoneNumber,
+        emailVerified: false,
+        role: "USER"
+      };
 
-  //     setTimeout(() => {
-  //       navigate('/login');
-  //     }, 2000);
+      const response = await fetch("http://localhost:8080/api/users/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(user)
+      });
 
-  //   } catch (error) {
-  //     setValidationError('An error occurred. Please try again.');
-  //   }
-  // };
+      if (!response.ok) {
+        throw new Error("Failed to create account");
+      }
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+      setAdded(true);
+      setValidationError('');
 
-    const nameRegex = /^[A-Za-z\s]+$/;
-    const capitalizeName = name.replace(/\b\w/g, (char) => char.toUpperCase());
-    if (!nameRegex.test(name)) {
-      setValidationError('Name must only contain letters and spaces.');
-      setAdded(false);
-      return;
-    }
+      setTimeout(() => {
+        navigate('/LoginPage');
+      }, 2000);
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      setValidationError('Please enter a valid email address.');
-      setAdded(false);
-      return;
-    }
+    } catch (error) {
+      console.error(error);
+      setValidationError('An error occurred. Please try again.');
+    }
+  };
 
-    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
-    if (!passwordRegex.test(password)) {
-      setValidationError('Password must be at least 8 characters with letters and numbers.');
-      setAdded(false);
-      return;
-    }
+  const handleGoogleSignUp = () => {
+    // This function should trigger your Google OAuth login flow.
+    // Depending on your implementation, this might involve:
+    // 1. Redirecting the user to a Google-provided URL.
+    // 2. Opening a pop-up window for Google sign-in.
+    // 3. Calling a function from an OAuth library you've integrated.
 
-    try {
-      const response = await fetch(`http://localhost:8080/api/users/check-email?email=${encodeURIComponent(email)}`);
-      const isEmailUnique = await response.json();
+    // Example (replace with your actual Google sign-up logic):
+    console.log('Initiating Google Sign Up...');
+    // window.location.href = '/auth/google'; // Example redirect URL if your backend handles the flow
+  };
 
-      if (!isEmailUnique) {
-        setValidationError('Email already exists. Please use a different email.');
-        return;
-      }
+  return (
+    <div className="flex h-screen font-poppins">
+      <div
+        className="hidden md:block w-1/4 bg-cover bg-center"
+        style={{ backgroundImage: "url(/side_frame.png)" }}
+      ></div>
 
-      const student = { name: capitalizeName, email, password };
-      await fetch("http://localhost:8080/api/users/save", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(student)
-      });
+      <div className="w-full md:w-3/5 flex items-center justify-center">
+        <div className="w-full max-w-md px-6 py-10">
+          <h1 className="text-4xl font-bold text-center mb-6 text-gray-800">Sign Up</h1>
 
-      setAdded(true);
-      setValidationError('');
+          <p className="text-center text-sm mb-8 text-gray-600">
+            Already have an account?{' '}
+            <Link to="/LoginPage" className="text-sky-600 font-semibold hover:underline">
+              Sign In
+            </Link>
+          </p>
 
-      setTimeout(() => {
-        navigate('/LoginPage');
-      }, 2000);
+          <form onSubmit={handleSubmit} className="flex flex-col gap-6">
 
-    } catch (error) {
-      setValidationError('An error occurred. Please try again.');
-    }
-  };
+            {/* ... (Rest of your form remains the same) ... */}
+            <div>
+              <label className="block text-sm text-gray-700 mb-2">First Name</label>
+              <input
+                type="text"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none"
+                placeholder="Enter your first name"
+                required
+              />
+            </div>
 
-  return (
-    <div className="flex h-screen font-poppins">
-      {/* Left side image */}
-      <div
-        className="hidden md:block w-1/4 bg-cover bg-center"
-        style={{ backgroundImage: "url(/side_frame.png)" }}
-      ></div>
+            <div>
+              <label className="block text-sm text-gray-700 mb-2">Last Name</label>
+              <input
+                type="text"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none"
+                placeholder="Enter your last name"
+                required
+              />
+            </div>
 
-      {/* Right side form */}
-      <div className="w-full md:w-3/5 flex items-center justify-center">
-        <div className="w-full max-w-md px-6 py-10">
-          <h1 className="text-4xl font-bold text-center mb-6 text-gray-800">Sign Up</h1>
+            <div>
+              <label className="block text-sm text-gray-700 mb-2">Email</label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none"
+                placeholder="Enter your email"
+                required
+              />
+            </div>
 
-          <p className="text-center text-sm mb-8 text-gray-600">
-            Already have an account?{' '}
-            <Link to="/LoginPage" className="text-sky-600 font-semibold hover:underline">
-              Sign In
-            </Link>
-          </p>
+            <div>
+              <label className="block text-sm text-gray-700 mb-2">Phone Number</label>
+              <input
+                type="text"
+                value={phoneNumber}
+                onChange={(e) => setPhoneNumber(e.target.value)}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none"
+                placeholder="Enter your phone number"
+                required
+              />
+            </div>
 
-          <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-            <div>
-              <label className="block text-sm text-gray-700 mb-2">Username</label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none"
-                placeholder="Enter your name"
-                required
-              />
-            </div>
+            <div>
+              <label className="block text-sm text-gray-700 mb-2">Password</label>
+              <input
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none"
+                placeholder="Enter your password"
+                required
+              />
+              <div className="text-right mt-1">
+                <button
+                  type="button"
+                  onClick={handleClickShowPassword}
+                  className="text-xs text-gray-500 hover:text-sky-600"
+                >
+                  {showPassword ? 'Hide Password' : 'Show Password'}
+                </button>
+              </div>
+            </div>
 
-            <div>
-              <label className="block text-sm text-gray-700 mb-2">Email</label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none"
-                placeholder="Enter your email"
-                required
-              />
-            </div>
+            {validationError && (
+              <div className="text-red-600 text-sm text-center">{validationError}</div>
+            )}
 
-            <div>
-              <label className="block text-sm text-gray-700 mb-2">Password</label>
-              <input
-                type={showPassword ? 'text' : 'password'}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none"
-                placeholder="Enter your password"
-                required
-              />
-              <div className="text-right mt-1">
-                <button
-                  type="button"
-                  onClick={handleClickShowPassword}
-                  className="text-xs text-gray-500 hover:text-sky-600"
-                >
-                  {showPassword ? 'Hide Password' : 'Show Password'}
-                </button>
-              </div>
-            </div>
+            <button
+              type="submit"
+              className="w-full p-3 bg-sky-500 text-white rounded-lg font-semibold hover:bg-sky-600 transition"
+            >
+              Sign Up
+            </button>
 
-            {validationError && (
-              <div className="text-red-600 text-sm text-center">{validationError}</div>
-            )}
+            {added && (
+              <div className="text-green-600 text-sm text-center">
+                Account created successfully!
+              </div>
+            )}
 
-            <button
-              type="submit"
-              className="w-full p-3 bg-sky-500 text-white rounded-lg font-semibold hover:bg-sky-600 transition"
-            >
-              Sign Up
-            </button>
+          </form>
 
-            {added && (
-              <div className="text-green-600 text-sm text-center">
-                Account created successfully!
-              </div>
-            )}
-          </form>
-        </div>
-      </div>
-    </div>
-  );
+          <div className="mt-6">
+            <hr className="mb-4 border-t border-gray-300" />
+            <div className="text-center">
+              <button
+                type="button"
+                onClick={handleGoogleSignUp}
+                className="w-full p-3 bg-white font-semibold hover:border-gray-400 transition flex items-center justify-center"
+                aria-label="Sign up with Google"
+                style={{
+                  backgroundImage: "url(/google.png)",
+                  backgroundRepeat: "no-repeat",
+                  backgroundPosition: "center",
+                  backgroundSize: "40px 40px", 
+                  padding: "20px", 
+                }}
+              >
+                {/* You might want to remove this empty span or add some visual cue if the background image fails to load */}
+                <span className="sr-only">Sign up with Google</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default RegisterForm;
