@@ -1,6 +1,7 @@
 package cit.edu.studyspace.dto;
 
 import cit.edu.studyspace.entity.SpaceType;
+import java.math.BigDecimal; // Import BigDecimal
 
 public class SpaceCreateDTO {
 
@@ -12,7 +13,8 @@ public class SpaceCreateDTO {
     private boolean isAvailable;
     private String openingTime;
     private String closingTime;
-    private String imageUrl;
+    private String imageFilename; // Changed from imageUrl
+    private BigDecimal price; // Added price
 
     public SpaceCreateDTO() {
     }
@@ -81,11 +83,23 @@ public class SpaceCreateDTO {
         this.closingTime = closingTime;
     }
 
-    public String getImageUrl() {
-        return imageUrl;
+    // Getter and Setter for imageFilename
+    public String getImageFilename() {
+        return imageFilename;
     }
 
-    public void setImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
+    public void setImageFilename(String imageFilename) {
+        this.imageFilename = imageFilename;
     }
+
+    // Getter and Setter for price (now BigDecimal)
+    public BigDecimal getPrice() {
+        return price;
+    }
+
+    public void setPrice(BigDecimal price) {
+        this.price = price;
+    }
+
+    // Removed get/set ImageUrl
 }

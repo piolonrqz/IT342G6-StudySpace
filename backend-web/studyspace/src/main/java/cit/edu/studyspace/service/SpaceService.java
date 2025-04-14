@@ -54,7 +54,8 @@ public class SpaceService {
         space.setAvailable(dto.isAvailable());
         space.setOpeningTime(dto.getOpeningTime());
         space.setClosingTime(dto.getClosingTime());
-        space.setImageUrl(dto.getImageUrl());
+        space.setImageFilename(dto.getImageFilename());
+        space.setPrice(dto.getPrice());
 
         return spaceRepo.save(space);
     }
@@ -66,19 +67,20 @@ public class SpaceService {
         if (optionalSpace.isPresent()) {
             SpaceEntity existingSpace = optionalSpace.get();
             String oldImageFilename = existingSpace.getImageFilename(); // Store old filename
-            String newImageFilename = spaceDetails.getImageFilename(); // Get potential new filename
-            
-            // Update fields from spaceDetails
-            existingSpace.setName(spaceDetails.getName());
-            existingSpace.setDescription(spaceDetails.getDescription());
-            existingSpace.setLocation(spaceDetails.getLocation());
-            existingSpace.setCapacity(spaceDetails.getCapacity());
-            existingSpace.setSpaceType(spaceDetails.getSpaceType());
-            existingSpace.setAvailable(spaceDetails.isAvailable());
-            existingSpace.setOpeningTime(spaceDetails.getOpeningTime());
-            existingSpace.setClosingTime(spaceDetails.getClosingTime());
+            // Get potential new filename from dto
+            String newImageFilename = dto.getImageFilename(); // Use dto
 
-            // Handle Image Update and Deletion of Old Image
+            // Update fields from dto
+            existingSpace.setName(dto.getName()); // Use dto
+            existingSpace.setDescription(dto.getDescription()); // Use dto
+            existingSpace.setLocation(dto.getLocation()); // Use dto
+            existingSpace.setCapacity(dto.getCapacity()); // Use dto
+            existingSpace.setSpaceType(dto.getSpaceType()); // Use dto
+            existingSpace.setAvailable(dto.isAvailable()); // Use dto
+            existingSpace.setOpeningTime(dto.getOpeningTime()); // Use dto
+            existingSpace.setClosingTime(dto.getClosingTime()); // Use dto
+
+            // Handle Image Update and Deletion of Old Image (logic remains the same, variable checked is newImageFilename from dto)
             // Check if a *new* filename is provided and it's *different* from the old one
             if (newImageFilename != null && !newImageFilename.equals(oldImageFilename)) {
                 // If there was an old image, attempt to delete it
@@ -93,19 +95,18 @@ public class SpaceService {
                 }
                  // Set the new filename only after attempting to delete the old one
                 existingSpace.setImageFilename(newImageFilename);
-            } 
-            // Optional: Add logic here if you need to handle setting the image to null 
-            // (i.e., removing the image without replacing it). Currently, if newImageFilename is null,
-            // the existing filename is kept based on how the controller sends data.
-            
-            // Update price separately (as it was before)
-            existingSpace.setPrice(spaceDetails.getPrice());
-            
+            }
+            // Optional: Add logic here if you need to handle setting the image to null
+            // (i.e., removing the image without replacing it).
+
+            // Update price separately using dto
+            existingSpace.setPrice(dto.getPrice()); // Use dto
+
             // The @PreUpdate annotation in SpaceEntity handles updatedAt
             return spaceRepo.save(existingSpace); // Save the updated entity
         } else {
             // Return null or throw an exception if the space is not found
-            return null; 
+            return null;
         }
     }
 
