@@ -1,6 +1,8 @@
 package cit.edu.studyspace.entity;
 
 import jakarta.persistence.*;
+
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
@@ -49,6 +51,10 @@ public class SpaceEntity {
     @Column(nullable = false)
     @Schema(description = "Closing time of the space", example = "20:00")
     private String closingTime;
+
+    @Column(precision = 10, scale = 2) 
+    @Schema(description = "Price per hour for booking the space", example = "15.50")
+    private BigDecimal price;
     
     @Column(nullable = false)
     @Schema(description = "Creation timestamp of the space listing")
@@ -58,9 +64,8 @@ public class SpaceEntity {
     @Schema(description = "Last update timestamp of the space listing")
     private LocalDateTime updatedAt;
 
-    @Column(length = 500) // Allow a reasonable length for the URL
-    @Schema(description = "URL of an image representing the space", example = "https://example.com/images/space1.jpg")
-    private String imageUrl;
+    @Column(name = "image_filename")
+    private String imageFilename; 
     
     @OneToMany(mappedBy = "space", cascade = CascadeType.ALL)
     private Set<BookingEntity> bookings = new HashSet<>();
@@ -142,6 +147,14 @@ public class SpaceEntity {
         this.closingTime = closingTime;
     }
 
+    public BigDecimal getPrice() {
+        return price;
+    }
+
+    public void setPrice(BigDecimal price) {
+        this.price = price;
+    }
+
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
@@ -158,12 +171,12 @@ public class SpaceEntity {
         this.updatedAt = updatedAt;
     }
 
-    public String getImageUrl() {
-        return imageUrl;
+    public String getImageFilename() {
+        return imageFilename;
     }
 
-    public void setImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
+    public void setImageFilename(String imageFilename) {
+        this.imageFilename = imageFilename;
     }
 
     public Set<BookingEntity> getBookings() {

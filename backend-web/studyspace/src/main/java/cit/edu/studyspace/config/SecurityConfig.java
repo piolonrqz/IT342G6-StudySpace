@@ -10,7 +10,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
-
+import org.springframework.http.HttpMethod;
 import java.util.List;
 
 import static org.springframework.security.config.Customizer.withDefaults;
@@ -31,6 +31,7 @@ public class SecurityConfig {
             .cors(withDefaults())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
+                .requestMatchers(HttpMethod.POST, "/api/space/save").permitAll()
                 .requestMatchers(
                     "/swagger-ui/**", 
                     "/api-docs/**", 
@@ -41,8 +42,11 @@ public class SecurityConfig {
                     "/api/space/**",
                     "/api/booking/**",
                     "/api/oauth/**",
-                    "/login/**"
-                ).permitAll() // Allow Swagger access without token
+                    "/login/**",
+                    "/uploads/**",
+                    "/images/**",
+                    "/files/**"
+                ).permitAll()
                 .anyRequest().authenticated() // Other endpoints require JWT
             )
             .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
