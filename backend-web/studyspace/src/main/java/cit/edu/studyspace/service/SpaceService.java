@@ -1,5 +1,7 @@
 package cit.edu.studyspace.service;
 
+import cit.edu.studyspace.dto.SpaceCreateDTO;
+import cit.edu.studyspace.dto.SpaceUpdateDTO;
 import cit.edu.studyspace.entity.SpaceEntity;
 import cit.edu.studyspace.repository.SpaceRepo;
 import io.swagger.v3.oas.annotations.Operation;
@@ -42,13 +44,24 @@ public class SpaceService {
 
     // Creates a new space.
     @Operation(summary = "Create a new space", description = "Adds a new space to the system")
-    public SpaceEntity saveSpace(SpaceEntity space) {
+    public SpaceEntity createSpaceFromDTO(SpaceCreateDTO dto) {
+        SpaceEntity space = new SpaceEntity();
+        space.setName(dto.getName());
+        space.setDescription(dto.getDescription());
+        space.setLocation(dto.getLocation());
+        space.setCapacity(dto.getCapacity());
+        space.setSpaceType(dto.getSpaceType());
+        space.setAvailable(dto.isAvailable());
+        space.setOpeningTime(dto.getOpeningTime());
+        space.setClosingTime(dto.getClosingTime());
+        space.setImageUrl(dto.getImageUrl());
+
         return spaceRepo.save(space);
     }
 
     // Update an existing space
     @Operation(summary = "Update an existing space", description = "Updates a space based on the given ID and details, deleting the old image if a new one is provided.")
-    public SpaceEntity updateSpace(int id, SpaceEntity spaceDetails) {
+    public SpaceEntity updateSpaceFromDTO(int id, SpaceUpdateDTO dto) {
         Optional<SpaceEntity> optionalSpace = spaceRepo.findById(id);
         if (optionalSpace.isPresent()) {
             SpaceEntity existingSpace = optionalSpace.get();

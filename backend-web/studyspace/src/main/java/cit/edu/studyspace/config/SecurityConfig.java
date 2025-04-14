@@ -41,6 +41,8 @@ public class SecurityConfig {
                     "/api/users/**",
                     "/api/space/**",
                     "/api/booking/**",
+                    "/api/oauth/**",
+                    "/login/**",
                     "/uploads/**",
                     "/images/**",
                     "/files/**"

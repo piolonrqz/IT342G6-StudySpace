@@ -1,5 +1,7 @@
 package cit.edu.studyspace.controller;
 
+import cit.edu.studyspace.dto.SpaceCreateDTO;
+import cit.edu.studyspace.dto.SpaceUpdateDTO;
 import cit.edu.studyspace.entity.SpaceEntity;
 import cit.edu.studyspace.service.SpaceService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -36,56 +38,19 @@ public class SpaceController {
         return spaceService.getAllSpaces();
     }
 
-    // Updated to use @RequestPart for both entity data and image file
-    @PostMapping(value = "/save", consumes = {"multipart/form-data"}) 
-    @Operation(summary = "Create a new space with image", description = "Adds a new space and its image to the system")
-    public ResponseEntity<SpaceEntity> saveSpace(
-            // Receive SpaceEntity JSON data in a part named "spaceData"
-            @RequestPart("spaceData") SpaceEntity spaceData, 
-             // Receive the image file in a part named "imageFile" (optional)
-            @RequestPart(value = "imageFile", required = false) MultipartFile imageFile 
-         ) {
-
-        String imageFilename = null;
-        if (imageFile != null && !imageFile.isEmpty()) {
-            // Store the file and get the unique filename
-            imageFilename = fileStorageService.storeFile(imageFile); 
-             // Set the filename in the entity received from the request part
-            spaceData.setImageFilename(imageFilename); 
-        } else {
-             // Ensure filename is null if no file is uploaded
-             spaceData.setImageFilename(null);
-        }
-
-        // Save the entity (which now includes the image filename if uploaded)
-        SpaceEntity savedSpace = spaceService.saveSpace(spaceData); 
-        
+    @PostMapping("/save")
+    @Operation(summary = "Create a new space", description = "Adds a new space to the system")
+    public ResponseEntity<SpaceEntity> saveSpace(@RequestBody SpaceCreateDTO spaceDTO) {
+        SpaceEntity savedSpace = spaceService.createSpaceFromDTO(spaceDTO);
         return ResponseEntity.ok(savedSpace);
     }
 
-    // Updated to handle multipart/form-data including optional image file update
-    // Consider applying a similar @RequestPart approach to the updateSpace method as well
-    @PutMapping(value = "/update/{id}", consumes = {"multipart/form-data"}) // Specify consumes
-    @Operation(summary = "Update an existing space with optional image", description = "Updates the details and optionally the image of a space identified by its ID")
-    public ResponseEntity<SpaceEntity> updateSpace(
-            @PathVariable int id,
-            // Use @RequestPart for fields (similar pattern can be applied here)
-            @RequestPart("spaceData") SpaceEntity updatedData,
-            @RequestPart(value = "imageFile", required = false) MultipartFile imageFile 
-        ) {
-        
-        // Handle file storage...
-        String newImageFilename = null;
-        if (imageFile != null && !imageFile.isEmpty()) {
-            newImageFilename = fileStorageService.storeFile(imageFile);
-            updatedData.setImageFilename(newImageFilename); // Set the new filename if image provided
-        } 
-
-        // Call the update method in the service
-        SpaceEntity updatedSpace = spaceService.updateSpace(id, updatedData); // Adjust service method if needed
-        
-        if (updatedSpace != null) {
-            return ResponseEntity.ok(updatedSpace);
+    @PutMapping("/update/{id}")
+    @Operation(summary = "Update space", description = "Update space using DTO")
+    public ResponseEntity<SpaceEntity> updateSpace(@PathVariable int id, @RequestBody SpaceUpdateDTO dto) {
+        SpaceEntity updated = spaceService.updateSpaceFromDTO(id, dto);
+        if (updated != null) {
+            return ResponseEntity.ok(updated);
         } else {
             return ResponseEntity.notFound().build();
         }
