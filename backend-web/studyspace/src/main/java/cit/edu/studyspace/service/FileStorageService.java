@@ -62,7 +62,35 @@ public class FileStorageService {
         }
     }
 
-    // Optional: Add methods here later to load/delete files if needed
+    /**
+     * Deletes the file with the given filename from the storage directory.
+     *
+     * @param filename The name of the file to delete.
+     */
+    public void deleteFile(String filename) {
+        if (filename == null || filename.isBlank()) {
+            System.out.println("Filename is null or empty, cannot delete."); // Or log this
+            return;
+        }
+
+        try {
+            Path targetLocation = this.fileStorageLocation.resolve(StringUtils.cleanPath(filename));
+            boolean deleted = Files.deleteIfExists(targetLocation);
+            if(deleted){
+                System.out.println("Successfully deleted file: " + filename); // Or use a logger
+            } else {
+                 System.out.println("File not found, could not delete: " + filename); // Or use a logger
+            }
+
+        } catch (IOException ex) {
+            // Log the exception, but maybe don't stop the whole process
+            // Depending on requirements, you might re-throw a custom exception
+            System.err.println("Could not delete file " + filename + ". Error: " + ex.getMessage());
+           // Optionally re-throw: throw new RuntimeException("Could not delete file " + filename, ex);
+        }
+    }
+
+
+    // Optional: Add methods here later to load files if needed
     // public Resource loadFileAsResource(String fileName) { ... }
-    // public void deleteFile(String fileName) { ... }
 }
