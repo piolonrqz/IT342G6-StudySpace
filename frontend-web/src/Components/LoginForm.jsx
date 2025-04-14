@@ -110,6 +110,18 @@ const LoginForm = () => {
     }
   };
 
+   const handleGoogleSignIn = () => {
+        // This function should trigger your Google OAuth login flow.
+        // Depending on your implementation, this might involve:
+        // 1. Redirecting the user to a Google-provided URL.
+        // 2. Opening a pop-up window for Google sign-in.
+        // 3. Calling a function from an OAuth library you've integrated.
+            
+        // Example (replace with your actual Google sign-up logic):
+        console.log('Initiating Google Sign Up...');
+        // window.location.href = '/auth/google'; // Example redirect URL if your backend handles the flow
+          };
+
   return (
     <div className="flex h-screen font-poppins">
       {/* Left side image */}
@@ -181,6 +193,28 @@ const LoginForm = () => {
               </div>
             )}
           </form>
+
+          <div className="mt-6">
+          <hr className="mb-4 border-t border-gray-300" />
+            <div className="text-center">
+              <button
+                type="button"
+                onClick={handleGoogleSignIn}
+                className="w-full p-3 bg-white font-semibold hover:border-gray-400 transition flex items-center justify-center"
+                aria-label="Sign in with Google"
+                style={{
+                      backgroundImage: "url(/google.png)",
+                      backgroundRepeat: "no-repeat",
+                      backgroundPosition: "center",
+                      backgroundSize: "40px 40px", 
+                      padding: "20px", 
+                  }}
+              >
+                  {/* You might want to remove this empty span or add some visual cue if the background image fails to load */}
+                  <span className="sr-only">Sign up with Google</span>
+                </button>
+                </div>
+            </div>
         </div>
       </div>
     </div>
