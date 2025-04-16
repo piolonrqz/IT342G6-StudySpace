@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.Map;
 
 @Component
@@ -62,7 +63,14 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         // Generate JWT token
         String token = jwtUtil.generateToken(user);
         
+
+        
         // Redirect to frontend with token
-        getRedirectStrategy().sendRedirect(request, response, frontendUrl + "/oauth/callback?token=" + token);
+        String role = user.getRole().name(); // Convert enum to string
+        String redirectUrl = String.format("%s/oauth/callback?token=%s&role=%s", frontendUrl, token, role);
+        getRedirectStrategy().sendRedirect(request, response, redirectUrl);
+
+        // getRedirectStrategy().sendRedirect(request, response, frontendUrl + "/oauth/callback?token=" + token);
+        
     }
 }

@@ -7,26 +7,25 @@ const OAuthCallBack = () => {
 
   useEffect(() => {
     const token = searchParams.get('token');
-
-    if (token) {
-      // Store the token in localStorage
+    const role = searchParams.get('role'); // Get the role from query params
+  
+    if (token && role) {
       localStorage.setItem('jwtToken', token);
-
-      // You might want to decode the token here to get user information
-      // Example using a library like 'jwt-decode':
-      // import jwt_decode from 'jwt-decode';
-      // const decodedToken = jwt_decode(token);
-      // localStorage.setItem('currentUser', JSON.stringify(decodedToken));
-
-      // For simplicity, let's just navigate to the homepage
-      navigate('/');
+      localStorage.setItem('userRole', role); // Optional: store role for later use
+  
+      if (role === 'ADMIN') {
+        navigate("/AdminPage");
+      } else if (role === 'USER') {
+        navigate("/");
+      } else {
+        navigate("/login"); // Fallback or handle other roles
+      }
     } else {
-      // Handle the case where the token is missing (e.g., authentication failed)
-      console.error('No token received from OAuth provider.');
-      // Maybe redirect to an error page or the login page
+      console.error('Missing token or role from OAuth provider.');
       navigate('/login');
     }
   }, [navigate, searchParams]);
+  
 
   return (
     <div>

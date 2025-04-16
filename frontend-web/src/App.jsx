@@ -22,16 +22,16 @@ function App() {
         <Route path="/oauth/callback" element={<OAuthCallBack />} />
         <Route path="/WhyStudySpace" element={<WhyStudySpace />} />
         <Route path="/Bookings" element={<Bookings />} />
-
+        <Route path="/AdminPage" element={<AdminPage />} />
         {/* Protected Admin Route */}
-        <Route
+        {/* <Route
           path="/AdminPage"
           element={
             <ProtectedAdminRoute>
               <AdminPage />
             </ProtectedAdminRoute>
           }
-        />
+        /> */}
       </Routes>
     </Router>
   );
