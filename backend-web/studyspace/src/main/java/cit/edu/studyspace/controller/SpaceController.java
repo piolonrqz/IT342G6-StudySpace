@@ -13,12 +13,13 @@ import cit.edu.studyspace.service.FileStorageService;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/space")
 @Tag(name = "Space API", description = "Operations related to bookings")
 public class SpaceController {
-    
+
     @Autowired
     private SpaceService spaceService;
 
@@ -36,6 +37,16 @@ public class SpaceController {
     @Operation(summary = "Get all space", description = "Fetches all spaces in the system")
     public List<SpaceEntity> getAllSpaces() {
         return spaceService.getAllSpaces();
+    }
+
+    // Add this new endpoint to get a single space by ID
+    @GetMapping("/{id}")
+    @Operation(summary = "Get space by ID", description = "Fetches a single space by its ID")
+    public ResponseEntity<SpaceEntity> getSpaceById(@PathVariable int id) {
+        Optional<SpaceEntity> spaceOptional = spaceService.getSpaceById(id); // Assuming getSpaceById exists in SpaceService and returns Optional<SpaceEntity>
+        return spaceOptional
+                .map(ResponseEntity::ok) // If found, return 200 OK with the space
+                .orElseGet(() -> ResponseEntity.notFound().build()); // If not found, return 404 Not Found
     }
 
     // Restore multipart/form-data handling using DTO

@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/select"; // Use Select for spaceType
 
 // Define possible space types (should match your backend Enum)
-const SPACE_TYPES = ["MEETING_ROOM", "CONFERENCE_ROOM", "OPEN_SPACE"]; 
+const SPACE_TYPES = ["MEETING_ROOM", "CONFERENCE_ROOM", "OPEN_SPACE"];
 
 export const SpaceFormModal = ({
   isOpen,
@@ -115,14 +115,14 @@ export const SpaceFormModal = ({
 
     // Create the space data object from the form state
     const spaceDetails = {
-        name: formData.name,
-        description: formData.description,
-        location: formData.location,
+      name: formData.name,
+      description: formData.description,
+      location: formData.location,
         capacity: parseInt(formData.capacity, 10), 
-        spaceType: formData.spaceType,
+      spaceType: formData.spaceType,
         available: formData.available, 
-        openingTime: formData.openingTime,
-        closingTime: formData.closingTime,
+      openingTime: formData.openingTime,
+      closingTime: formData.closingTime,
         price: parseFloat(formData.price), 
     };
 
@@ -144,7 +144,7 @@ export const SpaceFormModal = ({
 
    // Pass FormData to onSave
    onSave(submitFormData);
- };
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -155,7 +155,7 @@ export const SpaceFormModal = ({
             {space ? "Update the details for this space." : "Fill in the details to create a new space."}
           </DialogDescription>
         </DialogHeader>
-        
+
         <form onSubmit={handleSubmit} className="space-y-4 max-h-[80vh] overflow-y-auto pr-2"> {/* Allow scrolling */}
           {/* Name */}
           <div>
@@ -169,7 +169,7 @@ export const SpaceFormModal = ({
             />
           </div>
 
-           {/* Location */}
+          {/* Location */}
            <div>
               <Label htmlFor="location">Location</Label>
               <Input
@@ -179,7 +179,7 @@ export const SpaceFormModal = ({
                   onChange={handleInputChange}
                   required
               />
-            </div>
+          </div>
 
           {/* Description */}
           <div>
@@ -208,7 +208,7 @@ export const SpaceFormModal = ({
                 required
               />
             </div>
-            
+
             <div>
               <Label htmlFor="spaceType">Space Type</Label>
               <Select
@@ -219,14 +219,14 @@ export const SpaceFormModal = ({
               >
                 <SelectTrigger id="spaceType">
                   <SelectValue placeholder="Select type" />
-                </SelectTrigger>
+              </SelectTrigger>
                 <SelectContent>
-                    {SPACE_TYPES.map(type => (
-                     <SelectItem key={type} value={type}>{type.replace(/_/g, ' ')}</SelectItem> 
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+                {SPACE_TYPES.map(type => (
+                  <SelectItem key={type} value={type}>{type.replace(/_/g, ' ')}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
             {/* Price Input */}
             <div>
@@ -242,7 +242,7 @@ export const SpaceFormModal = ({
                 placeholder="e.g., 15.50"
                 required
               />
-            </div>
+          </div>
           </div>
 
            {/* Opening and Closing Time (Side-by-side) */}
@@ -270,21 +270,21 @@ export const SpaceFormModal = ({
                  required
                  pattern="([01]\d|2[0-3]):([0-5]\d)" // Pattern for validation hint
               />
-            </div>
-          </div>
+                     </div>
+                 </div>
 
           {/* Availability */}
           <div className="flex items-center space-x-2 pt-2">
-             <Checkbox 
+                      <Checkbox
                 id="available" 
                 name="available" // Add name attribute
                 checked={formData.available} 
                 onCheckedChange={handleCheckboxChange} // Use specific handler
-             />
+                      />
              <Label htmlFor="available" className="cursor-pointer">
                 Is Available for Booking?
              </Label>
-          </div>
+                    </div>
 
           {/* Add Image Upload Field */}
           <div>
@@ -305,9 +305,9 @@ export const SpaceFormModal = ({
                   alt="Preview"
                   className="max-w-[200px] h-auto rounded-lg"
                 />
-              </div>
-            )}
-          </div>
+                </div>
+              )}
+            </div>
           {/* Error Message */}
           {error && <p className="text-red-500 text-sm pt-2">{error}</p>}
 

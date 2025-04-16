@@ -5,6 +5,7 @@ public class UserUpdateDTO {
     private String lastName;
     private String email;
     private String phoneNumber;
+    private String role;
 
     // Getters and Setters
     public String getFirstName() {
@@ -37,5 +38,13 @@ public class UserUpdateDTO {
 
     public void setPhoneNumber(String phoneNumber) {
         this.phoneNumber = phoneNumber;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
     }
 }

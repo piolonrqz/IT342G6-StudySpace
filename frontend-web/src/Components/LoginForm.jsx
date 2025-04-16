@@ -11,63 +11,6 @@ const LoginForm = () => {
   const navigate = useNavigate();
 
   const handleClickShowPassword = () => setShowPassword(!showPassword);
-
-  // const handleSignIn = async (e) => {
-  //   e.preventDefault();
-  //   setValidationError('');
-
-  //   try {
-  //     // Try admin login first
-  //     let response = await fetch("http://localhost:8080/admin/login", {
-  //       method: "POST",
-  //       headers: { "Content-Type": "application/json" },
-  //       body: JSON.stringify({ email, password }),
-  //     });
-
-  //     if (response.ok) {
-  //       const adminData = await response.json();
-  //       localStorage.setItem("adminToken", adminData.token);
-  //       localStorage.setItem("role", adminData.role);
-  //       localStorage.setItem("currentUser", JSON.stringify({
-  //         email,
-  //         name: adminData.name,
-  //         role: adminData.role,
-  //       }));
-  //       setName(adminData.name);
-  //       setGreat(true);
-  //       navigate("/admin");
-  //       return;
-  //     }
-
-  //     // Try user login
-  //     response = await fetch("http://localhost:8080/user/login", {
-  //       method: "POST",
-  //       headers: { "Content-Type": "application/json" },
-  //       body: JSON.stringify({ email, password }),
-  //     });
-
-  //     if (!response.ok) {
-  //       throw new Error("Invalid email or password");
-  //     }
-
-  //     const userData = await response.json();
-  //     localStorage.setItem("jwtToken", userData.token);
-  //     localStorage.setItem("role", userData.role || "User");
-  //     localStorage.setItem("currentUser", JSON.stringify({
-  //       email,
-  //       id: userData.id,
-  //       name: userData.name,
-  //       role: userData.role || "User",
-  //       prof_pic: userData.prof_pic,
-  //     }));
-  //     setName(userData.name);
-  //     setGreat(true);
-  //     navigate("/");
-  //   } catch (err) {
-  //     console.error("Error signing in:", err);
-  //     setValidationError(err.message || "Invalid email or password");
-  //   }
-  // };
   const handleSignIn = async (e) => {
     e.preventDefault();
     setValidationError('');
@@ -96,9 +39,10 @@ const LoginForm = () => {
       }));
       setName(userData.firstName + " " + userData.lastName);
       setGreat(true);
-
+      console.log(userData.token)
+      console.log(userData.role)
       // Redirect based on role (you'll need to adjust this based on how your roles are handled)
-      if (userData.role === 'admin') {
+      if (userData.role === 'ADMIN') {
         navigate("/AdminPage");
       } else {
         navigate("/");

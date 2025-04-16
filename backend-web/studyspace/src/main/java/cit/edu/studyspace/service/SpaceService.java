@@ -17,7 +17,7 @@ import cit.edu.studyspace.service.FileStorageService; // Import FileStorageServi
 @Service
 @Tag(name = "Space Service", description = "Business logic for space operations")
 public class SpaceService {
-    
+
     @Autowired
     private SpaceRepo spaceRepo;
 

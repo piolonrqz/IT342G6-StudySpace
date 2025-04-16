@@ -9,6 +9,7 @@ import WhyStudySpace from './pages/WhyStudySpace.jsx';
 import Bookings from './pages/Bookings.jsx';
 import AdminPage from './pages/AdminPage.jsx'; 
 import ProtectedAdminRoute from './Components/ProtectedAdminRoute.jsx';
+import SpaceDetails from './pages/SpaceDetails'; // 
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
         <Route path="/WhyStudySpace" element={<WhyStudySpace />} />
         <Route path="/Bookings" element={<Bookings />} />
         <Route path="/AdminPage" element={<AdminPage />} />
+        <Route path="/space/:id" element={<SpaceDetails />} />
 
         {/*  Protected Admin Route */}
         <Route
