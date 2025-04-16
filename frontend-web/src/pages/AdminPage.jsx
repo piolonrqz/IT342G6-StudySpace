@@ -103,7 +103,7 @@ const AdminPage = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${API_BASE_URL}/users/getAll`);
+      const response = await fetch(`http://localhost:8080/api/users/getAll`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       } 

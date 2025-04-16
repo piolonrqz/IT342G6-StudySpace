@@ -12,6 +12,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 import org.springframework.http.HttpMethod;
 import java.util.List;
+import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
 
 import static org.springframework.security.config.Customizer.withDefaults;
 @Configuration
@@ -19,10 +20,13 @@ import static org.springframework.security.config.Customizer.withDefaults;
 public class SecurityConfig {
 
     private final JwtRequestFilter jwtRequestFilter;
+    private final OAuth2AuthenticationSuccessHandler oauth2login;
 
-    public SecurityConfig(JwtRequestFilter jwtRequestFilter) {
+    public SecurityConfig(JwtRequestFilter jwtRequestFilter, OAuth2AuthenticationSuccessHandler oauth2login) {
         this.jwtRequestFilter = jwtRequestFilter;
+        this.oauth2login = oauth2login;
     }
+    
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -45,13 +49,23 @@ public class SecurityConfig {
                     "/login/**",
                     "/uploads/**",
                     "/images/**",
-                    "/files/**"
+                    "/files/**",
+                    "/oauth2/"
                 ).permitAll()
-                .anyRequest().authenticated() // Other endpoints require JWT
+                .anyRequest().authenticated() )// Other endpoints require JWT
+                .oauth2Login(oauth2 -> oauth2
+                .successHandler(oauth2login) 
+                .userInfoEndpoint(userInfo -> userInfo.oidcUserService(oidcUserService()))
             )
-            .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+            http.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
     
         return http.build();
+    }
+
+    @Bean
+    public OidcUserService oidcUserService() {
+        return new OidcUserService();
     }
     
 

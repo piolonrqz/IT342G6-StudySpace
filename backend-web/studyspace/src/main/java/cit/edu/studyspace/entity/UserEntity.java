@@ -20,7 +20,7 @@ public class UserEntity {
     @Schema(description = "User's first name", example = "John")
     private String firstName;
     
-    @Column(nullable = false)
+    @Column(nullable = true)
     @Schema(description = "User's last name", example = "Doe")
     private String lastName;
     
@@ -28,19 +28,19 @@ public class UserEntity {
     @Schema(description = "User's email address, used for login", example = "john.doe@example.com")
     private String email;
     
-    @Column(nullable = false)
+    @Column(nullable = true)
     @Schema(description = "User's encrypted password", example = "[encrypted password]")
     private String password;
     
-    @Column(nullable = false)
+    @Column(nullable = true)
     @Schema(description = "User's phone number", example = "09123456789")
     private String phoneNumber;
     
-    @Column(nullable = false)
+    @Column(nullable = true)
     @Schema(description = "Flag indicating if the user's email has been verified", example = "true")
     private boolean emailVerified;
     
-    @Column(nullable = false)
+    @Column(nullable = true)
     @Schema(description = "Creation timestamp of the user account")
     private LocalDateTime createdAt;
     

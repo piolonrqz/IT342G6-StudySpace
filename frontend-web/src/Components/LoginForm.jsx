@@ -38,11 +38,12 @@ const LoginForm = () => {
         role: userData.role || "User",
         // prof_pic: userData.prof_pic, // Uncomment if your backend returns profile picture
       }));
+      console.log(userData.role)
       setName(userData.firstName + " " + userData.lastName);
       setGreat(true);
 
       // Redirect based on role (you'll need to adjust this based on how your roles are handled)
-      if (userData.role === 'admin') {
+      if (userData.role === 'ADMIN') {
         navigate("/AdminPage");
       } else {
         navigate("/");
@@ -53,7 +54,6 @@ const LoginForm = () => {
       setValidationError(err.message || "Invalid email or password");
     }
   };
-
   const handleGoogleSignIn = () => {
     window.location.href = 'http://localhost:8080/oauth2/authorization/google';
   };

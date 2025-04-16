@@ -52,9 +52,13 @@ public class UserController {
         String password = userData.get("password");
     
         String token = userService.authenticateUser(email, password);
-    
+
+        UserEntity user = new UserEntity();
+        user = userRepo.findByEmail(email);
+        UserRole role = user.getRole();
         Map<String, String> response = new HashMap<>();
         response.put("token", token);
+        response.put("role", role.name());
     
         return ResponseEntity.ok(response);
     }
