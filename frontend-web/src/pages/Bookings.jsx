@@ -1,5 +1,5 @@
 import React from "react";
-import { NavigationBar, SpaceShowcase } from "./Homepage";
+import { NavigationBar} from "../Components/NavigationBar";
 import Footer from "../Components/Footer";
 import SpaceContent from "@/Components/SpaceContent";
 

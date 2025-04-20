@@ -1,11 +1,11 @@
 import { useState, useEffect, useCallback } from "react";
-import { HomeIcon, CalendarIcon, User } from "lucide-react";
+import { HomeIcon, CalendarIcon, User, LogOutIcon } from "lucide-react"; // Import LogOutIcon
 import { UserFormModal } from '@/Components/UserFormModal';
 import { ConfirmationModal } from "@/Components/ConfirmationModal"; 
 import { UserManagement } from '@/Components/UserManagement';
 import { SpaceManagement } from '@/Components/SpaceManagement'; 
 import { SpaceFormModal } from '@/Components/SpaceFormModal';
-
+import { useAuth } from '../context/AuthContext.jsx'; // Import useAuth
 
 // StatsCard Component
 const StatsCard = ({ title, value }) => {
@@ -24,7 +24,8 @@ const StatsCard = ({ title, value }) => {
 // Sidebar Component
 const Sidebar = ({
   activeItem,
-  onItemClick
+  onItemClick,
+  onLogout // Add onLogout prop
 }) => {
   return (
     // Removed background, rounded corners, adjusted padding/margins
@@ -65,6 +66,16 @@ const Sidebar = ({
         <CalendarIcon className="h-5 w-5" />
         <span>Booking Management</span>
       </button>
+
+      {/* Logout Button */}
+      <button
+        onClick={onLogout} // Call the passed logout function
+        // Changed text color to gray-700 and hover background to light blue to match other inactive buttons
+        className={`w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 transition-colors mt-auto bg-[#2F9FE5] text-white hover:bg-[#2387c9]`} // Use mt-auto to push to bottom
+      >
+        <LogOutIcon className="h-5 w-5" />
+        <span>Logout</span>
+      </button>
     </nav>
   );
 };
@@ -79,7 +90,8 @@ const AdminPage = () => {
   const [bookings, setBookings] = useState(null); // State for bookings data (TODO)
   const [isLoading, setIsLoading] = useState(false); // Loading state
   const [error, setError] = useState(null); // Error state
-
+  const { logout } = useAuth(); // Get logout function from context
+  
   // User Delete Confirmation State
   const [isUserConfirmModalOpen, setIsUserConfirmModalOpen] = useState(false); // State for delete confirmation modal
   const [userToDeleteId, setUserToDeleteId] = useState(null); // State to store the ID of the user to be deleted
@@ -416,12 +428,13 @@ const AdminPage = () => {
   
   return (
     // Main flex container for full-page layout
+    
     <div className="flex min-h-screen"> 
       {/* Sidebar Container: Fixed width, light blue background, full height */}
       <div className="w-64 flex-shrink-0 bg-[#EBF6FC] h-screen sticky top-0"> 
         {/* Optional: Add a header/logo area inside the sidebar if needed */}
         {/* <div className="h-16 flex items-center justify-center text-[#2F9FE5] font-semibold text-lg">Admin Menu</div> */}
-        <Sidebar activeItem={activeItem} onItemClick={setActiveItem} />
+        <Sidebar activeItem={activeItem} onItemClick={setActiveItem} onLogout={logout} />
       </div>
 
       {/* Main Content Area: Takes remaining space, light gray background, padding, scrollable */}

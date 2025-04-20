@@ -59,7 +59,7 @@ export const AuthProvider = ({ children }) => {
         localStorage.removeItem('currentUser');
         setToken(null);
         setUser(null);
-        navigate('/LoginPage'); // Redirect to login page after logout
+        navigate('/'); // Redirect to home page after logout
     };
 
     // Value provided by the context
