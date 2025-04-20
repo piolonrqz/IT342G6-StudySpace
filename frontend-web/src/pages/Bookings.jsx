@@ -8,6 +8,7 @@ const Bookings = () => {
     return (
         <div>
         <NavigationBar/>
+        <SpaceShowcase/>
         <SpaceContent/>
         <Footer/>
         </div>

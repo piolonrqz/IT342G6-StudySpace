@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import NavigationBar from '@/Components/NavigationBar';
 
-// Hero Section Component
+// Hero Section Component (No changes needed)
 export const HeroSection = () => {
   return (
     <section className="grid grid-cols-2 px-12 py-12">
@@ -26,7 +26,7 @@ export const HeroSection = () => {
   );
 };
 
-// Featured Spaces Section Component
+// Featured Spaces Section Component (No changes needed)
 export const SpaceShowcase = () => {
   return (
     <section className="px-12 py-8 bg-white">
@@ -67,7 +67,7 @@ export const SpaceShowcase = () => {
   );
 };
 
-// Tagline Section Component
+// Tagline Section Component (No changes needed)
 export const TaglineSection = () => {
   return (
     <section className="text-center py-12 px-4 md:px-12 md:w-1/2">
@@ -80,7 +80,7 @@ export const TaglineSection = () => {
   );
 };
 
-// PlatformDescription Section Component
+// PlatformDescription Section Component (No changes needed)
 export const PlatformDescriptionSection = () => {
   return (
     <section className="px-4 md:px-12 py-8 bg-white md:w-1/2">
@@ -99,7 +99,7 @@ export const PlatformDescriptionSection = () => {
   );
 };
 
-// WhyChooseUs Section Component
+// WhyChooseUs Section Component (No changes needed)
 export const WhyChooseUsSection = () => {
   return (
     <section className="px-6 py-8">
@@ -156,7 +156,7 @@ export const WhyChooseUsSection = () => {
   );
 };
 
-// Footer Component
+// Footer Component (No changes needed)
 export const Footer = () => {
   return (
     <footer className="bg-blue-50 px-12 py-8 mt-auto">

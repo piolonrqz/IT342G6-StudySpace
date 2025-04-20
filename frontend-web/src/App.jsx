@@ -6,6 +6,7 @@ import Homepage from './pages/Homepage.jsx';
 import SpacesPage from './pages/SpacesPage.jsx';
 import LoginPage from './pages/LoginPage.jsx';
 import RegisterPage from './pages/RegisterPage.jsx';
+import ProtectedAdminRoute from './Components/ProtectedAdminRoute.jsx';
 import WhyStudySpace from './pages/WhyStudySpace.jsx';
 import Bookings from './pages/Bookings.jsx';
 import AdminPage from './pages/AdminPage.jsx';
