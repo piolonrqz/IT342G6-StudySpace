@@ -15,11 +15,14 @@ import java.util.Optional;
 @Service
 @Tag(name = "Booking Service", description = "Business logic for booking operations")
 public class BookingService {
-    
+
     @Autowired
     private BookingRepo bookingRepo;
 
-    public BookingService(){
+    @Autowired
+    private GoogleCalendarService calendarService;
+
+    public BookingService() {
         super();
     }
 
@@ -33,19 +36,17 @@ public class BookingService {
     @Operation(summary = "Get booking by ID", description = "Fetches a booking based on the given ID")
     public Optional<BookingEntity> getBookingById(int id) {
         return bookingRepo.findById(id);
-    }
-
-    // Add method to get bookings by user ID
-    @Operation(summary = "Get bookings by user ID", description = "Fetches all bookings for a specific user")
-    public List<BookingEntity> getBookingsByUserId(Long userId) {
-        // This now relies on the method added to BookingRepo
-        return bookingRepo.findByUserId(userId); 
-    }
-
-    // Creates a new booking.
-    @Operation(summary = "Create a new booking", description = "Adds a new booking to the system")
+    
+    // Creates a new booking and syncs it with Google Calendar.
+    @Operation(summary = "Create a new booking", description = "Adds a new booking to the system and Google Calendar")
     public BookingEntity saveBooking(BookingEntity booking) {
-        return bookingRepo.save(booking);
+        BookingEntity savedBooking = bookingRepo.save(booking);
+        try {
+            calendarService.createCalendarEvent(savedBooking);
+        } catch (Exception e) {
+            System.out.println("Google Calendar integration failed: " + e.getMessage());
+        }
+        return savedBooking;
     }
 
     // Add method to cancel a booking
@@ -75,12 +76,13 @@ public class BookingService {
     // Deletes a booking by their ID.
     @Operation(summary = "Delete a booking", description = "Removes a booking from the database")
     public String deleteBooking(int id) {
-        String msg = " ";
-        if (bookingRepo.findById(id)!=null){
+        String msg;
+        if (bookingRepo.findById(id).isPresent()) {
             bookingRepo.deleteById(id);
             msg = "Booking record successfully deleted!";
-        }else
-            msg = id + "NOT FOUND!";
+        } else {
+            msg = id + " NOT FOUND!";
+        }
         return msg;
     }
 }
