@@ -44,23 +44,32 @@ public class UserController {
         return "Hello, User! Test";
     }
 
-    // Login - Generate JWT Token
+    // Login - Generate JWT Token and return user details
     @PostMapping("/login")
-    @Operation(summary = "User authentication", description = "Authenticates user and returns JWT token")
-    public ResponseEntity<?> login(@RequestBody Map<String, String> userData) {
-        String email = userData.get("email");
-        String password = userData.get("password");
+    @Operation(summary = "User authentication", description = "Authenticates user and returns JWT token and user details")
+    public ResponseEntity<?> login(@RequestBody Map<String, String> loginData) { // Renamed param for clarity
+        String email = loginData.get("email");
+        String password = loginData.get("password");
     
-        String token = userService.authenticateUser(email, password);
+        try {
+            // Call the updated service method which returns a Map
+            Map<String, Object> authResult = userService.authenticateUser(email, password); 
+            
+            // Return the map containing token and user details
+            return ResponseEntity.ok(authResult); 
 
-        UserEntity user = new UserEntity();
-        user = userRepo.findByEmail(email);
-        UserRole role = user.getRole();
-        Map<String, String> response = new HashMap<>();
-        response.put("token", token);
-        response.put("role", role.name());
-    
-        return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            // Handle authentication failure (e.g., invalid credentials)
+            // Return a 401 Unauthorized status
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("error", e.getMessage()); // Send back the error message
+            return ResponseEntity.status(401).body(errorResponse);
+        } catch (Exception e) {
+             // Catch other potential errors during login
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("error", "An unexpected error occurred during login.");
+            return ResponseEntity.status(500).body(errorResponse);
+        }
     }
 
     @GetMapping("/me")
@@ -93,8 +102,16 @@ public class UserController {
 
     @GetMapping("/getAll")
     @Operation(summary = "Get all users", description = "Fetches all users in the system")
-    public List<UserEntity> getAllUsers() {
-        return userService.getAllUsers();
+    public ResponseEntity<List<UserEntity>> getAllUsers() {
+        try {
+            List<UserEntity> users = userService.getAllUsers();
+            return ResponseEntity.ok(users);
+        } catch (Exception e) {
+            // Log the error
+            System.err.println("Error fetching users: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(500).build();
+        }
     }
 
     @PostMapping("/save")

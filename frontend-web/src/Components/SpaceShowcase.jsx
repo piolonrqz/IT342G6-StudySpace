@@ -46,10 +46,6 @@ export const SpaceShowcase = () => {
 
   return (
     <section className="px-12 py-8 bg-white">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold font-poppins">Featured Spaces</h2>
-        <Link to="/spaces" className="text-blue-600 hover:text-blue-800 font-poppins">See all</Link>
-      </div>
 
       {/* Handle Loading State */}
       {isLoading && <div className="text-center text-gray-500 py-4">Loading spaces...</div>}
@@ -63,35 +59,34 @@ export const SpaceShowcase = () => {
           {/* Map over the fetched spaces state */}
           {spaces.length > 0 ? (
             spaces.map(space => (
-              // Use space.id as key
-              <div key={space.id} className="rounded-3xl overflow-hidden shadow-md transform transition-transform hover:scale-105">
-                {/* Image - Use uploads path and check for imageFilename */}
-                {space.imageFilename ? (
-                  <img 
-                    src={`/uploads/${space.imageFilename}`} // Use dynamic path
-                    alt={space.name} // Use space name for alt text
-                    className="w-full h-80 object-cover" // Fixed height for consistency
-                  />
-                ) : (
-                  <div className="w-full h-80 bg-gray-200 flex items-center justify-center text-gray-500">
-                    No Image Available
+              // Wrap the entire card div with a Link component
+              <Link key={space.id} to={`/space/${space.id}`} className="block rounded-3xl overflow-hidden shadow-md transform transition-transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-opacity-50"> {/* Added Link and focus styles */}
+                {/* The existing card content goes inside the Link */}
+                <div> {/* Optional: Keep an inner div if needed, or apply styles directly to Link if it behaves like a block */}
+                  {/* Image */}
+                  {space.imageFilename ? (
+                    <img
+                      src={`/uploads/${space.imageFilename}`}
+                      alt={space.name}
+                      className="w-full h-80 object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-80 bg-gray-200 flex items-center justify-center text-gray-500">
+                      No Image Available
+                    </div>
+                  )}
+                  {/* Content */}
+                  <div className="p-4 bg-white"> {/* Ensure content background is white if needed */}
+                    <h3 className="text-xl font-semibold mb-1 font-poppins truncate">{space.name}</h3>
+                    <p className="text-gray-600 text-base mb-2 font-poppins">{space.location}</p>
+                    <p className="text-lg font-semibold text-[#2F9FE5] font-poppins">{formatPrice(space.price)} / hour</p>
+                    {/* You can remove the specific "View Details" link now if the whole card is clickable */}
+                    {/* <Link to={`/space/${space.id}`} className="text-blue-500 hover:underline mt-2 inline-block">View Details</Link> */}
                   </div>
-                )}
-                {/* Content */}
-                <div className="p-4"> {/* Adjusted padding */}
-                  {/* Display space name */}
-                  <h3 className="text-xl font-semibold mb-1 font-poppins truncate">{space.name}</h3> 
-                  {/* Display location */}
-                  <p className="text-gray-600 text-base mb-2 font-poppins">{space.location}</p> 
-                  {/* Display formatted price */}
-                  <p className="text-lg font-semibold text-[#2F9FE5] font-poppins">{formatPrice(space.price)} / hour</p> 
-                  {/* Optional: Add a link/button to view details */}
-                  {/* <Link to={`/space/${space.id}`} className="text-blue-500 hover:underline mt-2 inline-block">View Details</Link> */}
                 </div>
-              </div>
+              </Link>
             ))
           ) : (
-            // Handle case where no spaces are returned
             <p className="text-center text-gray-500 col-span-full py-4">No spaces found.</p>
           )}
         </div>

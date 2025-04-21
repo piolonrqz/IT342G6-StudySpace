@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext'; // Import useAuth hook
 
 const LoginForm = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [validationError, setValidationError] = useState('');
-  const [name, setName] = useState('');
-  const [great, setGreat] = useState(false);
+  // const [name, setName] = useState(''); // Can likely remove this state
+  // const [great, setGreat] = useState(false); // Can likely remove this state
   const navigate = useNavigate();
+  const { login } = useAuth(); // Get the login function from context
 
   const handleClickShowPassword = () => setShowPassword(!showPassword);
 
@@ -17,44 +19,37 @@ const LoginForm = () => {
     setValidationError('');
 
     try {
-      // **User Login Endpoint**
-      const response = await fetch("http://localhost:8080/api/users/login", {
+      const response = await fetch("http://localhost:8080/api/users/login", { 
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
 
       if (!response.ok) {
-        throw new Error("Invalid email or password");
+           const errorData = await response.json().catch(() => ({})); 
+           throw new Error(errorData.error || `HTTP error! status: ${response.status}`); 
       }
 
       const userData = await response.json();
-      localStorage.setItem("jwtToken", userData.token);
-      localStorage.setItem("role", userData.role || "User"); // Assuming the token or response contains role info
-      localStorage.setItem("currentUser", JSON.stringify({
-        email,
-        id: userData.id, // Uncomment if your backend returns user ID in the login response
-        name: userData.firstName + " " + userData.lastName, // Assuming your backend returns firstName and lastName
-        role: userData.role || "User",
-        // prof_pic: userData.prof_pic, // Uncomment if your backend returns profile picture
-      }));
-      console.log(userData.role)
-      setName(userData.firstName + " " + userData.lastName);
-      setGreat(true);
 
-      // Redirect based on role (you'll need to adjust this based on how your roles are handled)
+      // Call the login function from AuthContext
+      login(userData, userData.token);
+
+      // Redirect based on role
       if (userData.role === 'ADMIN') {
-        navigate("/AdminPage");
+        navigate("/AdminPage"); // Make sure /AdminPage route exists
       } else {
-        navigate("/");
+        navigate("/"); // Redirect regular users to home
       }
 
     } catch (err) {
       console.error("Error signing in:", err);
-      setValidationError(err.message || "Invalid email or password");
+      setValidationError(err.message || "An error occurred during login.");
     }
   };
   const handleGoogleSignIn = () => {
+    // Direct browser navigation to Spring Security's OAuth endpoint
+    // This is a full page redirect, not an AJAX request, so no CORS issues
     window.location.href = 'http://localhost:8080/oauth2/authorization/google';
   };
 
@@ -123,11 +118,12 @@ const LoginForm = () => {
               Sign In
             </button>
 
-            {great && (
+            {/* Removed the 'great' message - login status is now global */}
+            {/* {great && (
               <div className="text-green-600 text-sm text-center">
                 Welcome back, {name}!
               </div>
-            )}
+            )} */}
           </form>
 
           <div className="mt-6">

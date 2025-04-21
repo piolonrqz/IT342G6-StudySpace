@@ -1,11 +1,13 @@
 package cit.edu.studyspace.service;
 
 import cit.edu.studyspace.entity.BookingEntity;
+import cit.edu.studyspace.entity.BookingStatus; // Import the enum
 import cit.edu.studyspace.repository.BookingRepo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional; // Import Transactional
 
 import java.util.List;
 import java.util.Optional;
@@ -33,10 +35,41 @@ public class BookingService {
         return bookingRepo.findById(id);
     }
 
+    // Add method to get bookings by user ID
+    @Operation(summary = "Get bookings by user ID", description = "Fetches all bookings for a specific user")
+    public List<BookingEntity> getBookingsByUserId(Long userId) {
+        // This now relies on the method added to BookingRepo
+        return bookingRepo.findByUserId(userId); 
+    }
+
     // Creates a new booking.
     @Operation(summary = "Create a new booking", description = "Adds a new booking to the system")
     public BookingEntity saveBooking(BookingEntity booking) {
         return bookingRepo.save(booking);
+    }
+
+    // Add method to cancel a booking
+    @Transactional // Ensure the operation is atomic
+    @Operation(summary = "Cancel a booking", description = "Marks a booking as cancelled")
+    public BookingEntity cancelBooking(Long bookingId) {
+        // Find the booking by ID. Use Long if your ID is Long.
+        Optional<BookingEntity> bookingOpt = bookingRepo.findById(bookingId.intValue()); // Convert Long to int if ID is int
+        
+        if (bookingOpt.isPresent()) {
+            BookingEntity booking = bookingOpt.get();
+            // Compare with the enum constant
+            if (BookingStatus.CONFIRMED == booking.getStatus()) { 
+                // Set status using the enum constant
+                booking.setStatus(BookingStatus.CANCELLED);
+                // Optionally set cancelledAt timestamp
+                // booking.setCancelledAt(LocalDateTime.now());
+                return bookingRepo.save(booking);
+            } else {
+                throw new RuntimeException("Booking cannot be cancelled in its current state: " + booking.getStatus());
+            }
+        } else {
+            throw new RuntimeException("Booking not found with ID: " + bookingId);
+        }
     }
 
     // Deletes a booking by their ID.

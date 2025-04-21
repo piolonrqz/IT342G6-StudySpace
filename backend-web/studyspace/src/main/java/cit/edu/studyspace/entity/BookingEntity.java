@@ -57,6 +57,10 @@ public class BookingEntity {
     @Column(nullable = false)
     @Schema(description = "Number of people for the booking", example = "3")
     private int numberOfPeople;
+
+    @Column(nullable = true) // Or false if it should always be calculated/stored
+    @Schema(description = "Total price calculated for the booking", example = "1500.00")
+    private Double totalPrice;
     
     // Constructors
     public BookingEntity() {
@@ -149,6 +153,14 @@ public class BookingEntity {
 
     public void setNumberOfPeople(int numberOfPeople) {
         this.numberOfPeople = numberOfPeople;
+    }
+
+    public Double getTotalPrice() {
+        return totalPrice;
+    }
+
+    public void setTotalPrice(Double totalPrice) {
+        this.totalPrice = totalPrice;
     }
     
     @PrePersist

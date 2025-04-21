@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Entity
@@ -52,6 +53,7 @@ public class UserEntity {
     @Schema(description = "Last login timestamp")
     private LocalDateTime lastLogin;
     
+    @JsonIgnore
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private Set<BookingEntity> booking = new HashSet<>();
 
