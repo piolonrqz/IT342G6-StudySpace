@@ -36,7 +36,15 @@ public class BookingService {
     @Operation(summary = "Get booking by ID", description = "Fetches a booking based on the given ID")
     public Optional<BookingEntity> getBookingById(int id) {
         return bookingRepo.findById(id);
-    
+    }
+
+    // Add method to get bookings by user ID
+    @Operation(summary = "Get bookings by user ID", description = "Fetches all bookings for a specific user")
+    public List<BookingEntity> getBookingsByUserId(Long userId) {
+        // This now relies on the method added to BookingRepo
+        return bookingRepo.findByUserId(userId); 
+    }
+
     // Creates a new booking and syncs it with Google Calendar.
     @Operation(summary = "Create a new booking", description = "Adds a new booking to the system and Google Calendar")
     public BookingEntity saveBooking(BookingEntity booking) {
