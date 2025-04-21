@@ -118,17 +118,30 @@ const AdminPage = () => {
       const response = await fetch(`http://localhost:8080/api/users/getAll`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
-      } 
-      const data = await response.json();
+      }
+      
+      // Try to parse as text first to diagnose JSON issues
+      const responseText = await response.text();
+      
+      let data;
+      try {
+        // Then parse the text to JSON
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error("JSON parse error:", parseError);
+        console.log("Response that failed to parse:", responseText.substring(0, 200) + "..."); // Log start of response
+        throw new Error(`Failed to parse server response as JSON: ${parseError.message}`);
+      }
+      
       setUsers(data);
     } catch (e) {
       console.error("Failed to fetch users:", e);
-      setError("Failed to load users. Please try again.");
+      setError("Failed to load users. Please try again. " + e.message);
       setUsers([]); // Set to empty array on error to avoid breaking map
     } finally {
       setIsLoading(false);
     }
-  }, [API_BASE_URL]); // Dependency array includes API_BASE_URL
+  }, []);
 
   // Fetch spaces function
   const fetchSpaces = useCallback(async () => {

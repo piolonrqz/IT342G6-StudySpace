@@ -102,8 +102,16 @@ public class UserController {
 
     @GetMapping("/getAll")
     @Operation(summary = "Get all users", description = "Fetches all users in the system")
-    public List<UserEntity> getAllUsers() {
-        return userService.getAllUsers();
+    public ResponseEntity<List<UserEntity>> getAllUsers() {
+        try {
+            List<UserEntity> users = userService.getAllUsers();
+            return ResponseEntity.ok(users);
+        } catch (Exception e) {
+            // Log the error
+            System.err.println("Error fetching users: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(500).build();
+        }
     }
 
     @PostMapping("/save")

@@ -201,9 +201,11 @@ export const Footer = () => {
 
 // Homepage Component using the separated sections
 const Homepage = () => {
+
   return (
     <div className="flex flex-col min-h-screen">
       <NavigationBar />
+      
       <HeroSection />
       <SpaceShowcase />
       <div className="flex flex-col md:flex-row">

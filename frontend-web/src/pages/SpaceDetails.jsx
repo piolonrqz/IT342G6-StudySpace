@@ -2,6 +2,9 @@ import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import NavigationBar from "../Components/NavigationBar";
 import Footer from "../Components/Footer";
+import BookingModal from "../Components/BookingModal";
+import { useAuth } from "../context/AuthContext";
+import { useToast } from "../hooks/use-toast";
 
 // Helper function for formatting price
 const formatPrice = (price) => {
@@ -41,18 +44,30 @@ const SpaceDetails = () => {
     const [space, setSpace] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+    const { isAuthenticated } = useAuth();
+    const { toast } = useToast();
 
     useEffect(() => {
         const fetchSpaceDetails = async () => {
             setIsLoading(true);
             setError(null);
             try {
-                const response = await fetch(`/api/space/${id}`);
+                // Construct the correct backend API URL
+                const response = await fetch(`http://localhost:8080/api/space/${id}`); // Use correct backend URL
                 if (!response.ok) {
                     if (response.status === 404) {
                         throw new Error(`Space with ID ${id} not found.`);
                     }
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                    // Try to get more specific error from backend
+                    let errorMsg = `HTTP error! status: ${response.status}`;
+                    try {
+                        const errorData = await response.json();
+                        errorMsg = errorData.message || errorData.error || errorMsg;
+                    } catch (parseError) {
+                        // Ignore if response is not JSON
+                    }
+                    throw new Error(errorMsg);
                 }
                 const data = await response.json();
                 setSpace(data);
@@ -64,7 +79,15 @@ const SpaceDetails = () => {
             }
         };
 
-        fetchSpaceDetails();
+        // Only fetch if id is defined and not the string "undefined"
+        if (id && id !== 'undefined') {
+            fetchSpaceDetails();
+        } else {
+            // Handle the case where id is missing or invalid early
+            setError("Invalid or missing Space ID.");
+            setIsLoading(false);
+            console.error("Attempted to fetch with invalid ID:", id);
+        }
     }, [id]);
 
     // Format price only when space data is available
@@ -75,6 +98,17 @@ const SpaceDetails = () => {
     const formattedOpeningTime = space ? formatTime(space.openingTime) : 'N/A';
     const formattedClosingTime = space ? formatTime(space.closingTime) : 'N/A';
 
+    const handleBookNowClick = () => {
+        if (!isAuthenticated) {
+            toast({
+                title: "Authentication required",
+                description: "Please log in to book a space.",
+                variant: "destructive"
+            });
+            return;
+        }
+        setIsBookingModalOpen(true);
+    };
 
     return (
         <div className="flex flex-col min-h-screen">
@@ -90,7 +124,8 @@ const SpaceDetails = () => {
                         {/* Image */}
                         {space.imageFilename ? (
                             <img
-                                src={`/uploads/${space.imageFilename}`}
+                                // Use correct path assuming uploads are served relative to backend root
+                                src={`http://localhost:8080/uploads/${space.imageFilename}`}
                                 alt={space.name}
                                 className="w-full h-auto max-h-[700px] object-cover rounded-lg shadow-md mb-6 md:mb-8" /* Added max-height, adjusted margin */
                             />
@@ -118,7 +153,7 @@ const SpaceDetails = () => {
 
                             {/* Booking Button */}
                             <button
-                                onClick={() => alert('Booking functionality to be implemented!')}
+                                onClick={handleBookNowClick}
                                 className="text-white shadow-md text-base md:text-lg font-medium cursor-pointer bg-sky-500 px-6 py-2.5 rounded-md hover:bg-sky-600 transition-colors font-poppins w-full md:w-auto" /* Adjusted size, padding, added width control */
                             >
                                 Book Now
@@ -146,6 +181,15 @@ const SpaceDetails = () => {
                      <div className="text-center text-gray-500 py-10">Space details could not be loaded.</div>
                  )}
             </main>
+
+            {/* Booking Modal */}
+            {space && (
+                <BookingModal 
+                    isOpen={isBookingModalOpen} 
+                    onClose={() => setIsBookingModalOpen(false)} 
+                    space={space} 
+                />
+            )}
 
             <Footer />
         </div>

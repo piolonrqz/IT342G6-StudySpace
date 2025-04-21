@@ -13,10 +13,12 @@ import org.springframework.security.oauth2.client.authentication.OAuth2Authentic
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.Map;
 
 @Component
@@ -63,14 +65,26 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         // Generate JWT token
         String token = jwtUtil.generateToken(user);
         
-
-        
-        // Redirect to frontend with token
+        // Encode token to prevent any issues with special characters
+        String encodedToken = URLEncoder.encode(token, StandardCharsets.UTF_8);
         String role = user.getRole().name(); // Convert enum to string
-        String redirectUrl = String.format("%s/oauth/callback?token=%s&role=%s", frontendUrl, token, role);
-        getRedirectStrategy().sendRedirect(request, response, redirectUrl);
-
-        // getRedirectStrategy().sendRedirect(request, response, frontendUrl + "/oauth/callback?token=" + token);
         
+        // Build the redirect URL with proper URL encoding
+        String redirectUrl = UriComponentsBuilder.fromUriString(frontendUrl + "/oauth/callback")
+            .queryParam("token", encodedToken)
+            .queryParam("role", role)
+            .queryParam("userId", user.getId())
+            .queryParam("email", URLEncoder.encode(user.getEmail(), StandardCharsets.UTF_8))
+            .queryParam("firstName", URLEncoder.encode(user.getFirstName(), StandardCharsets.UTF_8))
+            .queryParam("lastName", URLEncoder.encode(user.getLastName(), StandardCharsets.UTF_8))
+            .build()
+            .toUriString();
+        
+        // Set CORS headers explicitly for the OAuth callback
+        response.setHeader("Access-Control-Allow-Origin", frontendUrl);
+        response.setHeader("Access-Control-Allow-Credentials", "true");
+        
+        // Redirect to frontend with token and user details
+        getRedirectStrategy().sendRedirect(request, response, redirectUrl);
     }
 }

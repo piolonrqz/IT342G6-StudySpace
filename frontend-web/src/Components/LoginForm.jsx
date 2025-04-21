@@ -48,6 +48,8 @@ const LoginForm = () => {
     }
   };
   const handleGoogleSignIn = () => {
+    // Direct browser navigation to Spring Security's OAuth endpoint
+    // This is a full page redirect, not an AJAX request, so no CORS issues
     window.location.href = 'http://localhost:8080/oauth2/authorization/google';
   };
 

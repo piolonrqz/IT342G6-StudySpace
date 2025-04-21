@@ -86,9 +86,9 @@ const RegisterForm = () => {
   };
 
   const handleGoogleSignUp = () => {
+    // Direct browser navigation to Spring Security's OAuth endpoint
+    // This is a full page redirect, not an AJAX request, so no CORS issues
     window.location.href = 'http://localhost:8080/oauth2/authorization/google';
-    console.log('Initiating Google Sign Up...');
-    // window.location.href = '/auth/google'; // Example redirect URL if your backend handles the flow
   };
 
   return (

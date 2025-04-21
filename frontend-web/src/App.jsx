@@ -10,12 +10,12 @@ import ProtectedAdminRoute from './Components/ProtectedAdminRoute.jsx';
 import WhyStudySpace from './pages/WhyStudySpace.jsx';
 import Bookings from './pages/Bookings.jsx';
 import AdminPage from './pages/AdminPage.jsx';
-import ProtectedAdminRoute from './Components/ProtectedAdminRoute.jsx';
 import SpaceDetails from './pages/SpaceDetails';
 //import ProfilePage from './pages/ProfilePage'; // Import the ProfilePage component (you'll need to create this)
 // You might also need NavigationBar and Footer if they are part of the main layout
 // import NavigationBar from './Components/NavigationBar';
 // import Footer from './Components/Footer';
+import OAuthCallBack from './Components/OAuthCallBack.jsx';
 
 function App() {
   return (
@@ -30,6 +30,7 @@ function App() {
           <Route path="/LoginPage" element={<LoginPage />} />
           <Route path="/RegisterPage" element={<RegisterPage />} />
           <Route path="/WhyStudySpace" element={<WhyStudySpace />} />
+          <Route path="/oauth/callback" element={<OAuthCallBack />} />
           <Route path="/Bookings" element={<Bookings />} />
           {/* Removed the duplicate /AdminPage route */}
           <Route path="/space/:id" element={<SpaceDetails />} />
