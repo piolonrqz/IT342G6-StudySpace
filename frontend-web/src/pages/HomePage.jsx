@@ -1,60 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-// import { FaUserCircle, FaCommentDots } from 'react-icons/fa'; // Removed icon components import
-
-// Navigation Bar Component
-export const NavigationBar = () => {
-  // State to track whether the user is logged in
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // Initially set to false
-
-  // In a real application, you would likely fetch this status from an authentication context or state management
-  // For demonstration purposes, we'll use a simple button to toggle the login status
-  const handleLogin = () => {
-    setIsLoggedIn(true);
-  };
-
-  const handleLogout = () => {
-    setIsLoggedIn(false);
-  };
-
-  return (
-    <nav className="flex items-center justify-between px-6 py-4 bg-white shadow-sm">
-      <div className="flex items-center">
-        <img src="/logo.png" alt="StudySpace" className="h-8" />
-        <span className="ml-2 text-xl font-semibold text-sky-500 font-poppins">StudySpace</span>
-      </div>
-
-      <div className="flex space-x-6">
-        <Link to="/" className="text-gray-900 hover:text-indigo-400 font-poppins">Home</Link>
-        <Link to="/SpacesPage" className="text-gray-900 hover:text-indigo-400 font-poppins">Spaces</Link>
-        <Link to="/WhyStudySpace" className="text-gray-900 hover:text-indigo-400 font-poppins">Why StudySpace</Link>
-        <Link to="/Bookings" className="text-gray-900 hover:text-indigo-400 font-poppins">Bookings</Link>
-      </div>
-
-      <div className="flex space-x-4">
-        {isLoggedIn ? (
-          <>
-            <Link to="/account" className="text-gray-900 hover:text-indigo-400 font-poppins">
-              <img src="/circle-user-round.png" alt="Account" className="h-6 w-6" /> {/* Account Icon as Image */}
-            </Link>
-            <Link to="/chat" className="text-gray-900 hover:text-indigo-400 font-poppins">
-              <img src="/message-circle.png" alt="Chat" className="h-6 w-6" /> {/* Chat Icon as Image */}
-            </Link>
-            {/* For demonstration, a logout button */}
-            {/* <button onClick={handleLogout} className="px-4 py-2 font-medium text-red-500 border border-red-500 rounded hover:bg-red-50 font-poppins">Log out</button> */}
-          </>
-        ) : (
-          <>
-            <Link to="/LoginPage" className="px-4 py-2 font-medium text-sky-500 border border-sky-500 rounded hover:bg-blue-50 font-poppins">Log in</Link>
-            <Link to="/RegisterPage" className="px-4 py-2 font-medium text-white bg-sky-500 rounded hover:bg-sky-500 font-poppins">Register</Link>
-            {/* For demonstration, a login button */}
-            {/* <button onClick={handleLogin} className="px-4 py-2 font-medium text-green-500 border border-green-500 rounded hover:bg-green-50 font-poppins">Log in</button> */}
-          </>
-        )}
-      </div>
-    </nav>
-  );
-};
+import NavigationBar from '@/Components/NavigationBar';
 
 // Hero Section Component (No changes needed)
 export const HeroSection = () => {
@@ -255,9 +201,11 @@ export const Footer = () => {
 
 // Homepage Component using the separated sections
 const Homepage = () => {
+
   return (
     <div className="flex flex-col min-h-screen">
       <NavigationBar />
+      
       <HeroSection />
       <SpaceShowcase />
       <div className="flex flex-col md:flex-row">
