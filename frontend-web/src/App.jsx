@@ -11,7 +11,7 @@ import WhyStudySpace from './pages/WhyStudySpace.jsx';
 import Bookings from './pages/Bookings.jsx';
 import AdminPage from './pages/AdminPage.jsx';
 import SpaceDetails from './pages/SpaceDetails';
-//import ProfilePage from './pages/ProfilePage'; // Import the ProfilePage component (you'll need to create this)
+import ProfilePage from './pages/ProfilePage';
 // You might also need NavigationBar and Footer if they are part of the main layout
 // import NavigationBar from './Components/NavigationBar';
 // import Footer from './Components/Footer';
@@ -34,7 +34,7 @@ function App() {
           <Route path="/Bookings" element={<Bookings />} />
           {/* Removed the duplicate /AdminPage route */}
           <Route path="/space/:id" element={<SpaceDetails />} />
-          {/*<Route path="/profile" element={<ProfilePage />} /> {/* Add the route for the profile page */}
+          <Route path="/profile" element={<ProfilePage />} /> {/* Add the route for the profile page
 
           {/* Protected Admin Route */}
           <Route
