@@ -11,9 +11,12 @@ export const HeroSection = () => {
         <p className="text-lg text-gray-900 mb-4 font-poppins leading-tight max-w-sm">
           Anytime, Anywhere. Discover and book the perfect space for study and work.
         </p>
-        <button className="px-6 py-3 w-32 h-14 text-white bg-sky-500 rounded-3xl hover:bg-sky-400 font-poppins">
+        <Link
+          to="/SpacesPage" // Redirect to SpacesPage
+          className="px-6 py-3 w-32 h-14 text-white bg-sky-500 rounded-3xl hover:bg-sky-400 font-poppins"
+        >
           Book now
-        </button>
+        </Link>
       </div>
       <div className="flex justify-center">
         <img
