@@ -1,8 +1,7 @@
 package cit.edu.studyspace.entity;
 
 public enum BookingStatus {
-    PENDING,
-    CONFIRMED,
+    BOOKED,     // Renamed from PENDING/CONFIRMED
     CANCELLED,
     COMPLETED
 }

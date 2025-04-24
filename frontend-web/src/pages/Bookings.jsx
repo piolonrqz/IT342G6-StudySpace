@@ -17,6 +17,7 @@ const Bookings = () => {
     const [error, setError] = useState(null);
     const [cancelBookingId, setCancelBookingId] = useState(null);
     const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+    const [activeFilter, setActiveFilter] = useState('Booked'); // Set default filter to 'Booked'
 
     // Fetch user's bookings
     useEffect(() => {
@@ -45,14 +46,25 @@ const Bookings = () => {
                             variant: "destructive",
                         });
                         logout();
-                        navigate('/login');
+                        navigate('/LoginPage');
                         return;
                     }
                     throw new Error(`HTTP error! Status: ${response.status}`);
                 }
 
                 const data = await response.json();
-                setBookings(data);
+                
+                // Process bookings to update display status for completed bookings
+                const processedData = data.map(booking => {
+                    // If a booking is BOOKED and its end time is in the past, display it as COMPLETED
+                    if (booking.status === 'BOOKED' && booking.endTime && new Date(booking.endTime) < new Date()) {
+                        return { ...booking, displayStatus: 'COMPLETED' };
+                    }
+                    // Otherwise, use the actual status
+                    return { ...booking, displayStatus: booking.status };
+                });
+                
+                setBookings(processedData);
 
             } catch (err) {
                 console.error("Failed to fetch bookings:", err);
@@ -69,16 +81,17 @@ const Bookings = () => {
     }, [isAuthenticated, user, token, logout, navigate, toast]);
 
     // Handle booking cancellation
-    const handleCancelBooking = async () => {
+    const handleCancelBooking = async (reason) => {
         if (!cancelBookingId) return;
         
         try {
-            const response = await fetch(`/api/bookings/${cancelBookingId}/cancel`, {
+            const response = await fetch(`http://localhost:8080/api/bookings/${cancelBookingId}/cancel`, {
                 method: 'PUT',
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
-                }
+                },
+                body: JSON.stringify({ reason })
             });
 
             if (!response.ok) {
@@ -89,7 +102,7 @@ const Bookings = () => {
             // Update the local state to reflect the cancellation
             setBookings(bookings.map(booking => 
                 booking.id === cancelBookingId 
-                    ? { ...booking, status: 'CANCELLED' } 
+                    ? { ...booking, status: 'CANCELLED', cancellationReason: reason } 
                     : booking
             ));
 
@@ -142,18 +155,26 @@ const Bookings = () => {
         if (!status) return "bg-gray-200 text-gray-800";
         
         switch (status.toUpperCase()) {
-            case 'CONFIRMED':
-                return "bg-green-100 text-green-800";
-            case 'PENDING':
-                return "bg-yellow-100 text-yellow-800";
+            case 'BOOKED': // Changed from CONFIRMED/PENDING
+                return "bg-blue-100 text-blue-800"; // Representing BOOKED as 'Upcoming' or similar
             case 'CANCELLED':
                 return "bg-red-100 text-red-800";
             case 'COMPLETED':
-                return "bg-blue-100 text-blue-800";
+                return "bg-green-100 text-green-800"; // Changed to green to distinguish completed bookings
             default:
                 return "bg-gray-200 text-gray-800";
         }
     };
+
+    // Filter options - Removed 'All'
+    const filterOptions = ['Booked', 'Cancelled', 'Completed'];
+
+    // Filtered bookings based on active filter
+    const filteredBookings = bookings.filter(booking => {
+        // Removed the 'All' check as it's no longer an option
+        const statusToCheck = booking.displayStatus || booking.status;
+        return statusToCheck?.toUpperCase() === activeFilter.toUpperCase();
+    });
 
     return (
         <div className="flex flex-col min-h-screen">
@@ -161,6 +182,20 @@ const Bookings = () => {
             
             <main className="flex-grow container mx-auto px-4 py-8">
                 <h1 className="text-3xl font-bold mb-6 font-poppins">My Bookings</h1>
+
+                {/* Filter Buttons */}
+                <div className="mb-6 flex flex-wrap gap-2">
+                    {filterOptions.map(filter => (
+                        <Button
+                            key={filter}
+                            variant={activeFilter === filter ? "default" : "outline"}
+                            onClick={() => setActiveFilter(filter)}
+                            className="capitalize"
+                        >
+                            {filter === 'Booked' ? 'Upcoming' : filter} {/* Display 'Booked' as 'Upcoming' */}
+                        </Button>
+                    ))}
+                </div>
                 
                 {!isAuthenticated && (
                     <div className="bg-amber-50 border border-amber-200 text-amber-800 rounded-md p-4 mb-6">
@@ -182,23 +217,26 @@ const Bookings = () => {
                 
                 {isAuthenticated && !isLoading && !error && (
                     <>
-                        {bookings.length === 0 ? (
+                        {filteredBookings.length === 0 ? ( 
                             <div className="bg-gray-50 border border-gray-200 rounded-md p-6 text-center">
-                                <p className="text-gray-600 mb-4">You don't have any bookings yet.</p>
+                                <p className="text-gray-600 mb-4">
+                                    {/* Updated message for empty state */}
+                                    {`You don't have any ${activeFilter.toLowerCase()} bookings.`}
+                                </p>
                                 <Button variant="outline" asChild>
-                                    <a href="/spaces">Browse Spaces</a>
+                                    <a href="/SpacesPage">Browse Spaces</a>
                                 </Button>
                             </div>
                         ) : (
                             <div className="space-y-6">
-                                {bookings.map(booking => {
+                                {filteredBookings.map(booking => { // Use filteredBookings here
                                     const spaceId = booking.spaceId;
                                     const spaceName = booking.spaceName;
                                     const spaceLocation = booking.spaceLocation;
                                     const spaceImageFilename = booking.spaceImageFilename;
 
                                     const isPast = booking.endTime ? new Date(booking.endTime) < new Date() : false;
-                                    const canCancel = booking.status?.toUpperCase() === 'CONFIRMED' && !isPast;
+                                    const canCancel = booking.status?.toUpperCase() === 'BOOKED' && !isPast;
                                     
                                     return (
                                         <div key={booking.id} className="border rounded-lg overflow-hidden shadow-sm">
@@ -229,8 +267,8 @@ const Bookings = () => {
                                                                 {spaceLocation || 'Location Unavailable'}
                                                             </p>
                                                         </div>
-                                                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusBadgeClass(booking.status)}`}>
-                                                            {booking.status || 'Status Unavailable'}
+                                                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusBadgeClass(booking.displayStatus || booking.status)}`}>
+                                                            {booking.displayStatus || booking.status || 'Status Unavailable'}
                                                         </span>
                                                     </div>
                                                     
@@ -287,20 +325,17 @@ const Bookings = () => {
                     </>
                 )}
             </main>
-            
+
             <ConfirmationModal
                 isOpen={isConfirmModalOpen}
-                onClose={() => {
-                    setIsConfirmModalOpen(false);
-                    setCancelBookingId(null);
-                }}
+                onClose={() => setIsConfirmModalOpen(false)}
                 onConfirm={handleCancelBooking}
-                title="Cancel Booking"
+                title="Confirm Cancellation"
                 description="Are you sure you want to cancel this booking? This action cannot be undone."
-                confirmText="Cancel Booking"
-                cancelText="Keep Booking"
+                showReasonField={true}
+                reasonLabel="Cancellation Reason (optional)"
             />
-            
+
             <Footer />
         </div>
     );

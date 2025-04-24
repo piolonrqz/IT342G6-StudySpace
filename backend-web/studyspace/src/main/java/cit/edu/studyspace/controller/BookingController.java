@@ -2,6 +2,7 @@ package cit.edu.studyspace.controller;
 
 import cit.edu.studyspace.dto.BookingDTO; // Import DTO
 import cit.edu.studyspace.dto.BookingResponseDTO; // Import the new DTO
+import cit.edu.studyspace.dto.BookingAvailabilityRequestDTO; // Import the moved DTO
 import cit.edu.studyspace.entity.BookingEntity;
 import cit.edu.studyspace.entity.BookingStatus;
 import cit.edu.studyspace.entity.SpaceEntity;
@@ -18,6 +19,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException; // For better error handling
 import org.slf4j.Logger; // Import Logger
 import org.slf4j.LoggerFactory; // Import LoggerFactory
+import java.time.LocalDate; // Import LocalDate
+import java.time.format.DateTimeParseException; // Import DateTimeParseException
 
 import java.util.List;
 import java.util.Map;
@@ -134,11 +137,12 @@ public class BookingController {
             // booking.setPurpose(bookingDTO.getPurpose()); // Uncomment if needed in BookingEntity
             booking.setTotalPrice(bookingDTO.getTotalPrice()); // Map totalPrice from DTO
 
-            // Set status - default to PENDING if null or invalid
+            // Set status - default to BOOKED if null or invalid
             try {
-                booking.setStatus(bookingDTO.getStatus() != null ? BookingStatus.valueOf(bookingDTO.getStatus().toUpperCase()) : BookingStatus.PENDING);
+                // If a status is provided in the DTO and it's valid, use it. Otherwise, default to BOOKED.
+                booking.setStatus(bookingDTO.getStatus() != null ? BookingStatus.valueOf(bookingDTO.getStatus().toUpperCase()) : BookingStatus.BOOKED);
             } catch (IllegalArgumentException e) {
-                booking.setStatus(BookingStatus.PENDING); // Default if status string is invalid
+                booking.setStatus(BookingStatus.BOOKED); // Default to BOOKED if the provided status string is invalid
             }
 
             // *** Add Logging Here ***
@@ -185,14 +189,31 @@ public class BookingController {
         }
     }
 
-    // Add endpoint to cancel a booking
+    // Add request body class for cancellation
+    static class CancellationRequest {
+        private String reason;
+        
+        public String getReason() {
+            return reason;
+        }
+        
+        public void setReason(String reason) {
+            this.reason = reason;
+        }
+    }
+
+    // Add endpoint to cancel a booking with reason
     @PutMapping("/{bookingId}/cancel")
-    @Operation(summary = "Cancel a booking", description = "Marks a booking as cancelled")
-    public ResponseEntity<?> cancelBooking(@PathVariable Long bookingId) {
+    @Operation(summary = "Cancel a booking", description = "Marks a booking as cancelled with optional reason")
+    public ResponseEntity<?> cancelBooking(@PathVariable Long bookingId, @RequestBody(required = false) CancellationRequest request) {
         try {
-            BookingEntity cancelledBooking = bookingService.cancelBooking(bookingId);
+            String reason = (request != null) ? request.getReason() : null;
+            log.info("Cancelling booking ID: {} with reason: {}", bookingId, reason != null ? reason : "No reason provided");
+            
+            BookingEntity cancelledBooking = bookingService.cancelBooking(bookingId, reason);
             return ResponseEntity.ok(cancelledBooking);
-        } catch (RuntimeException e) { // Catch specific exceptions if needed
+        } catch (RuntimeException e) {
+            log.error("Error cancelling booking: {}", e.getMessage());
             return ResponseEntity.status(404).body(Map.of("error", e.getMessage()));
         }
     }
@@ -200,5 +221,80 @@ public class BookingController {
     @DeleteMapping("/delete/{id}")
     public String deleteBooking(@PathVariable int id){
         return bookingService.deleteBooking(id);
+    }
+
+    // Add endpoint to manually update completed bookings
+    @PostMapping("/update-completed")
+    @Operation(summary = "Manually update completed bookings", description = "Marks past bookings as COMPLETED")
+    public ResponseEntity<Map<String, Object>> updateCompletedBookings() {
+        try {
+            log.info("Manually triggering update of completed bookings");
+            bookingService.updateCompletedBookings();
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Completed bookings have been updated"
+            ));
+        } catch (Exception e) {
+            log.error("Error updating completed bookings", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of(
+                    "success", false,
+                    "error", "Failed to update completed bookings",
+                    "message", e.getMessage()
+                ));
+        }
+    }
+
+    // New endpoint to get bookings for a specific space and date
+    @GetMapping("/space/{spaceId}/date/{dateString}")
+    @Operation(summary = "Get bookings for space on date", description = "Fetches all BOOKED bookings for a specific space on a given date (YYYY-MM-DD)")
+    public ResponseEntity<?> getBookingsForSpaceOnDate(
+            @PathVariable int spaceId,
+            @PathVariable String dateString) {
+        try {
+            LocalDate date = LocalDate.parse(dateString); // Expecting YYYY-MM-DD format
+            log.info("Fetching bookings for Space ID: {} on Date: {}", spaceId, dateString);
+            List<BookingEntity> bookings = bookingService.getBookingsForSpaceOnDate(spaceId, date);
+            
+            // Convert to Response DTOs for consistency (optional, but good practice)
+            List<BookingResponseDTO> bookingDTOs = bookings.stream()
+                .map(this::convertToResponseDTO) 
+                .collect(Collectors.toList());
+                
+            log.info("Found {} bookings for Space ID: {} on Date: {}", bookingDTOs.size(), spaceId, dateString);
+            return ResponseEntity.ok(bookingDTOs);
+        } catch (DateTimeParseException e) {
+            log.error("Invalid date format provided: {}", dateString, e);
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid date format. Please use YYYY-MM-DD."));
+        } catch (Exception e) {
+            log.error("Error fetching bookings for space {} on date {}: {}", spaceId, dateString, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", "Failed to fetch bookings for the specified space and date."));
+        }
+    }
+
+    @PostMapping("/check-availability")
+    @Operation(summary = "Check booking availability", description = "Checks if a specific time slot for a space is available")
+    public ResponseEntity<?> checkAvailability(@RequestBody BookingAvailabilityRequestDTO requestDTO) {
+        log.info("Checking availability for Space ID: {}, Start: {}, End: {}", 
+                 requestDTO.getSpaceId(), requestDTO.getStartTime(), requestDTO.getEndTime());
+                 
+        if (requestDTO.getSpaceId() == null || requestDTO.getStartTime() == null || requestDTO.getEndTime() == null) {
+             return ResponseEntity.badRequest().body(Map.of("error", "Missing required fields: spaceId, startTime, endTime"));
+        }
+
+        boolean available = bookingService.isTimeSlotAvailable(
+            requestDTO.getSpaceId(),
+            requestDTO.getStartTime(),
+            requestDTO.getEndTime()
+        );
+
+        if (available) {
+            log.info("Time slot is available.");
+            return ResponseEntity.ok().body(Map.of("available", true)); // Return JSON object
+        } else {
+            log.warn("Time slot is NOT available.");
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("available", false)); // Return JSON object
+        }
     }
 }

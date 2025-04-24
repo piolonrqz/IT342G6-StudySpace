@@ -56,6 +56,8 @@ public class SpaceController {
         dto.setPrice(space.getPrice());
         dto.setOpeningTime(space.getOpeningTime());
         dto.setClosingTime(space.getClosingTime());
+        dto.setSpaceType(space.getSpaceType()); // Add mapping for spaceType
+        dto.setAvailable(space.isAvailable()); // Add mapping for isAvailable
         return dto;
     }
 

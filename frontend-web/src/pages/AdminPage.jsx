@@ -378,14 +378,30 @@ const AdminPage = () => {
         }
 
 
-        // Assuming backend sends back the saved/updated space object on success
-        const responseData = await response.json(); 
-        console.log("Space saved successfully:", responseData);
-        setIsSpaceModalOpen(false); // Close modal on success
-        setEditingSpace(null);
-        fetchSpaces(); // Refresh list
+        let responseData;
+        try {
+          responseData = await response.json();
+          console.log("Space saved successfully:", responseData);
+          setIsSpaceModalOpen(false); // Close modal on success
+          setEditingSpace(null);
+          fetchSpaces(); // Refresh list
+        } catch (parseError) {
+          // Log the raw response text if JSON parsing fails
+          const rawResponse = await response.text();
+          console.error("Failed to parse JSON response. Raw response:", rawResponse);
+          console.error("JSON Parsing Error:", parseError);
+          setError(`Failed to process server response. Please check console for details.`);
+        }
     } catch (e) {
-        console.error("Failed to save space catch block:", e);
+        console.error("Failed to save space (network or other error):", e);
+        // Attempt to get raw response text even in outer catch if possible
+        // This might fail if 'response' is not defined due to an earlier error
+        try {
+          const rawResponse = await response.text();
+          console.error("Raw response text on network/other error:", rawResponse);
+        } catch (textError) {
+          console.error("Could not get raw response text on error:", textError);
+        }
         setError(`Failed to save space. ${e.message}`); // Display the constructed error message
         // Keep modal open on error
     } finally {
