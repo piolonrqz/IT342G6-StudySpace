@@ -1,6 +1,7 @@
 package cit.edu.studyspace.dto;
 
 import java.math.BigDecimal;
+import cit.edu.studyspace.entity.SpaceType; // Import SpaceType
 
 public class SpaceListDTO {
     private int id;
@@ -12,6 +13,8 @@ public class SpaceListDTO {
     private BigDecimal price;
     private String openingTime;
     private String closingTime;
+    private SpaceType spaceType; // Added spaceType
+    private boolean isAvailable; // Added isAvailable
     
     // Constructor
     public SpaceListDTO() {
@@ -88,5 +91,23 @@ public class SpaceListDTO {
     
     public void setClosingTime(String closingTime) {
         this.closingTime = closingTime;
+    }
+
+    // Getters and setters for spaceType
+    public SpaceType getSpaceType() {
+        return spaceType;
+    }
+
+    public void setSpaceType(SpaceType spaceType) {
+        this.spaceType = spaceType;
+    }
+
+    // Getters and setters for isAvailable
+    public boolean isAvailable() {
+        return isAvailable;
+    }
+
+    public void setAvailable(boolean available) {
+        isAvailable = available;
     }
 }

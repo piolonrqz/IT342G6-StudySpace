@@ -34,8 +34,8 @@ public class BookingEntity {
     private LocalDateTime endTime;
     
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    @Schema(description = "Current status of the booking", example = "CONFIRMED")
+    @Column(nullable = false, length = 20)
+    @Schema(description = "Current status of the booking", example = "BOOKED")
     private BookingStatus status;
     
     @Column(nullable = false)

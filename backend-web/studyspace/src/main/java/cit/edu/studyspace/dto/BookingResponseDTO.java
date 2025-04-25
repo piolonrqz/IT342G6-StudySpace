@@ -18,6 +18,12 @@ public class BookingResponseDTO {
     private String spaceLocation;
     private String spaceImageFilename;
 
+    // Include necessary details from the related User
+    private String userName;
+    private String userEmail;
+    private LocalDateTime createdAt;
+    private String cancellationReason;
+
     // Getters and Setters for all fields...
 
     public int getId() { return id; }
@@ -49,4 +55,16 @@ public class BookingResponseDTO {
 
     public String getSpaceImageFilename() { return spaceImageFilename; }
     public void setSpaceImageFilename(String spaceImageFilename) { this.spaceImageFilename = spaceImageFilename; }
+
+    public String getUserName() { return userName; }
+    public void setUserName(String userName) { this.userName = userName; }
+
+    public String getUserEmail() { return userEmail; }
+    public void setUserEmail(String userEmail) { this.userEmail = userEmail; }
+
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    public String getCancellationReason() { return cancellationReason; }
+    public void setCancellationReason(String cancellationReason) { this.cancellationReason = cancellationReason; }
 }

@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 
-import cit.edu.studyspace.service.FileStorageService; // Import FileStorageService
 
 @Service
 @Tag(name = "Space Service", description = "Business logic for space operations")

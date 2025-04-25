@@ -1,0 +1,140 @@
+import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { format, parseISO } from 'date-fns';
+
+// Helper to format date/time for display
+const formatDisplayDateTime = (dateTimeString) => {
+    if (!dateTimeString) return 'N/A';
+    try {
+        return format(parseISO(dateTimeString), 'MMM dd, yyyy h:mm a');
+    } catch (error) {
+        console.error("Error formatting date for display:", dateTimeString, error);
+        return 'Invalid Date';
+    }
+};
+
+export const BookingFormModal = ({
+  isOpen,
+  onClose,
+  onSave,
+  booking, // The booking object being edited
+  isLoading,
+  error,
+}) => {
+  const [formData, setFormData] = useState({
+    status: "",
+    numberOfPeople: 1,
+  });
+
+  // Populate form when booking data is available
+  useEffect(() => {
+    if (booking) {
+      setFormData({
+        status: booking.status || "",
+        numberOfPeople: booking.numberOfPeople || 1,
+      });
+    } else {
+      // Reset form if no booking
+      setFormData({
+        status: "",
+        numberOfPeople: 1,
+      });
+    }
+  }, [booking]);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    // Pass only the fields that can be updated
+    onSave({
+        status: formData.status,
+        numberOfPeople: parseInt(formData.numberOfPeople, 10) || 1 // Ensure it's an integer
+    });
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-md"> {/* Adjusted width */}
+        <DialogHeader>
+          <DialogTitle>Edit Booking #{booking?.id}</DialogTitle>
+          <DialogDescription>
+            Update the status or participant count for this booking.
+          </DialogDescription>
+        </DialogHeader>
+
+        {/* Display Read-only info */}
+        {booking && (
+            <div className="space-y-1 text-sm text-gray-600 border-b pb-3 mb-4">
+                <p><strong>User:</strong> {booking.userName} ({booking.userEmail})</p>
+                <p><strong>Space:</strong> {booking.spaceName}</p>
+                <p><strong>Time:</strong> {formatDisplayDateTime(booking.startTime)} - {formatDisplayDateTime(booking.endTime)}</p>
+            </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Status Selection */}
+          <div>
+            <Label htmlFor="booking-status">Status</Label>
+            <Select
+              value={formData.status}
+              onValueChange={(value) => setFormData({ ...formData, status: value })}
+            >
+              <SelectTrigger id="booking-status">
+                <SelectValue placeholder="Select status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="BOOKED">Booked</SelectItem>
+                <SelectItem value="CANCELLED">Cancelled</SelectItem>
+                <SelectItem value="COMPLETED">Completed</SelectItem>
+                {/* Add other statuses if applicable */}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Number of Participants Input */}
+          <div>
+            <Label htmlFor="booking-participants">Number of Participants</Label>
+            <Input
+              id="booking-participants"
+              type="number"
+              min="1"
+              // Consider adding max based on space capacity if available in booking object
+              // max={booking?.space?.capacity} // Need space capacity here if validation desired
+              value={formData.numberOfPeople}
+              onChange={(e) => setFormData({ ...formData, numberOfPeople: e.target.value })}
+              required
+            />
+             {/* Optionally display space capacity if available */}
+             {/* {booking?.space?.capacity && <p className="text-xs text-gray-500 mt-1">Max capacity: {booking.space.capacity}</p>} */}
+          </div>
+
+          {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+
+          <div className="flex justify-end gap-2 pt-4">
+            <Button type="button" variant="outline" onClick={onClose} disabled={isLoading}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={isLoading} className="bg-[#2F9FE5] hover:bg-[#2387c9]">
+              {isLoading ? "Saving..." : "Save Changes"}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+};
