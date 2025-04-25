@@ -9,6 +9,7 @@ import cit.edu.studyspace.service.SpaceService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -56,6 +57,8 @@ public class SpaceController {
         dto.setPrice(space.getPrice());
         dto.setOpeningTime(space.getOpeningTime());
         dto.setClosingTime(space.getClosingTime());
+        dto.setSpaceType(space.getSpaceType()); // Add mapping for spaceType
+        dto.setAvailable(space.isAvailable()); // Add mapping for isAvailable
         return dto;
     }
 
@@ -93,7 +96,7 @@ public class SpaceController {
     // Restore multipart/form-data handling for update using DTO
     @PutMapping(value = "/update/{id}", consumes = {"multipart/form-data"})
     @Operation(summary = "Update an existing space with optional image", description = "Updates the details (using DTO) and optionally the image of a space")
-    public ResponseEntity<SpaceEntity> updateSpace(
+    public ResponseEntity<SpaceListDTO> updateSpace( // Changed return type
             @PathVariable int id,
             @RequestPart("spaceData") SpaceUpdateDTO updateDTO,
             @RequestPart(value = "imageFile", required = false) MultipartFile imageFile 
@@ -101,16 +104,32 @@ public class SpaceController {
         
         String imageFilename = null;
         if (imageFile != null && !imageFile.isEmpty()) {
+            // If a new image is uploaded, store it and update the DTO
             imageFilename = fileStorageService.storeFile(imageFile); 
             updateDTO.setImageFilename(imageFilename); 
+        } else {
+             // If no new image is uploaded, explicitly set filename in DTO to null 
+             // to avoid accidentally clearing it if the DTO field wasn't sent.
+             // The service layer should handle preserving the old filename if this is null.
+             // Alternatively, fetch the existing space first to get the current filename if needed.
+             // For simplicity, we assume the service handles null filename means "no change".
+             // updateDTO.setImageFilename(null); // Or fetch existing and set it if needed
         }
         
-        SpaceEntity updatedSpace = spaceService.updateSpaceFromDTO(id, updateDTO); 
-        
-        if (updatedSpace != null) {
-            return ResponseEntity.ok(updatedSpace);
-        } else {
-            return ResponseEntity.notFound().build();
+        try {
+            SpaceEntity updatedSpace = spaceService.updateSpaceFromDTO(id, updateDTO); 
+            
+            if (updatedSpace != null) {
+                // Convert the updated entity to DTO before returning
+                return ResponseEntity.ok(convertToDTO(updatedSpace)); 
+            } else {
+                return ResponseEntity.notFound().build();
+            }
+        } catch (Exception e) {
+            // Log the exception details
+            // Consider returning a more specific error response if needed
+            System.err.println("Error updating space: " + e.getMessage()); // Replace with proper logging
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build(); // Or return an error DTO
         }
     }
 

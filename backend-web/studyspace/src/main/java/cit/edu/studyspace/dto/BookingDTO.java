@@ -1,6 +1,5 @@
 package cit.edu.studyspace.dto;
 
-import cit.edu.studyspace.entity.BookingStatus;
 import java.time.LocalDateTime;
 
 public class BookingDTO {

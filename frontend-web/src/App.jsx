@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext.jsx'; // Import AuthProvider
+import { Toaster } from "@/Components/ui/toaster"; // Import the Toaster
 
 import Homepage from './pages/Homepage.jsx';
 import SpacesPage from './pages/SpacesPage.jsx';
@@ -16,6 +17,7 @@ import ProfilePage from './pages/ProfilePage';
 // import NavigationBar from './Components/NavigationBar';
 // import Footer from './Components/Footer';
 import OAuthCallBack from './Components/OAuthCallBack.jsx';
+
 
 function App() {
   return (
@@ -34,8 +36,7 @@ function App() {
           <Route path="/Bookings" element={<Bookings />} />
           {/* Removed the duplicate /AdminPage route */}
           <Route path="/space/:id" element={<SpaceDetails />} />
-          <Route path="/profile" element={<ProfilePage />} /> {/* Add the route for the profile page
-
+          <Route path="/profile" element={<ProfilePage />} /> {/* Add the route for the profile page*/}
           {/* Protected Admin Route */}
           <Route
             path="/AdminPage"
@@ -46,6 +47,8 @@ function App() {
             }
           />
         </Routes>
+        {/* Render the Toaster component here */}
+        <Toaster /> 
         {/* <Footer /> */}
       </AuthProvider>
     </Router>
