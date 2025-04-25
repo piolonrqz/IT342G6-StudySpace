@@ -11,31 +11,36 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.UUID;
+import org.slf4j.Logger; // Use SLF4J Logger
+import org.slf4j.LoggerFactory; // Use SLF4J Logger
 
 @Service
 public class FileStorageService {
 
-    private final Path fileStorageLocation;
+    private static final Logger logger = LoggerFactory.getLogger(FileStorageService.class); // Add logger
 
-    // Inject the property from application.properties
-    public FileStorageService(@Value("${file.upload-dir}") String uploadDir) {
-        this.fileStorageLocation = Paths.get(uploadDir).toAbsolutePath().normalize();
+    // Remove fileStorageLocation field and constructor
 
-        try {
-            Files.createDirectories(this.fileStorageLocation);
-        } catch (Exception ex) {
-            throw new RuntimeException("Could not create the directory where the uploaded files will be stored.", ex);
-        }
-    }
-
-    public String storeFile(MultipartFile file) {
+    /**
+     * Stores the given file in the specified target directory.
+     * Creates the directory if it doesn't exist.
+     *
+     * @param file The file to store.
+     * @param targetDirectory The directory where the file should be stored.
+     * @return The generated unique filename.
+     */
+    public String storeFile(MultipartFile file, Path targetDirectory) {
         // Normalize file name
         String originalFilename = StringUtils.cleanPath(file.getOriginalFilename());
         String filename = "";
 
         try {
+            // Ensure the target directory exists
+            Files.createDirectories(targetDirectory); // Create directory if needed
+
             // Check if the file's name contains invalid characters
             if(originalFilename.contains("..")) {
+                logger.error("Filename contains invalid path sequence: {}", originalFilename);
                 throw new RuntimeException("Sorry! Filename contains invalid path sequence " + originalFilename);
             }
 
@@ -45,51 +50,52 @@ public class FileStorageService {
                 fileExtension = originalFilename.substring(originalFilename.lastIndexOf("."));
             } catch(Exception e) {
                 fileExtension = ""; // Handle files without extensions
+                logger.warn("File '{}' has no extension.", originalFilename);
             }
             filename = UUID.randomUUID().toString() + fileExtension;
 
 
             // Copy file to the target location (Replacing existing file with the same name)
-            Path targetLocation = this.fileStorageLocation.resolve(filename);
-            
+            Path targetLocation = targetDirectory.resolve(filename); // Use targetDirectory
+
              try (InputStream inputStream = file.getInputStream()) {
                  Files.copy(inputStream, targetLocation, StandardCopyOption.REPLACE_EXISTING);
+                 logger.info("Successfully stored file '{}' at '{}'", filename, targetLocation);
              }
 
             return filename; // Return the generated unique filename
         } catch (IOException ex) {
-            throw new RuntimeException("Could not store file " + filename + ". Please try again!", ex);
+            logger.error("Could not store file '{}'. Original filename: '{}'", filename, originalFilename, ex);
+            throw new RuntimeException("Could not store file " + (filename.isEmpty() ? originalFilename : filename) + ". Please try again!", ex);
         }
     }
 
     /**
-     * Deletes the file with the given filename from the storage directory.
+     * Deletes the file with the given filename from the specified target directory.
      *
      * @param filename The name of the file to delete.
+     * @param targetDirectory The directory from which the file should be deleted.
      */
-    public void deleteFile(String filename) {
+    public void deleteFile(String filename, Path targetDirectory) {
         if (filename == null || filename.isBlank()) {
-            System.out.println("Filename is null or empty, cannot delete."); // Or log this
+            logger.warn("Attempted to delete file with null or empty filename in directory: {}", targetDirectory);
             return;
         }
 
         try {
-            Path targetLocation = this.fileStorageLocation.resolve(StringUtils.cleanPath(filename));
+            Path targetLocation = targetDirectory.resolve(StringUtils.cleanPath(filename)); // Use targetDirectory
             boolean deleted = Files.deleteIfExists(targetLocation);
             if(deleted){
-                System.out.println("Successfully deleted file: " + filename); // Or use a logger
+                logger.info("Successfully deleted file: {} from directory: {}", filename, targetDirectory);
             } else {
-                 System.out.println("File not found, could not delete: " + filename); // Or use a logger
+                 logger.warn("File not found, could not delete: {} from directory: {}", filename, targetDirectory);
             }
 
         } catch (IOException ex) {
-            // Log the exception, but maybe don't stop the whole process
-            // Depending on requirements, you might re-throw a custom exception
-            System.err.println("Could not delete file " + filename + ". Error: " + ex.getMessage());
+            logger.error("Could not delete file '{}' from directory '{}'", filename, targetDirectory, ex);
            // Optionally re-throw: throw new RuntimeException("Could not delete file " + filename, ex);
         }
     }
-
 
     // Optional: Add methods here later to load files if needed
     // public Resource loadFileAsResource(String fileName) { ... }

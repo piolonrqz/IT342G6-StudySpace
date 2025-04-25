@@ -25,6 +25,12 @@ export default defineConfig({
         changeOrigin: true, // Necessary for virtual hosted sites
         // secure: false, // Uncomment if backend uses self-signed HTTPS cert
         // NO rewrite here, because the backend *is* serving from /uploads/**
+      },
+      // Add proxy for profile pictures
+      '/profile-pictures': {
+        target: 'http://localhost:8080', // Your backend server address
+        changeOrigin: true,
+        secure: false,
       }
     }
   }

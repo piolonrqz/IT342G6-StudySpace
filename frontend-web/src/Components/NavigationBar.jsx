@@ -14,6 +14,7 @@ export const NavigationBar = () => {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const dropdownRef = useRef(null); // Ref for detecting clicks outside
     const navigate = useNavigate();
+    const [imgError, setImgError] = useState(false); // State to track image loading error
 
     const handleLogout = () => {
         logout(); // Call logout from context
@@ -33,6 +34,11 @@ export const NavigationBar = () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
     }, [dropdownRef]);
+
+    // Reset image error state when user or specific filename changes
+    useEffect(() => {
+        setImgError(false);
+    }, [user?.profilePictureFilename]); // Depend specifically on the filename
 
 
     return (
@@ -59,12 +65,29 @@ export const NavigationBar = () => {
                     <div className="relative" ref={dropdownRef}>
                         <button
                             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                            className="flex items-center justify-center w-10 h-10 bg-sky-500 text-white rounded-full font-semibold text-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500"
+                            className="flex items-center justify-center w-10 h-10 bg-sky-500 text-white rounded-full font-semibold text-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500 overflow-hidden" // Added overflow-hidden
                             aria-label="User menu"
                             aria-haspopup="true"
                             aria-expanded={isDropdownOpen}
                         >
-                            {getInitials(user.firstName, user.lastName)}
+                            {user.profilePictureFilename && !imgError ? (
+                                <img
+                                    // Add a key prop to force re-render if filename changes
+                                    key={user.profilePictureFilename}
+                                    // Use absolute URL to backend
+                                    src={`http://localhost:8080/profile-pictures/${user.profilePictureFilename}`}
+                                    alt="Profile"
+                                    className="w-full h-full object-cover"
+                                    onError={() => {
+                                        console.error("[NavigationBar] Image onError triggered for:", `http://localhost:8080/profile-pictures/${user.profilePictureFilename}`);
+                                        setImgError(true);
+                                    }} // Fallback to initials on error
+                                />
+                            ) : (
+                                // For Google users, we could potentially use the Google profile picture
+                                // or we just use initials as the fallback
+                                getInitials(user.firstName, user.lastName)
+                            )}
                         </button>
 
                         {/* Dropdown Menu */}

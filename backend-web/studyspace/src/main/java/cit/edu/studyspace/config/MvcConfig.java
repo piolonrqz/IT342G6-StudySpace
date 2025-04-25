@@ -19,22 +19,32 @@ public class MvcConfig implements WebMvcConfigurer {
     // Add a logger instance
     private static final Logger logger = LoggerFactory.getLogger(MvcConfig.class);
 
-    // Inject the upload directory path from application.properties
+    // Inject the space image upload directory path
     @Value("${file.upload-dir}")
-    private String uploadDir;
+    private String spaceUploadDir;
+
+    // Inject the profile picture upload directory path
+    @Value("${file.upload-dir.profile-pictures}")
+    private String profilePictureUploadDir;
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        Path uploadPath = Paths.get(uploadDir);
-        String uploadPathAbsolute = uploadPath.toFile().getAbsolutePath();
-        String resourceLocation = "file:///" + uploadPathAbsolute.replace("\\", "/") + "/";
-    
-        logger.info("Configuring resource handler: Mapping /uploads/** to location: {}", resourceLocation);
+        // Configure resource handler for Space Images
+        configureResourceHandler(registry, "/uploads/**", spaceUploadDir);
 
-        // Simplified: Map only /uploads/** to the physical file system path
-        // Requests like http://localhost:8080/uploads/your-image.jpg will be served
-        // from C:/studyspace_uploads/images/your-image.jpg
-        registry.addResourceHandler("/uploads/**") // Only use /uploads/** here
-                .addResourceLocations(resourceLocation); 
+        // Configure resource handler for Profile Pictures
+        configureResourceHandler(registry, "/profile-pictures/**", profilePictureUploadDir);
+    }
+
+    private void configureResourceHandler(ResourceHandlerRegistry registry, String urlPath, String directoryPath) {
+        Path uploadPath = Paths.get(directoryPath);
+        String uploadPathAbsolute = uploadPath.toFile().getAbsolutePath();
+        // Ensure consistent slashes and trailing slash for directory mapping
+        String resourceLocation = "file:///" + uploadPathAbsolute.replace("\\", "/") + "/";
+
+        logger.info("Configuring resource handler: Mapping {} to location: {}", urlPath, resourceLocation);
+
+        registry.addResourceHandler(urlPath)
+                .addResourceLocations(resourceLocation);
     }
 }

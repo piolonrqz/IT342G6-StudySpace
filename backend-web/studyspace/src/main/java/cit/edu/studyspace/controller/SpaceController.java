@@ -4,7 +4,6 @@ import cit.edu.studyspace.dto.SpaceCreateDTO;
 import cit.edu.studyspace.dto.SpaceListDTO;
 import cit.edu.studyspace.dto.SpaceUpdateDTO;
 import cit.edu.studyspace.entity.SpaceEntity;
-import cit.edu.studyspace.service.FileStorageService;
 import cit.edu.studyspace.service.SpaceService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -13,6 +12,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Optional;
@@ -23,11 +24,10 @@ import java.util.stream.Collectors;
 @Tag(name = "Space API", description = "Operations related to spaces")
 public class SpaceController {
 
-    @Autowired
-    private SpaceService spaceService;
+    private static final Logger logger = LoggerFactory.getLogger(SpaceController.class);
 
     @Autowired
-    private FileStorageService fileStorageService;
+    private SpaceService spaceService;
 
     // Check
     @GetMapping("/test")
@@ -79,18 +79,16 @@ public class SpaceController {
             @RequestPart("spaceData") SpaceCreateDTO spaceDTO,
             @RequestPart(value = "imageFile", required = false) MultipartFile imageFile
          ) {
-
-        String imageFilename = null;
-        if (imageFile != null && !imageFile.isEmpty()) {
-            imageFilename = fileStorageService.storeFile(imageFile); 
-            spaceDTO.setImageFilename(imageFilename); 
-        } else {
-            spaceDTO.setImageFilename(null);
+        try {
+            // Pass DTO and file to service
+            SpaceEntity savedSpace = spaceService.createSpaceFromDTO(spaceDTO, imageFile);
+            logger.info("Successfully created space with ID: {}", savedSpace.getId());
+            return ResponseEntity.ok(savedSpace);
+        } catch (Exception e) {
+             logger.error("Error creating space: {}", e.getMessage(), e);
+             // Consider returning a more specific error response
+             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
-
-        SpaceEntity savedSpace = spaceService.createSpaceFromDTO(spaceDTO); 
-        
-        return ResponseEntity.ok(savedSpace);
     }
 
     // Restore multipart/form-data handling for update using DTO
@@ -101,47 +99,38 @@ public class SpaceController {
             @RequestPart("spaceData") SpaceUpdateDTO updateDTO,
             @RequestPart(value = "imageFile", required = false) MultipartFile imageFile 
         ) {
-        
-        String imageFilename = null;
-        if (imageFile != null && !imageFile.isEmpty()) {
-            // If a new image is uploaded, store it and update the DTO
-            imageFilename = fileStorageService.storeFile(imageFile); 
-            updateDTO.setImageFilename(imageFilename); 
-        } else {
-             // If no new image is uploaded, explicitly set filename in DTO to null 
-             // to avoid accidentally clearing it if the DTO field wasn't sent.
-             // The service layer should handle preserving the old filename if this is null.
-             // Alternatively, fetch the existing space first to get the current filename if needed.
-             // For simplicity, we assume the service handles null filename means "no change".
-             // updateDTO.setImageFilename(null); // Or fetch existing and set it if needed
-        }
-        
         try {
-            SpaceEntity updatedSpace = spaceService.updateSpaceFromDTO(id, updateDTO); 
-            
+            // Pass ID, DTO, and file to service
+            SpaceEntity updatedSpace = spaceService.updateSpaceFromDTO(id, updateDTO, imageFile);
+
             if (updatedSpace != null) {
-                // Convert the updated entity to DTO before returning
-                return ResponseEntity.ok(convertToDTO(updatedSpace)); 
+                logger.info("Successfully updated space with ID: {}", id);
+                return ResponseEntity.ok(convertToDTO(updatedSpace));
             } else {
+                logger.warn("Space not found for update with ID: {}", id);
                 return ResponseEntity.notFound().build();
             }
         } catch (Exception e) {
-            // Log the exception details
-            // Consider returning a more specific error response if needed
-            System.err.println("Error updating space: " + e.getMessage()); // Replace with proper logging
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build(); // Or return an error DTO
+            logger.error("Error updating space ID {}: {}", id, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
     @DeleteMapping("/delete/{id}")
-    @Operation(summary = "Delete a space", description = "Removes a space from the system by its ID")
+    @Operation(summary = "Delete a space", description = "Removes a space and its associated image from the system") // Updated description
     public ResponseEntity<String> deleteSpace(@PathVariable int id){
-        String result = spaceService.deleteSpace(id);
-        
-        if (result.equals("Space not found")) {
-            return ResponseEntity.notFound().build();
-        } else {
-            return ResponseEntity.ok(result);
+        try {
+            String result = spaceService.deleteSpace(id);
+            if (result.equals("Space not found")) {
+                logger.warn("Attempted to delete non-existent space ID: {}", id);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
+            } else {
+                logger.info("Successfully deleted space ID: {}", id);
+                return ResponseEntity.ok(result);
+            }
+        } catch (Exception e) {
+             logger.error("Error deleting space ID {}: {}", id, e.getMessage(), e);
+             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error deleting space.");
         }
     }
 }
