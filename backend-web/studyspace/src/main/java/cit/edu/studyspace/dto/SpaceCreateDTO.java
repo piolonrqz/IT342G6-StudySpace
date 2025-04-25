@@ -101,5 +101,5 @@ public class SpaceCreateDTO {
         this.price = price;
     }
 
-    // Removed get/set ImageUrl
+
 }

@@ -8,7 +8,14 @@ import cit.edu.studyspace.repository.UserRepo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+import jakarta.annotation.PostConstruct;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.Optional;
 import java.util.HashMap;
 import java.util.List;
@@ -18,13 +25,24 @@ import java.util.Map;
 @Tag(name = "User Service", description = "Business logic for user operations")
 public class UserService {
 
+    private static final Logger logger = LoggerFactory.getLogger(UserService.class);
+
     @Autowired
     private UserRepo userRepo;
     @Autowired
     private JwtUtil jwtUtil;
+    @Autowired
+    private FileStorageService fileStorageService;
 
-    public UserService(){
-        super();
+    @Value("${file.upload-dir.profile-pictures}")
+    private String profilePictureUploadDir;
+
+    private Path profilePictureStorageLocation;
+
+    @PostConstruct
+    public void init() {
+        this.profilePictureStorageLocation = Paths.get(this.profilePictureUploadDir).toAbsolutePath().normalize();
+        logger.info("Profile picture storage location initialized: {}", this.profilePictureStorageLocation);
     }
 
     // Retrieves all users from the database.
@@ -36,7 +54,6 @@ public class UserService {
     public boolean existsByEmail(String email) {
         return userRepo.existsByEmail(email);
     }
-
 
     // Change return type from String to Map<String, Object>
     public Map<String, Object> authenticateUser(String email, String password) { 
@@ -50,10 +67,14 @@ public class UserService {
             // Create a map to hold the response data
             Map<String, Object> authResponse = new HashMap<>();
             authResponse.put("token", token);
+            // Include all necessary user details for the frontend context
             authResponse.put("id", user.getId());
             authResponse.put("firstName", user.getFirstName());
             authResponse.put("lastName", user.getLastName());
+            authResponse.put("email", user.getEmail()); // Include email
+            authResponse.put("phoneNumber", user.getPhoneNumber()); // Include phone number
             authResponse.put("role", user.getRole().name()); // Convert enum to String
+            authResponse.put("profilePictureFilename", user.getProfilePictureFilename()); // *** ADD THIS LINE ***
 
             return authResponse; // Return the map
         } else {
@@ -75,44 +96,88 @@ public class UserService {
         return userRepo.save(user);
     }
 
-    // Updates an existing user.
-    @Operation(summary = "Update a user", description = "Updates a user's information based on ID")
-    public UserEntity updateUserFromDTO(int id, UserUpdateDTO dto) {
+    // Updates an existing user, potentially including a profile picture.
+    @Operation(summary = "Update a user", description = "Updates a user's information based on ID, optionally including a profile picture")
+    public UserEntity updateUserFromDTO(int id, UserUpdateDTO dto, MultipartFile profilePictureFile) { // Add MultipartFile parameter
         Optional<UserEntity> optionalUser = userRepo.findById(id);
         if (optionalUser.isPresent()) {
             UserEntity user = optionalUser.get();
+            String oldProfilePictureFilename = user.getProfilePictureFilename(); // Get old filename
+            String newProfilePictureFilename = null;
 
+            // Handle profile picture upload if provided
+            if (profilePictureFile != null && !profilePictureFile.isEmpty()) {
+                try {
+                    newProfilePictureFilename = fileStorageService.storeFile(profilePictureFile, this.profilePictureStorageLocation);
+                    logger.info("New profile picture stored with filename: {}", newProfilePictureFilename);
+                } catch (Exception e) {
+                    logger.error("Failed to store profile picture for user ID: {}", id, e);
+                    // Decide how to handle storage failure: throw exception, return null, or continue without picture update?
+                    // For now, let's throw a runtime exception to indicate the update failed partially.
+                    throw new RuntimeException("Could not store profile picture file.", e);
+                }
+            }
+
+            // Update user fields from DTO
             user.setFirstName(dto.getFirstName());
             user.setLastName(dto.getLastName());
             user.setEmail(dto.getEmail());
             user.setPhoneNumber(dto.getPhoneNumber());
 
-            // Convert the String from DTO to UserRole enum
+            // Convert and set Role
             try {
-                UserRole roleEnum = UserRole.valueOf(dto.getRole().toUpperCase()); // Convert String to Enum (case-insensitive)
-                user.setRole(roleEnum); // Set the enum value
+                UserRole roleEnum = UserRole.valueOf(dto.getRole().toUpperCase());
+                user.setRole(roleEnum);
             } catch (IllegalArgumentException | NullPointerException e) {
-                // Handle cases where the role string is invalid or null
-                // Option 1: Throw an exception back to the controller
+                logger.error("Invalid role provided during update for user ID {}: {}", id, dto.getRole(), e);
                 throw new IllegalArgumentException("Invalid role provided: " + dto.getRole(), e);
-                // Option 2: Log an error and potentially skip setting the role or set a default? (Depends on requirements)
-                // System.err.println("Invalid role provided: " + dto.getRole());
             }
 
+            // Handle profile picture filename update and old file deletion
+            if (newProfilePictureFilename != null) {
+                // Delete the old picture *after* successfully storing the new one
+                if (oldProfilePictureFilename != null && !oldProfilePictureFilename.isBlank()) {
+                    logger.info("Attempting to delete old profile picture: {}", oldProfilePictureFilename);
+                    fileStorageService.deleteFile(oldProfilePictureFilename, this.profilePictureStorageLocation);
+                }
+                // Set the new filename on the entity
+                user.setProfilePictureFilename(newProfilePictureFilename);
+            }
+            // Note: If newProfilePictureFilename is null, the existing filename remains unchanged.
+
+            // @PreUpdate handles updatedAt automatically
             return userRepo.save(user);
+        } else {
+            logger.warn("User not found for update with ID: {}", id);
+            return null; // Or throw UserNotFoundException
         }
-        return null;
     }
 
-    // Deletes a user by their ID.
-    @Operation(summary = "Delete a user", description = "Removes a user from the database")
+    // Deletes a user by their ID. (Consider deleting profile picture here too)
+    @Operation(summary = "Delete a user", description = "Removes a user and their profile picture from the database")
     public String deleteUser(int id) {
-        String msg = " ";
-        if (userRepo.findById(id)!=null){
+        Optional<UserEntity> optionalUser = userRepo.findById(id); // Find user first
+        if (optionalUser.isPresent()){
+            UserEntity userToDelete = optionalUser.get();
+            String profilePictureFilename = userToDelete.getProfilePictureFilename();
+
+            // Attempt to delete the associated profile picture file if it exists
+            if (profilePictureFilename != null && !profilePictureFilename.isBlank()) {
+                 try {
+                     logger.info("Attempting to delete profile picture for user ID {}: {}", id, profilePictureFilename);
+                     fileStorageService.deleteFile(profilePictureFilename, this.profilePictureStorageLocation);
+                 } catch (Exception e) {
+                    // Log the error but proceed with deleting the DB record
+                    logger.error("Error deleting profile picture file '{}' for user ID {}: {}", profilePictureFilename, id, e.getMessage());
+                 }
+            }
+
             userRepo.deleteById(id);
-            msg = "User record successfully deleted!";
-        }else
-            msg = id + "NOT FOUND!";
-        return msg;
+            logger.info("User record successfully deleted for ID: {}", id);
+            return "User record successfully deleted!";
+        } else {
+            logger.warn("User not found for deletion with ID: {}", id);
+            return id + " NOT FOUND!";
+        }
     }
 }

@@ -13,6 +13,12 @@ import cit.edu.studyspace.dto.UserUpdateDTO;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus; // Import HttpStatus
+import org.springframework.http.MediaType; // Import MediaType
+import org.springframework.web.multipart.MultipartFile; // Import MultipartFile
+import org.slf4j.Logger; // Use SLF4J Logger
+import org.slf4j.LoggerFactory; // Use SLF4J Logger
+
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -23,6 +29,8 @@ import java.util.Map;
 @RequestMapping("/api/users")
 @Tag(name = "User API", description = "Operations related to users")
 public class UserController {
+
+    private static final Logger logger = LoggerFactory.getLogger(UserController.class); // Add logger
 
     @Autowired
     private UserService userService;
@@ -134,20 +142,49 @@ public class UserController {
     }
 
 
-    @PutMapping("/update/{id}")
-    @Operation(summary = "Update user", description = "Update user using DTO")
-    public ResponseEntity<UserEntity> updateUser(@PathVariable int id, @RequestBody UserUpdateDTO dto) {
-        UserEntity updated = userService.updateUserFromDTO(id, dto);
-        if (updated != null) {
-            return ResponseEntity.ok(updated);
-        } else {
-            return ResponseEntity.notFound().build();
+    @PutMapping(value = "/update/{id}", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE}) // Consume multipart
+    @Operation(summary = "Update user", description = "Update user using DTO and optionally upload a profile picture")
+    public ResponseEntity<UserEntity> updateUser(
+            @PathVariable int id,
+            @RequestPart("userData") UserUpdateDTO dto, // User data as JSON part
+            @RequestPart(value = "profilePictureFile", required = false) MultipartFile profilePictureFile // Optional file part
+    ) {
+        try {
+            logger.info("Received request to update user ID: {}", id);
+            UserEntity updated = userService.updateUserFromDTO(id, dto, profilePictureFile); // Pass file to service
+            if (updated != null) {
+                logger.info("Successfully updated user ID: {}", id);
+                return ResponseEntity.ok(updated);
+            } else {
+                logger.warn("User not found for update with ID: {}", id);
+                return ResponseEntity.notFound().build();
+            }
+        } catch (IllegalArgumentException e) {
+             logger.error("Invalid argument during user update for ID {}: {}", id, e.getMessage());
+             return ResponseEntity.badRequest().body(null); // Or return an error object
+        } catch (RuntimeException e) {
+            logger.error("Error updating user ID {}: {}", id, e.getMessage(), e);
+            // Handle potential file storage exceptions from the service
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null); // Or return an error object
         }
     }
 
 
     @DeleteMapping("/delete/{id}")
-    public String deleteUser(@PathVariable int id){
-        return userService.deleteUser(id);
+    @Operation(summary = "Delete a user", description = "Removes a user and their profile picture") // Updated description
+    public ResponseEntity<String> deleteUser(@PathVariable int id){ // Return ResponseEntity
+        try {
+            String result = userService.deleteUser(id);
+            if (result.endsWith("NOT FOUND!")) {
+                 logger.warn("Attempted to delete non-existent user ID: {}", id);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
+            } else {
+                 logger.info("Successfully deleted user ID: {}", id);
+                return ResponseEntity.ok(result);
+            }
+        } catch (Exception e) {
+             logger.error("Error deleting user ID {}: {}", id, e.getMessage(), e);
+             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error deleting user.");
+        }
     }
 }

@@ -70,15 +70,21 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         String role = user.getRole().name(); // Convert enum to string
         
         // Build the redirect URL with proper URL encoding
-        String redirectUrl = UriComponentsBuilder.fromUriString(frontendUrl + "/oauth/callback")
+        UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUriString(frontendUrl + "/oauth/callback")
             .queryParam("token", encodedToken)
             .queryParam("role", role)
             .queryParam("userId", user.getId())
             .queryParam("email", URLEncoder.encode(user.getEmail(), StandardCharsets.UTF_8))
             .queryParam("firstName", URLEncoder.encode(user.getFirstName(), StandardCharsets.UTF_8))
-            .queryParam("lastName", URLEncoder.encode(user.getLastName(), StandardCharsets.UTF_8))
-            .build()
-            .toUriString();
+            .queryParam("lastName", URLEncoder.encode(user.getLastName(), StandardCharsets.UTF_8));
+            
+        // Add profilePictureFilename if it exists
+        if (user.getProfilePictureFilename() != null && !user.getProfilePictureFilename().isEmpty()) {
+            uriBuilder.queryParam("profilePictureFilename", 
+                URLEncoder.encode(user.getProfilePictureFilename(), StandardCharsets.UTF_8));
+        }
+        
+        String redirectUrl = uriBuilder.build().toUriString();
         
         // Set CORS headers explicitly for the OAuth callback
         response.setHeader("Access-Control-Allow-Origin", frontendUrl);

@@ -61,11 +61,15 @@ public class UserEntity {
     @Column(nullable = false)
     @Schema(description = "User role in the system", example = "USER")
     private UserRole role;
+
+    @Column(name = "profile_picture_filename")
+    @Schema(description = "Filename of the user's profile picture", example = "a1b2c3d4-e5f6.jpg")
+    private String profilePictureFilename;
     
     // Constructors
     public UserEntity(int id, String firstName, String lastName, String email, String password, String phoneNumber, 
                     boolean emailVerified, LocalDateTime createdAt, LocalDateTime updatedAt, LocalDateTime lastLogin, 
-                    UserRole role) {
+                    UserRole role, String profilePictureFilename) {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -77,6 +81,7 @@ public class UserEntity {
         this.updatedAt = updatedAt;
         this.lastLogin = lastLogin;
         this.role = role;
+        this.profilePictureFilename = profilePictureFilename;
         this.booking = new HashSet<>();
     }
 
@@ -179,6 +184,14 @@ public class UserEntity {
 
     public void setRole(UserRole role) {
         this.role = role;
+    }
+
+    public String getProfilePictureFilename() {
+        return profilePictureFilename;
+    }
+
+    public void setProfilePictureFilename(String profilePictureFilename) {
+        this.profilePictureFilename = profilePictureFilename;
     }
     
     @PrePersist

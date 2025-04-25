@@ -22,6 +22,7 @@ const OAuthCallBack = () => {
     const email = searchParams.get('email');
     const firstName = searchParams.get('firstName');
     const lastName = searchParams.get('lastName');
+    const profilePictureFilename = searchParams.get('profilePictureFilename');
   
     if (token && role && userId) {
       // Create a user object with the data from URL parameters
@@ -30,7 +31,10 @@ const OAuthCallBack = () => {
         firstName: firstName || '',
         lastName: lastName || '',
         email: email || '',
-        role: role
+        role: role,
+        // Add profilePictureFilename if available, otherwise set to null
+        // This makes it clear this is a Google user without a custom profile picture
+        profilePictureFilename: profilePictureFilename || null
       };
 
       try {

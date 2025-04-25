@@ -7,26 +7,39 @@ import cit.edu.studyspace.repository.SpaceRepo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+import jakarta.annotation.PostConstruct;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Optional;
-
 
 @Service
 @Tag(name = "Space Service", description = "Business logic for space operations")
 public class SpaceService {
 
+    private static final Logger logger = LoggerFactory.getLogger(SpaceService.class); // Add logger
+
     @Autowired
     private SpaceRepo spaceRepo;
 
-    // Inject FileStorageService
-    @Autowired 
-    private FileStorageService fileStorageService; 
+    @Autowired
+    private FileStorageService fileStorageService; // Keep injection
 
-    // Constructor (if needed for other purposes, keep it; otherwise, autowiring fields is sufficient)
-    public SpaceService(){
-        super();
+    @Value("${file.upload-dir}")
+    private String spaceImageUploadDir; // Inject space image path property
+
+    private Path spaceImageStorageLocation; // Path object for space images
+
+    @PostConstruct // Initialize the path after properties are injected
+    public void init() {
+        this.spaceImageStorageLocation = Paths.get(this.spaceImageUploadDir).toAbsolutePath().normalize();
+        logger.info("Space image storage location initialized: {}", this.spaceImageStorageLocation);
     }
 
     // Retrieves all spaces from the database.
@@ -41,9 +54,9 @@ public class SpaceService {
         return spaceRepo.findById(id);
     }
 
-    // Creates a new space.
-    @Operation(summary = "Create a new space", description = "Adds a new space to the system")
-    public SpaceEntity createSpaceFromDTO(SpaceCreateDTO dto) {
+    // Creates a new space, including storing an optional image.
+    @Operation(summary = "Create a new space", description = "Adds a new space and its optional image to the system")
+    public SpaceEntity createSpaceFromDTO(SpaceCreateDTO dto, MultipartFile imageFile) { // Add MultipartFile parameter
         SpaceEntity space = new SpaceEntity();
         space.setName(dto.getName());
         space.setDescription(dto.getDescription());
@@ -53,66 +66,82 @@ public class SpaceService {
         space.setAvailable(dto.isAvailable());
         space.setOpeningTime(dto.getOpeningTime());
         space.setClosingTime(dto.getClosingTime());
-        space.setImageFilename(dto.getImageFilename());
         space.setPrice(dto.getPrice());
 
+        // Handle image storage
+        if (imageFile != null && !imageFile.isEmpty()) {
+            try {
+                String imageFilename = fileStorageService.storeFile(imageFile, this.spaceImageStorageLocation);
+                space.setImageFilename(imageFilename); // Set the stored filename
+                logger.info("Stored new space image with filename: {}", imageFilename);
+            } catch (Exception e) {
+                logger.error("Failed to store image for new space '{}'", dto.getName(), e);
+                // Decide handling: throw exception, save space without image?
+                throw new RuntimeException("Could not store space image file.", e);
+            }
+        } else {
+            space.setImageFilename(null); // Ensure filename is null if no file provided
+        }
+
+        // @PrePersist handles createdAt
         return spaceRepo.save(space);
     }
 
-    // Update an existing space
-    @Operation(summary = "Update an existing space", description = "Updates a space based on the given ID and details, deleting the old image if a new one is provided.")
-    public SpaceEntity updateSpaceFromDTO(int id, SpaceUpdateDTO dto) {
+    // Update an existing space, including optional image update.
+    @Operation(summary = "Update an existing space", description = "Updates a space based on the given ID and details, handling image replacement and deletion.")
+    public SpaceEntity updateSpaceFromDTO(int id, SpaceUpdateDTO dto, MultipartFile imageFile) { // Add MultipartFile parameter
         Optional<SpaceEntity> optionalSpace = spaceRepo.findById(id);
         if (optionalSpace.isPresent()) {
             SpaceEntity existingSpace = optionalSpace.get();
             String oldImageFilename = existingSpace.getImageFilename(); // Store old filename
-            // Get potential new filename from dto
-            String newImageFilename = dto.getImageFilename(); // Use dto
+            String newImageFilename = null;
+
+            // Handle new image upload if provided
+            if (imageFile != null && !imageFile.isEmpty()) {
+                try {
+                    newImageFilename = fileStorageService.storeFile(imageFile, this.spaceImageStorageLocation);
+                    logger.info("Stored updated space image with filename: {}", newImageFilename);
+                } catch (Exception e) {
+                    logger.error("Failed to store updated image for space ID: {}", id, e);
+                    throw new RuntimeException("Could not store updated space image file.", e);
+                }
+            }
 
             // Update fields from dto
-            existingSpace.setName(dto.getName()); // Use dto
-            existingSpace.setDescription(dto.getDescription()); // Use dto
-            existingSpace.setLocation(dto.getLocation()); // Use dto
-            existingSpace.setCapacity(dto.getCapacity()); // Use dto
-            existingSpace.setSpaceType(dto.getSpaceType()); // Use dto
-            existingSpace.setAvailable(dto.isAvailable()); // Use dto
-            existingSpace.setOpeningTime(dto.getOpeningTime()); // Use dto
-            existingSpace.setClosingTime(dto.getClosingTime()); // Use dto
+            existingSpace.setName(dto.getName());
+            existingSpace.setDescription(dto.getDescription());
+            existingSpace.setLocation(dto.getLocation());
+            existingSpace.setCapacity(dto.getCapacity());
+            existingSpace.setSpaceType(dto.getSpaceType());
+            existingSpace.setAvailable(dto.isAvailable());
+            existingSpace.setOpeningTime(dto.getOpeningTime());
+            existingSpace.setClosingTime(dto.getClosingTime());
+            existingSpace.setPrice(dto.getPrice());
 
-            // Handle Image Update and Deletion of Old Image (logic remains the same, variable checked is newImageFilename from dto)
-            // Check if a *new* filename is provided and it's *different* from the old one
-            if (newImageFilename != null && !newImageFilename.equals(oldImageFilename)) {
-                // If there was an old image, attempt to delete it
+            // Handle Image Filename Update and Deletion of Old Image
+            if (newImageFilename != null) {
+                 // Delete the old image *after* successfully storing the new one
                 if (oldImageFilename != null && !oldImageFilename.isBlank()) {
-                    try {
-                        fileStorageService.deleteFile(oldImageFilename);
-                        System.out.println("Old image deleted: " + oldImageFilename); // Log success
-                    } catch (Exception e) {
-                         // Log error but continue with the update process
-                        System.err.println("Error deleting old image file '" + oldImageFilename + "': " + e.getMessage());
+                    // Avoid deleting the same file if it was somehow re-uploaded with the same name (UUID makes this unlikely)
+                    if (!newImageFilename.equals(oldImageFilename)) {
+                        logger.info("Attempting to delete old space image: {}", oldImageFilename);
+                        fileStorageService.deleteFile(oldImageFilename, this.spaceImageStorageLocation);
                     }
                 }
                  // Set the new filename only after attempting to delete the old one
                 existingSpace.setImageFilename(newImageFilename);
             }
-            // Optional: Add logic here if you need to handle setting the image to null
-            // (i.e., removing the image without replacing it).
-
-            // Update price separately using dto
-            existingSpace.setPrice(dto.getPrice()); // Use dto
+            // Note: If newImageFilename is null, the existing filename remains unchanged.
 
             // The @PreUpdate annotation in SpaceEntity handles updatedAt
             return spaceRepo.save(existingSpace); // Save the updated entity
         } else {
-            // Return null or throw an exception if the space is not found
-            return null;
+            logger.warn("Space not found for update with ID: {}", id);
+            return null; // Or throw SpaceNotFoundException
         }
     }
 
-
-    // Deletes a user by their ID.
-    // Refactored to use Optional and return clearer messages
-    // Now also deletes the associated image file.
+    // Deletes a space and its associated image.
     @Operation(summary = "Delete a space", description = "Removes a space and its associated image from the system")
     public String deleteSpace(int id) {
         Optional<SpaceEntity> optionalSpace = spaceRepo.findById(id);
@@ -123,20 +152,20 @@ public class SpaceService {
             // Attempt to delete the associated image file if it exists
             if (imageFilename != null && !imageFilename.isBlank()) {
                  try {
-                     fileStorageService.deleteFile(imageFilename);
-                     System.out.println("Associated image deleted: " + imageFilename); // Log success
+                     logger.info("Attempting to delete space image for space ID {}: {}", id, imageFilename);
+                     fileStorageService.deleteFile(imageFilename, this.spaceImageStorageLocation); // Pass path
                  } catch (Exception e) {
                     // Log the error but proceed with deleting the DB record
-                    System.err.println("Error deleting associated image file '" + imageFilename + "': " + e.getMessage()); 
-                    // Depending on requirements, you might want to handle this error differently
-                    // (e.g., return a specific error message, or prevent DB deletion if file deletion fails)
+                    logger.error("Error deleting associated image file '{}' for space ID {}: {}", imageFilename, id, e.getMessage());
                  }
             }
 
             // Delete the database record
-            spaceRepo.deleteById(id); 
+            spaceRepo.deleteById(id);
+            logger.info("Space record successfully deleted for ID: {}", id);
             return "Space Successfully Deleted!";
         } else {
+            logger.warn("Space not found for deletion with ID: {}", id);
             return "Space not found";
         }
     }

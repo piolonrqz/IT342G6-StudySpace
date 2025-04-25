@@ -38,6 +38,7 @@ export const AuthProvider = ({ children }) => {
             lastName: userData.lastName,
             email: userData.email, // Assuming email is needed/available
             role: userData.role || 'USER', // Default role if not provided
+            profilePictureFilename: userData.profilePictureFilename // Add profile picture filename
         };
 
         localStorage.setItem('jwtToken', jwtToken);
@@ -62,12 +63,86 @@ export const AuthProvider = ({ children }) => {
         navigate('/'); // Redirect to home page after logout
     };
 
+    // Update user function
+    const updateUser = async (userData, profilePictureFile) => {
+        if (!user || !token) {
+            console.error("Cannot update user: Not logged in.");
+            // Handle not logged in state, maybe redirect to login
+            return;
+        }
+
+        const formData = new FormData();
+
+        // Append user data DTO as a JSON string blob
+        // Backend expects a part named "userData"
+        formData.append('userData', new Blob([JSON.stringify({
+            firstName: userData.firstName,
+            lastName: userData.lastName,
+            email: userData.email,
+            phoneNumber: userData.phoneNumber,
+            role: userData.role
+        })], { type: 'application/json' }));
+
+        // Append the profile picture file if selected
+        // Backend expects a part named "profilePictureFile"
+        if (profilePictureFile) {
+            formData.append('profilePictureFile', profilePictureFile);
+        }
+
+        try {
+            // Correct endpoint: /api/users/update/{id}
+            const response = await fetch(`http://localhost:8080/api/users/update/${user.id}`, { 
+                method: 'PUT',
+                headers: {
+                    // Content-Type is set automatically by the browser for FormData
+                    'Authorization': `Bearer ${token}`,
+                },
+                body: formData,
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                console.error('Failed to update user:', response.status, errorData);
+                // Handle specific errors (e.g., display message to user)
+                throw new Error(`Failed to update user: ${errorData.message || response.status}`);
+            }
+
+            const updatedUserData = await response.json();
+
+            // Construct the updated user object for local state
+            const updatedUser = {
+                ...user, // Keep existing fields like id, role (unless updated)
+                firstName: updatedUserData.firstName,
+                lastName: updatedUserData.lastName,
+                email: updatedUserData.email,
+                phoneNumber: updatedUserData.phoneNumber,
+                // Update role if it's returned, otherwise keep existing
+                role: updatedUserData.role ? updatedUserData.role.toUpperCase() : user.role, 
+                profilePictureFilename: updatedUserData.profilePictureFilename || user.profilePictureFilename, // Update filename if returned
+            };
+
+
+            // Update state and localStorage
+            setUser(updatedUser);
+            localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+
+            console.log('User updated successfully:', updatedUser);
+            // Optionally: show success message to user
+
+        } catch (error) {
+            console.error('Error updating user:', error);
+            // Handle fetch error (e.g., network issue, display error message)
+        }
+    };
+
+
     // Value provided by the context
     const value = {
         user,
         token,
         login,
         logout,
+        updateUser, // Add updateUser to the context value
         isAuthenticated: !!token && !!user // Helper boolean flag
     };
 
