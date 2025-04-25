@@ -1,11 +1,14 @@
 import { useState, useEffect, useCallback } from "react";
-import { HomeIcon, CalendarIcon, User, LogOutIcon } from "lucide-react"; // Import LogOutIcon
+import { HomeIcon, CalendarIcon, User, LogOutIcon } from "lucide-react";
 import { UserFormModal } from '@/Components/UserFormModal';
-import { ConfirmationModal } from "@/Components/ConfirmationModal"; 
+import { ConfirmationModal } from "@/Components/ConfirmationModal";
 import { UserManagement } from '@/Components/UserManagement';
-import { SpaceManagement } from '@/Components/SpaceManagement'; 
+import { SpaceManagement } from '@/Components/SpaceManagement';
 import { SpaceFormModal } from '@/Components/SpaceFormModal';
-import { useAuth } from '../context/AuthContext.jsx'; // Import useAuth
+import { BookingManagement } from '@/Components/BookingManagement'; // Import BookingManagement
+import { BookingFormModal } from '@/Components/BookingFormModal'; // Import BookingFormModal
+import { useAuth } from '../context/AuthContext.jsx';
+import { useToast } from "@/hooks/use-toast"; // Import useToast
 
 // StatsCard Component
 const StatsCard = ({ title, value }) => {
@@ -80,37 +83,40 @@ const Sidebar = ({
   );
 };
 
-
-
 // --- Main AdminPage Component ---
 const AdminPage = () => {
   const [activeItem, setActiveItem] = useState("user-management");
-  const [users, setUsers] = useState(null); // State for users data
-  const [spaces, setSpaces] = useState(null); // State for spaces data
-  const [bookings, setBookings] = useState(null); // State for bookings data (TODO)
-  const [isLoading, setIsLoading] = useState(false); // Loading state
-  const [error, setError] = useState(null); // Error state
-  const { logout } = useAuth(); // Get logout function from context
-  
-  // User Delete Confirmation State
-  const [isUserConfirmModalOpen, setIsUserConfirmModalOpen] = useState(false); // State for delete confirmation modal
-  const [userToDeleteId, setUserToDeleteId] = useState(null); // State to store the ID of the user to be deleted
+  const [users, setUsers] = useState(null);
+  const [spaces, setSpaces] = useState(null);
+  const [bookings, setBookings] = useState(null); // State for bookings data
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const { logout, token } = useAuth(); // Get token for API calls
+  const { toast } = useToast(); // Use toast for notifications
 
-  // User Add/Edit Modal State
-  const [isUserModalOpen, setIsUserModalOpen] = useState(false); // State for user modal
-  const [editingUser, setEditingUser] = useState(null); // State for user being edited
-  
-   // Space Delete Confirmation State
-   const [isSpaceConfirmModalOpen, setIsSpaceConfirmModalOpen] = useState(false); // New state for space delete modal
-   const [spaceToDeleteId, setSpaceToDeleteId] = useState(null); // New state for space ID to delete
+  // --- User State ---
+  const [isUserConfirmModalOpen, setIsUserConfirmModalOpen] = useState(false);
+  const [userToDeleteId, setUserToDeleteId] = useState(null);
+  const [isUserModalOpen, setIsUserModalOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState(null);
 
-   // Space Add/Edit Modal State
-  const [isSpaceModalOpen, setIsSpaceModalOpen] = useState(false); // New state for space modal
-  const [editingSpace, setEditingSpace] = useState(null); // New state for space being edited
+  // --- Space State ---
+  const [isSpaceConfirmModalOpen, setIsSpaceConfirmModalOpen] = useState(false);
+  const [spaceToDeleteId, setSpaceToDeleteId] = useState(null);
+  const [isSpaceModalOpen, setIsSpaceModalOpen] = useState(false);
+  const [editingSpace, setEditingSpace] = useState(null);
 
-  const API_BASE_URL = "http://localhost:8080/api"; // Adjust if your API URL is different
+  // --- Booking State ---
+  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false); // For Edit modal
+  const [editingBooking, setEditingBooking] = useState(null); // Booking being edited
+  const [isBookingCancelConfirmModalOpen, setIsBookingCancelConfirmModalOpen] = useState(false); // For Cancel confirmation
+  const [bookingToCancelId, setBookingToCancelId] = useState(null); // ID for cancellation
+  const [isBookingDeleteConfirmModalOpen, setIsBookingDeleteConfirmModalOpen] = useState(false); // For Delete confirmation
+  const [bookingToDeleteId, setBookingToDeleteId] = useState(null); // ID for deletion
 
-  // Fetch Users Function
+  const API_BASE_URL = "http://localhost:8080/api";
+
+  // --- Fetch Functions ---
   const fetchUsers = useCallback(async () => {
     setIsLoading(true);
     setError(null);
@@ -141,9 +147,8 @@ const AdminPage = () => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [API_BASE_URL, token]); // Add token dependency
 
-  // Fetch spaces function
   const fetchSpaces = useCallback(async () => {
     setIsLoading(true);
     setError(null);
@@ -160,23 +165,43 @@ const AdminPage = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [API_BASE_URL]);
+  }, [API_BASE_URL, token]); // Add token dependency
+
+  // Fetch Bookings Function
+  const fetchBookings = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await fetch(`${API_BASE_URL}/bookings/detailed`, {
+        headers: { 'Authorization': `Bearer ${token}` } // Add Authorization header
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      setBookings(data);
+    } catch (e) {
+      console.error("Failed to fetch bookings:", e);
+      setError("Failed to load bookings. Please try again.");
+      setBookings([]); // Set empty array on error
+    } finally {
+      setIsLoading(false);
+    }
+  }, [API_BASE_URL, token]); // Add token dependency
 
   // Fetch data based on active item
   useEffect(() => {
+    setError(null); // Clear error when switching tabs
     if (activeItem === "user-management") {
       fetchUsers();
     } else if (activeItem === "space-management") {
       fetchSpaces();
     } else if (activeItem === "booking-management") {
-      // TODO: Fetch bookings -> Similar pattern to fetchUsers
-       console.log("Fetching Bookings (TODO)");
-       setBookings([]); // Placeholder
+      fetchBookings(); // Call fetchBookings
     }
-  }, [activeItem, fetchUsers, fetchSpaces]); // Rerun when activeItem or fetchUsers changes
+  }, [activeItem, fetchUsers, fetchSpaces, fetchBookings]); // Add fetchBookings dependency
 
-
-  // --- CRUD Handlers --- User
+  // --- CRUD Handlers --- User ---
 
   // Add User
   const handleAddUserClick = () => {
@@ -190,7 +215,6 @@ const AdminPage = () => {
   const handleEditUserClick = (user) => {
     setEditingUser(user);
     setIsUserModalOpen(true);
-     console.log("Open Edit User Modal for:", user);
      // Modal component would handle the form and call handleSaveUser
   };
 
@@ -268,7 +292,7 @@ const AdminPage = () => {
      }
    };
 
-   // --- SPACE CRUD Handlers ---
+  // --- CRUD Handlers --- Space ---
 
   // Add Space
   const handleAddSpaceClick = () => {
@@ -283,7 +307,6 @@ const AdminPage = () => {
     setEditingSpace(space);
     setIsSpaceModalOpen(true);
     setError(null); // Clear previous errors
-    console.log("Open Edit Space Modal for:", space);
   };
 
   // Open Delete Space Confirmation
@@ -328,14 +351,13 @@ const AdminPage = () => {
   const handleSaveSpace = async (formDataFromModal) => {
     console.log("Saving space...");
     
-    for (let [key, value] of formDataFromModal.entries()) {
-      console.log(`${key}:`, value);
-    }
     setIsLoading(true);
     setError(null);
     const isEditing = !!editingSpace; // Use editingSpace state to determine Add vs Edit
     const url = isEditing ? `${API_BASE_URL}/space/update/${editingSpace.id}` : `${API_BASE_URL}/space/save`;
     const method = isEditing ? 'PUT' : 'POST';
+
+    let response; // Define response variable outside try block to access in catch
 
     try {
         
@@ -347,7 +369,7 @@ const AdminPage = () => {
         // }
 
         // --- Make the fetch request with the received FormData ---
-        const response = await fetch(url, {
+        response = await fetch(url, { // Assign to the outer response variable
           method: method,
           body: formDataFromModal, // Send the FormData object received from the modal
           // NO 'Content-Type' header - browser sets it automatically for FormData
@@ -355,8 +377,8 @@ const AdminPage = () => {
 
          // Check response status before parsing JSON
         if (!response.ok) {
-          // Try to get more detailed error from backend response body
-          const errorText = await response.text(); // Read as text first
+          // Read the response body ONCE here
+          const errorText = await response.text(); 
           console.error("Error response text:", errorText);
           let errorMessage = `HTTP error! status: ${response.status} - ${response.statusText}`;
           try { // Try parsing as JSON in case backend sends structured errors
@@ -378,10 +400,9 @@ const AdminPage = () => {
         }
 
 
-        let responseData;
+        
         try {
-          responseData = await response.json();
-          console.log("Space saved successfully:", responseData);
+          console.log("Space saved successfully:");
           setIsSpaceModalOpen(false); // Close modal on success
           setEditingSpace(null);
           fetchSpaces(); // Refresh list
@@ -409,65 +430,185 @@ const AdminPage = () => {
     }
   };
 
+  // --- CRUD Handlers --- Booking ---
+
+  // Edit Booking (Open Modal)
+  const handleEditBookingClick = (booking) => {
+    setEditingBooking(booking);
+    setIsBookingModalOpen(true);
+    setError(null); // Clear previous errors
+  };
+
+  // Save Booking (Update Status/Participants)
+  const handleSaveBooking = async (updateData) => {
+    if (!editingBooking) return;
+    console.log("Saving booking update:", updateData);
+    setIsLoading(true);
+    setError(null);
+    const url = `${API_BASE_URL}/bookings/updateAdmin/${editingBooking.id}`;
+
+    try {
+        const response = await fetch(url, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}` // Add token
+            },
+            body: JSON.stringify(updateData),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ message: 'Failed to parse error response' }));
+            throw new Error(`Failed to update booking: ${response.status} - ${errorData.message || errorData.error || 'Unknown error'}`);
+        }
+
+        const savedBooking = await response.json();
+        console.log("Booking updated successfully:", savedBooking);
+        toast({ title: "Booking Updated", description: `Booking #${savedBooking.id} has been updated.` });
+        setIsBookingModalOpen(false);
+        setEditingBooking(null);
+        fetchBookings(); // Refresh list
+    } catch (e) {
+        console.error("Failed to save booking update:", e);
+        setError(`Failed to update booking. ${e.message}`);
+        // Keep modal open on error
+    } finally {
+        setIsLoading(false);
+    }
+  };
+
+  // Open Cancel Confirmation
+  const handleOpenBookingCancelConfirm = (bookingId) => {
+    setBookingToCancelId(bookingId);
+    setIsBookingCancelConfirmModalOpen(true);
+    setError(null);
+  };
+
+  // Perform Cancel Booking (Soft Delete)
+  const performCancelBooking = async (reason) => {
+    if (!bookingToCancelId) return;
+    console.log("Attempting to cancel booking:", bookingToCancelId, "Reason:", reason);
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await fetch(`${API_BASE_URL}/bookings/${bookingToCancelId}/cancel`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}` // Add token
+        },
+        body: JSON.stringify({ reason }) // Send reason in body
+      });
+
+      if (!response.ok) {
+          const errorData = await response.json().catch(() => ({ message: 'Failed to parse error response' }));
+          throw new Error(`Failed to cancel booking: ${response.status} - ${errorData.message || errorData.error || 'Unknown error'}`);
+      }
+       console.log("Booking cancelled successfully:", bookingToCancelId);
+       toast({ title: "Booking Cancelled", description: `Booking #${bookingToCancelId} has been cancelled.` });
+       fetchBookings(); // Refresh list
+       setIsBookingCancelConfirmModalOpen(false);
+       setBookingToCancelId(null);
+    } catch (e) {
+      console.error("Failed to cancel booking:", e);
+      setError(`Failed to cancel booking. ${e.message}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Open Delete Confirmation
+  const handleOpenBookingDeleteConfirm = (bookingId) => {
+    setBookingToDeleteId(bookingId);
+    setIsBookingDeleteConfirmModalOpen(true);
+    setError(null);
+  };
+
+  // Perform Delete Booking (Hard Delete)
+  const performDeleteBooking = async () => {
+    if (!bookingToDeleteId) return;
+    console.log("Attempting to delete booking:", bookingToDeleteId);
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await fetch(`${API_BASE_URL}/bookings/delete/${bookingToDeleteId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` } // Add token
+      });
+
+      const responseText = await response.text(); // Read response text
+
+      if (!response.ok) {
+          throw new Error(`Failed to delete booking: ${response.status} - ${responseText || 'Unknown error'}`);
+      }
+       console.log("Booking deleted successfully:", bookingToDeleteId, "Response:", responseText);
+       toast({ title: "Booking Deleted", description: `Booking #${bookingToDeleteId} has been permanently deleted.` });
+       fetchBookings(); // Refresh list
+       setIsBookingDeleteConfirmModalOpen(false);
+       setBookingToDeleteId(null);
+    } catch (e) {
+      console.error("Failed to delete booking:", e);
+      setError(`Failed to delete booking. ${e.message}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // --- Render Logic ---
   const renderContent = () => {
-    if (isLoading && activeItem === 'user-management' && !users) {
-         return <div className="text-center py-10">Loading Users...</div>;
+    // Add loading state for bookings
+    if (isLoading && activeItem === 'booking-management' && !bookings) {
+      return <div className="text-center py-10">Loading Bookings...</div>;
     }
-    if (isLoading && activeItem === 'space-management' && !spaces) {
-      return <div className="text-center py-10">Loading Spaces...</div>;
-    }
-     if (error) {
+    // ... existing loading states for user/space ...
+
+     if (error && activeItem !== 'user-management' && activeItem !== 'space-management') { // Show general error if not handled by modals
          return <div className="text-center py-10 text-red-600">Error: {error}</div>;
      }
-     if (isLoading) {
+     // General loading indicator (e.g., during delete/cancel)
+     if (isLoading && !isUserModalOpen && !isSpaceModalOpen && !isBookingModalOpen) {
       return <div className="text-center py-10">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2F9FE5] mx-auto"></div>
-          <p className="mt-4 text-gray-600">Saving space details...</p>
+          <p className="mt-4 text-gray-600">Processing...</p>
       </div>;
-  }
+     }
 
     switch (activeItem) {
       case "user-management":
-        return <UserManagement 
-          users={users} 
-          onEdit={handleEditUserClick} 
-          onDelete={handleOpenUserDeleteConfirm} // Pass the function to open the confirm modal
-          onAdd={handleAddUserClick} 
+        return <UserManagement
+          users={users}
+          onEdit={handleEditUserClick}
+          onDelete={handleOpenUserDeleteConfirm}
+          onAdd={handleAddUserClick}
         />;
       case "space-management":
-        return <SpaceManagement 
-          spaces={spaces} 
-          onEdit={handleEditSpaceClick} 
-          onDelete={handleOpenSpaceDeleteConfirm} 
-          onAdd={handleAddSpaceClick} 
+        return <SpaceManagement
+          spaces={spaces}
+          onEdit={handleEditSpaceClick}
+          onDelete={handleOpenSpaceDeleteConfirm}
+          onAdd={handleAddSpaceClick}
         />;
       case "booking-management":
-        // TODO: Render BookingManagement component with fetched bookings and handlers
-        return <div className="p-6 bg-white rounded-lg shadow">
-          <h2 className="text-xl font-semibold mb-4">Booking Management</h2>
-          <p className="text-gray-500">This feature is coming soon.</p>
-          </div>;
+        return <BookingManagement // Render BookingManagement
+          bookings={bookings}
+          onEdit={handleEditBookingClick}
+          onCancel={handleOpenBookingCancelConfirm} // Pass cancel handler
+          onDelete={handleOpenBookingDeleteConfirm} // Pass delete handler
+        />;
       default:
         return <div>Select an option from the sidebar.</div>;
     }
   };
 
-  
   return (
-    // Main flex container for full-page layout
-    
-    <div className="flex min-h-screen"> 
-      {/* Sidebar Container: Fixed width, light blue background, full height */}
-      <div className="w-64 flex-shrink-0 bg-[#EBF6FC] h-screen sticky top-0"> 
-        {/* Optional: Add a header/logo area inside the sidebar if needed */}
-        {/* <div className="h-16 flex items-center justify-center text-[#2F9FE5] font-semibold text-lg">Admin Menu</div> */}
+    <div className="flex min-h-screen">
+      {/* Sidebar */}
+      <div className="w-64 flex-shrink-0 bg-[#EBF6FC] h-screen sticky top-0">
         <Sidebar activeItem={activeItem} onItemClick={setActiveItem} onLogout={logout} />
       </div>
 
-      {/* Main Content Area: Takes remaining space, light gray background, padding, scrollable */}
-      <div className="flex-1 bg-gray-50 overflow-y-auto p-8"> 
+      {/* Main Content Area */}
+      <div className="flex-1 bg-gray-50 overflow-y-auto p-8">
           {/* Header */}
           <div className="flex items-center gap-4 mb-8">
             {/* Use the blue logo background */}
@@ -483,15 +624,17 @@ const AdminPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
             <StatsCard title="Total Users" value={isLoading ? '...' : (users ? users.length : '0')} />
             <StatsCard title="Active Spaces" value={isLoading ? '...' : (spaces ? spaces.length : '0')} />
-            <StatsCard title="Total Bookings" value={isLoading ? '...' : (bookings ? bookings.length : '0')} />
+            <StatsCard title="Total Bookings" value={isLoading ? '...' : (bookings ? bookings.length : '0')} /> {/* Update value */}
           </div>
           {/* End Stats Cards */}
 
-          {/* Dynamic Content Area - UserManagement now has white bg */}
+          {/* Dynamic Content Area */}
           {renderContent()}
           {/* End Dynamic Content Area */}
 
-          {/* Modal rendering logic remains the same */}
+          {/* --- Modals --- */}
+
+          {/* User Modals */}
           {isUserModalOpen && (
             <UserFormModal
               isOpen={isUserModalOpen}
@@ -524,7 +667,7 @@ const AdminPage = () => {
              />
           )}
 
-          {/* Space Form Modal */}
+          {/* Space Modals */}
           {isSpaceModalOpen && (
             <SpaceFormModal
               isOpen={isSpaceModalOpen}
@@ -554,6 +697,58 @@ const AdminPage = () => {
                  description={`Are you sure you want to delete space ID: ${spaceToDeleteId}? This also deletes associated bookings and cannot be undone.`} // Updated description
                  confirmText="Delete"
                  isLoading={isLoading} 
+             />
+          )}
+
+          {/* Booking Edit Modal */}
+          {isBookingModalOpen && (
+            <BookingFormModal
+              isOpen={isBookingModalOpen}
+              onClose={() => {
+                setIsBookingModalOpen(false);
+                setEditingBooking(null);
+                setError(null); // Clear error on close
+              }}
+              onSave={handleSaveBooking}
+              booking={editingBooking}
+              isLoading={isLoading}
+              error={error}
+            />
+          )}
+
+          {/* Booking Cancel Confirmation Modal */}
+           {isBookingCancelConfirmModalOpen && (
+             <ConfirmationModal
+                 isOpen={isBookingCancelConfirmModalOpen}
+                 onClose={() => {
+                     setIsBookingCancelConfirmModalOpen(false);
+                     setBookingToCancelId(null);
+                     setError(null);
+                 }}
+                 onConfirm={performCancelBooking} // Pass the booking cancel function
+                 title="Cancel Booking?"
+                 description={`Are you sure you want to cancel booking ID: ${bookingToCancelId}? This will mark the booking as CANCELLED.`}
+                 confirmText="Confirm Cancellation"
+                 showReasonField={true} // Enable reason field
+                 reasonLabel="Cancellation Reason (Optional)"
+                 isLoading={isLoading}
+             />
+          )}
+
+          {/* Booking Delete Confirmation Modal */}
+           {isBookingDeleteConfirmModalOpen && (
+             <ConfirmationModal
+                 isOpen={isBookingDeleteConfirmModalOpen}
+                 onClose={() => {
+                     setIsBookingDeleteConfirmModalOpen(false);
+                     setBookingToDeleteId(null);
+                     setError(null);
+                 }}
+                 onConfirm={performDeleteBooking} // Pass the booking delete function
+                 title="Delete Booking Permanently?"
+                 description={`Are you sure you want to permanently delete booking ID: ${bookingToDeleteId}? This action cannot be undone.`}
+                 confirmText="Delete Permanently"
+                 isLoading={isLoading}
              />
           )}
 

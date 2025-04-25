@@ -18,6 +18,7 @@ import ProfilePage from './pages/ProfilePage';
 // import Footer from './Components/Footer';
 import OAuthCallBack from './Components/OAuthCallBack.jsx';
 
+
 function App() {
   return (
     // Wrap AuthProvider with Router
@@ -35,8 +36,7 @@ function App() {
           <Route path="/Bookings" element={<Bookings />} />
           {/* Removed the duplicate /AdminPage route */}
           <Route path="/space/:id" element={<SpaceDetails />} />
-          <Route path="/profile" element={<ProfilePage />} /> {/* Add the route for the profile page
-
+          <Route path="/profile" element={<ProfilePage />} /> {/* Add the route for the profile page*/}
           {/* Protected Admin Route */}
           <Route
             path="/AdminPage"

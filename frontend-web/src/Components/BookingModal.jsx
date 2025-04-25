@@ -370,8 +370,8 @@ const BookingModal = ({ isOpen, onClose, space }) => {
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Book {space?.name}</DialogTitle>
-          <DialogDescription>
-            Fill in the details below to book this space.
+          <DialogDescription> 
+            Select your preferred date, time, and duration to reserve this space.
           </DialogDescription>
         </DialogHeader>
         

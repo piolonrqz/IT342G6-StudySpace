@@ -3,6 +3,7 @@ package cit.edu.studyspace.controller;
 import cit.edu.studyspace.dto.BookingDTO; // Import DTO
 import cit.edu.studyspace.dto.BookingResponseDTO; // Import the new DTO
 import cit.edu.studyspace.dto.BookingAvailabilityRequestDTO; // Import the moved DTO
+import cit.edu.studyspace.dto.BookingUpdateAdminDTO; // Import new DTO
 import cit.edu.studyspace.entity.BookingEntity;
 import cit.edu.studyspace.entity.BookingStatus;
 import cit.edu.studyspace.entity.SpaceEntity;
@@ -51,10 +52,35 @@ public class BookingController {
         return "Hello, Booking! Test";
     }
 
-    @GetMapping("/getAll")
-    @Operation(summary = "Get all bookings", description = "Fetches all bookings in the system")
-    public List<BookingEntity> getAllBookings() {
-        return bookingService.getAllBookings();
+    // --- Admin/Detailed Endpoint ---
+    @GetMapping("/detailed")
+    @Operation(summary = "Get all detailed bookings", description = "Fetches all bookings with detailed user/space info, suitable for admin panel")
+    public ResponseEntity<List<BookingResponseDTO>> getAllBookingsDetailed() {
+        try {
+            List<BookingResponseDTO> bookings = bookingService.getAllBookingsDetailed();
+            return ResponseEntity.ok(bookings);
+        } catch (Exception e) {
+            log.error("Error fetching all detailed bookings", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build(); // Or return an error DTO
+        }
+    }
+
+    // --- Admin Update Endpoint ---
+    @PutMapping("/updateAdmin/{id}")
+    @Operation(summary = "Update booking by Admin", description = "Allows admin to update status and participant count of a booking")
+    public ResponseEntity<?> updateBookingByAdmin(@PathVariable int id, @RequestBody BookingUpdateAdminDTO updateDTO) {
+        try {
+            log.info("Admin updating booking ID: {} with Status: {}, Participants: {}", id, updateDTO.getStatus(), updateDTO.getNumberOfPeople());
+            BookingResponseDTO updatedBooking = bookingService.updateBookingByAdmin(id, updateDTO);
+            return ResponseEntity.ok(updatedBooking);
+        } catch (ResponseStatusException e) {
+            log.error("Error updating booking {} by admin ({}): {}", id, e.getStatusCode(), e.getReason(), e);
+            return ResponseEntity.status(e.getStatusCode()).body(Map.of("error", e.getReason()));
+        } catch (Exception e) {
+            log.error("Unexpected error updating booking {} by admin", id, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", "Failed to update booking", "message", e.getMessage()));
+        }
     }
 
     // Helper method to convert BookingEntity to BookingResponseDTO
@@ -211,7 +237,9 @@ public class BookingController {
             log.info("Cancelling booking ID: {} with reason: {}", bookingId, reason != null ? reason : "No reason provided");
             
             BookingEntity cancelledBooking = bookingService.cancelBooking(bookingId, reason);
-            return ResponseEntity.ok(cancelledBooking);
+            // Convert cancelled entity to the detailed response DTO
+            BookingResponseDTO responseDTO = bookingService.convertToResponseDTO(cancelledBooking); // Requires convertToResponseDTO to be accessible
+            return ResponseEntity.ok(responseDTO); // Return the detailed DTO
         } catch (RuntimeException e) {
             log.error("Error cancelling booking: {}", e.getMessage());
             return ResponseEntity.status(404).body(Map.of("error", e.getMessage()));
@@ -219,8 +247,22 @@ public class BookingController {
     }
 
     @DeleteMapping("/delete/{id}")
-    public String deleteBooking(@PathVariable int id){
-        return bookingService.deleteBooking(id);
+    @Operation(summary = "Delete a booking", description = "Removes a booking from the database by its ID")
+    public ResponseEntity<Map<String, String>> deleteBooking(@PathVariable int id){ // Return JSON map
+        try {
+            log.info("Attempting to delete booking ID: {}", id);
+            String result = bookingService.deleteBooking(id);
+            if (result.contains("NOT FOUND")) {
+                 log.warn("Booking ID {} not found for deletion.", id);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", result));
+            } else {
+                 log.info("Booking ID {} deleted successfully.", id);
+                return ResponseEntity.ok(Map.of("message", result));
+            }
+        } catch (Exception e) {
+             log.error("Error deleting booking ID: {}", id, e);
+             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "Failed to delete booking.", "message", e.getMessage()));
+        }
     }
 
     // Add endpoint to manually update completed bookings

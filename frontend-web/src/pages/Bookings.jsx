@@ -169,12 +169,26 @@ const Bookings = () => {
     // Filter options - Removed 'All'
     const filterOptions = ['Booked', 'Cancelled', 'Completed'];
 
-    // Filtered bookings based on active filter
+    // Filtered bookings based on active filter - dynamically check completion status
     const filteredBookings = bookings.filter(booking => {
-        // Removed the 'All' check as it's no longer an option
-        const statusToCheck = booking.displayStatus || booking.status;
-        return statusToCheck?.toUpperCase() === activeFilter.toUpperCase();
+        let effectiveStatus = booking.status; // Start with the actual status
+
+        // Dynamically determine if a 'BOOKED' booking is now 'COMPLETED'
+        if (booking.status === 'BOOKED' && booking.endTime && new Date(booking.endTime) < new Date()) {
+            effectiveStatus = 'COMPLETED';
+        }
+
+        // Filter based on the effective status matching the active filter
+        return effectiveStatus?.toUpperCase() === activeFilter.toUpperCase();
     });
+
+    // Dynamically determine the display status for the badge inside the map function
+    const getDisplayStatus = (booking) => {
+        if (booking.status === 'BOOKED' && booking.endTime && new Date(booking.endTime) < new Date()) {
+            return 'COMPLETED';
+        }
+        return booking.status;
+    };
 
     return (
         <div className="flex flex-col min-h-screen">
@@ -238,6 +252,9 @@ const Bookings = () => {
                                     const isPast = booking.endTime ? new Date(booking.endTime) < new Date() : false;
                                     const canCancel = booking.status?.toUpperCase() === 'BOOKED' && !isPast;
                                     
+                                    // Use getDisplayStatus for the badge
+                                    const displayStatus = getDisplayStatus(booking); 
+                                    
                                     return (
                                         <div key={booking.id} className="border rounded-lg overflow-hidden shadow-sm">
                                             <div className="md:flex">
@@ -267,8 +284,8 @@ const Bookings = () => {
                                                                 {spaceLocation || 'Location Unavailable'}
                                                             </p>
                                                         </div>
-                                                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusBadgeClass(booking.displayStatus || booking.status)}`}>
-                                                            {booking.displayStatus || booking.status || 'Status Unavailable'}
+                                                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusBadgeClass(displayStatus)}`}>
+                                                            {displayStatus || 'Status Unavailable'} {/* Use dynamic displayStatus */}
                                                         </span>
                                                     </div>
                                                     

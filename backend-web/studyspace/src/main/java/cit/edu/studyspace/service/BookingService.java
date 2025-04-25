@@ -1,7 +1,11 @@
 package cit.edu.studyspace.service;
 
+import cit.edu.studyspace.dto.BookingResponseDTO; // Import enhanced DTO
+import cit.edu.studyspace.dto.BookingUpdateAdminDTO; // Import new DTO
 import cit.edu.studyspace.entity.BookingEntity;
 import cit.edu.studyspace.entity.BookingStatus; // Import the enum
+import cit.edu.studyspace.entity.SpaceEntity; // Import SpaceEntity
+import cit.edu.studyspace.entity.UserEntity; // Import UserEntity
 import cit.edu.studyspace.repository.BookingRepo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -17,6 +21,7 @@ import java.time.format.DateTimeFormatter; // Import DateTimeFormatter
 import java.time.format.DateTimeParseException; // Import DateTimeParseException
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors; // Import Collectors
 import java.time.LocalDate; // Import LocalDate
 
 @Service
@@ -208,5 +213,110 @@ public class BookingService {
             msg = id + " NOT FOUND!";
         }
         return msg;
+    }
+
+    // Helper to convert BookingEntity to the enhanced BookingResponseDTO
+    // Change visibility from private to public
+    public BookingResponseDTO convertToResponseDTO(BookingEntity booking) {
+        BookingResponseDTO dto = new BookingResponseDTO();
+        dto.setId(booking.getId());
+        dto.setStartTime(booking.getStartTime());
+        dto.setEndTime(booking.getEndTime());
+        dto.setNumberOfPeople(booking.getNumberOfPeople());
+        dto.setTotalPrice(booking.getTotalPrice());
+        dto.setStatus(booking.getStatus());
+        dto.setCreatedAt(booking.getCreatedAt());
+        dto.setCancellationReason(booking.getCancellationReason());
+
+        // Safely access Space details
+        SpaceEntity space = booking.getSpace();
+        if (space != null) {
+            dto.setSpaceId(space.getId());
+            dto.setSpaceName(space.getName());
+            dto.setSpaceLocation(space.getLocation());
+            dto.setSpaceImageFilename(space.getImageFilename());
+        } else {
+             dto.setSpaceId(null);
+             dto.setSpaceName("Space Deleted");
+             dto.setSpaceLocation("");
+             dto.setSpaceImageFilename(null);
+        }
+
+        // Safely access User details
+        UserEntity user = booking.getUser();
+        if (user != null) {
+            dto.setUserName(user.getFirstName() + " " + user.getLastName());
+            dto.setUserEmail(user.getEmail());
+        } else {
+            dto.setUserName("User Deleted");
+            dto.setUserEmail("N/A");
+        }
+
+        return dto;
+    }
+
+    // Get all bookings with details for Admin view (using enhanced DTO)
+    @Operation(summary = "Get all detailed bookings", description = "Fetches all bookings with user and space details")
+    public List<BookingResponseDTO> getAllBookingsDetailed() {
+        return bookingRepo.findAll().stream()
+                .map(this::convertToResponseDTO) // Use the updated helper
+                .collect(Collectors.toList());
+    }
+
+    // Update booking details (Status, Participants) by Admin
+    @Transactional
+    @Operation(summary = "Update booking by admin", description = "Updates status and/or number of people for a booking")
+    public BookingResponseDTO updateBookingByAdmin(int bookingId, BookingUpdateAdminDTO updateDTO) {
+        // Find booking or throw 404
+        BookingEntity booking = bookingRepo.findById(bookingId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Booking not found with ID: " + bookingId));
+
+        boolean updated = false;
+
+        // Update Status if provided and different
+        if (updateDTO.getStatus() != null && updateDTO.getStatus() != booking.getStatus()) {
+            // Add validation if needed (e.g., prevent changing from CANCELLED/COMPLETED back to BOOKED?)
+            // Example: Allow changing TO Cancelled/Completed, but not FROM them easily by admin?
+            // if (booking.getStatus() == BookingStatus.CANCELLED || BookingStatus.COMPLETED) {
+            //     throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot change status from CANCELLED or COMPLETED via this method.");
+            // }
+
+            booking.setStatus(updateDTO.getStatus());
+
+            // Handle cancellation timestamp and reason logic
+            if (updateDTO.getStatus() == BookingStatus.CANCELLED && booking.getCancelledAt() == null) {
+                 booking.setCancelledAt(LocalDateTime.now());
+                 // Optionally set a default reason if none provided in DTO (DTO doesn't have reason field)
+                 // if (booking.getCancellationReason() == null || booking.getCancellationReason().isEmpty()) {
+                 //    booking.setCancellationReason("Cancelled by Admin");
+                 // }
+            } else if (updateDTO.getStatus() != BookingStatus.CANCELLED) {
+                 // Clear cancellation details if status changes away from CANCELLED
+                 booking.setCancelledAt(null);
+                 booking.setCancellationReason(null);
+            }
+            updated = true;
+        }
+
+        // Update Number of People if provided and different
+        if (updateDTO.getNumberOfPeople() != null && updateDTO.getNumberOfPeople() != booking.getNumberOfPeople()) {
+            // Validate against space capacity
+            if (booking.getSpace() != null && updateDTO.getNumberOfPeople() > booking.getSpace().getCapacity()) {
+                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Number of participants (" + updateDTO.getNumberOfPeople() + ") exceeds space capacity (" + booking.getSpace().getCapacity() + ").");
+            }
+            if (updateDTO.getNumberOfPeople() <= 0) {
+                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Number of participants must be positive.");
+            }
+            booking.setNumberOfPeople(updateDTO.getNumberOfPeople());
+            updated = true;
+        }
+
+        if (updated) {
+            BookingEntity savedBooking = bookingRepo.save(booking);
+            return convertToResponseDTO(savedBooking); // Return updated DTO
+        } else {
+            // If nothing changed, just return the current state as DTO
+            return convertToResponseDTO(booking);
+        }
     }
 }

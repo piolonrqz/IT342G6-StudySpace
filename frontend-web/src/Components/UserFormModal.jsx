@@ -5,6 +5,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription, // Import DialogDescription
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -65,6 +66,9 @@ export const UserFormModal = ({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{user ? "Edit User" : "Add New User"}</DialogTitle>
+          <DialogDescription>
+            {user ? "Update the user's details below." : "Enter the details for the new user."}
+          </DialogDescription>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4">
