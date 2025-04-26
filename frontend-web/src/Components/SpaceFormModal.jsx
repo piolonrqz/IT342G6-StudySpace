@@ -62,7 +62,7 @@ export const SpaceFormModal = ({
       });
       // Set preview URL if space has an image
       if (space.imageFilename) {
-        setPreviewUrl(`/uploads/${space.imageFilename}`); // Adjust URL as needed
+        setPreviewUrl(space.imageFilename); // Use Firebase URL directly
       }
     }
   }, [space]);

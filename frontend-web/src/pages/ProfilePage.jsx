@@ -89,8 +89,8 @@ const ProfilePage = () => {
       return previewUrl; // Show preview if available
     }
     if (user?.profilePictureFilename && !imgError) {
-      // Construct URL for existing profile picture
-      return `/profile-pictures/${user.profilePictureFilename}`;
+      // Use Firebase URL directly
+      return user.profilePictureFilename;
     }
     return null; // No image source, fallback to initials
   };

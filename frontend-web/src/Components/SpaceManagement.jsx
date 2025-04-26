@@ -58,8 +58,7 @@ export const SpaceManagement = ({ spaces, onEdit, onDelete, onAdd }) => {
                 <td className="py-2 px-3"> 
                   {space.imageFilename ? ( 
                     <img 
-                      /* Change the src URL to match MvcConfig */
-                      src={`/uploads/${space.imageFilename}`} 
+                      src={space.imageFilename} 
                       alt={space.name || 'Space image'} 
                       className="h-10 w-10 object-cover rounded" 
                       onError={(e) => { e.target.style.display='none'; }} 
