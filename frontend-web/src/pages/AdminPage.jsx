@@ -266,17 +266,43 @@ const AdminPage = () => {
      const method = isEditing ? 'PUT' : 'POST';
 
      try {
-         const response = await fetch(url, {
+         let response;
+         if (isEditing) {
+           // --- Use FormData for editing (PUT) to support file upload in the future ---
+           const formData = new FormData();
+           // Add userData as a JSON blob
+           formData.append('userData', new Blob([JSON.stringify(userData)], { type: 'application/json' }));
+           // If you want to support profile picture upload later, add:
+           // if (userData.profilePictureFile) {
+           //   formData.append('profilePictureFile', userData.profilePictureFile);
+           // }
+           response = await fetch(url, {
+             method: method,
+             body: formData,
+             // Do NOT set Content-Type header; browser will set it for FormData
+           });
+         } else {
+           // --- For add user (POST), keep using JSON ---
+           response = await fetch(url, {
              method: method,
              headers: {
                  'Content-Type': 'application/json',
              },
              body: JSON.stringify(userData),
-         });
+           });
+         }
 
          if (!response.ok) {
-             const errorData = await response.json(); // Assuming backend returns JSON errors
-              throw new Error(`Failed to save user: ${response.status} - ${errorData.message || 'Unknown error'}`);
+             // Try to parse error as JSON, fallback to text
+             let errorMessage = `Failed to save user: ${response.status}`;
+             try {
+               const errorData = await response.json();
+               errorMessage += ` - ${errorData.message || errorData.error || 'Unknown error'}`;
+             } catch {
+               const errorText = await response.text();
+               errorMessage += ` - ${errorText}`;
+             }
+             throw new Error(errorMessage);
          }
 
          console.log("User saved successfully");
