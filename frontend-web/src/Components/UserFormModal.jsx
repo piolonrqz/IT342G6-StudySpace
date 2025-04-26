@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -33,6 +33,16 @@ export const UserFormModal = ({
     role: "USER",
     password: "",
   });
+  const [profilePictureFile, setProfilePictureFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
+  const fileInputRef = useRef();
+
+  // Helper to get profile image source (unified with ProfilePage)
+  const getProfileImageSource = (profilePictureFilename) => {
+    if (!profilePictureFilename) return null;
+    if (/^https?:\/\//i.test(profilePictureFilename)) return profilePictureFilename;
+    return `/api/users/profile-picture/${profilePictureFilename}`;
+  };
 
   useEffect(() => {
     if (user) {
@@ -44,6 +54,13 @@ export const UserFormModal = ({
         role: user.role || "USER",
         password: "",
       });
+      // Set preview to existing profile picture if available
+      if (user.profilePictureFilename) {
+        setPreviewUrl(getProfileImageSource(user.profilePictureFilename));
+      } else {
+        setPreviewUrl(null);
+      }
+      setProfilePictureFile(null);
     } else {
       setFormData({
         firstName: "",
@@ -53,12 +70,37 @@ export const UserFormModal = ({
         role: "USER",
         password: "",
       });
+      setPreviewUrl(null);
+      setProfilePictureFile(null);
     }
   }, [user]);
 
+  // Helper for initials
+  const getInitials = (firstName, lastName) => {
+    const firstInitial = firstName ? firstName[0].toUpperCase() : '';
+    const lastInitial = lastName ? lastName[0].toUpperCase() : '';
+    return `${firstInitial}${lastInitial}` || '?';
+  };
+
+  // Handle file input change
+  const handleProfilePictureChange = (e) => {
+    const file = e.target.files[0];
+    setProfilePictureFile(file);
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewUrl(reader.result);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setPreviewUrl(user && user.profilePictureFilename ? getProfileImageSource(user.profilePictureFilename) : null);
+    }
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSave(formData);
+    // Pass profilePictureFile along with formData
+    onSave({ ...formData, profilePictureFile });
   };
 
   return (
@@ -70,7 +112,38 @@ export const UserFormModal = ({
             {user ? "Update the user's details below." : "Enter the details for the new user."}
           </DialogDescription>
         </DialogHeader>
-        
+
+        {/* Profile Picture Preview and Upload */}
+        <div className="flex flex-col items-center mb-4">
+          <div className="w-20 h-20 rounded-full bg-sky-100 flex items-center justify-center overflow-hidden text-sky-700 font-bold text-2xl mb-2">
+            {previewUrl ? (
+              <img
+                src={previewUrl}
+                alt="Profile Preview"
+                className="w-full h-full object-cover"
+                onError={e => { e.target.onerror = null; e.target.src = ''; }}
+              />
+            ) : (
+              getInitials(formData.firstName, formData.lastName)
+            )}
+          </div>
+          <input
+            type="file"
+            accept="image/*"
+            ref={fileInputRef}
+            onChange={handleProfilePictureChange}
+            className="hidden"
+          />
+          <Button
+            type="button"
+            variant="outline"
+            className="mt-1"
+            onClick={() => fileInputRef.current && fileInputRef.current.click()}
+          >
+            {profilePictureFile ? "Change Profile Picture" : "Upload Profile Picture"}
+          </Button>
+        </div>
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>

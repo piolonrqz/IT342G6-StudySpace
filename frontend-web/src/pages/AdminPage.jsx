@@ -272,10 +272,10 @@ const AdminPage = () => {
            const formData = new FormData();
            // Add userData as a JSON blob
            formData.append('userData', new Blob([JSON.stringify(userData)], { type: 'application/json' }));
-           // If you want to support profile picture upload later, add:
-           // if (userData.profilePictureFile) {
-           //   formData.append('profilePictureFile', userData.profilePictureFile);
-           // }
+           // Append profile picture file if present
+           if (userData.profilePictureFile) {
+             formData.append('profilePictureFile', userData.profilePictureFile);
+           }
            response = await fetch(url, {
              method: method,
              body: formData,
