@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory; // Use SLF4J Logger
 
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -46,10 +47,9 @@ public class UserController {
 
 
     // Check API Connection
-    @GetMapping("/test")
-    @Operation(summary = "Test Connection", description = "Test API Connection - must return 'Hello, User! Test' and '200'")
-    public String print() {
-        return "Hello, User! Test";
+    @GetMapping("/print")
+    public Map<String, String> getGreeting() {
+        return Collections.singletonMap("message", "Hello from Spring Boot!");
     }
 
     // Login - Generate JWT Token and return user details
