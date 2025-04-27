@@ -1,11 +1,8 @@
-// SignUpScreen.kt
-package com.example.studyspace.ui.theme.Screens
+package com.example.studyspace.ui.theme.screens
 
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -17,24 +14,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
 import com.example.studyspace.R
 
-
-class SignUpActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContent {
-            SignUpScreen()
-        }
-    }
-}
-
 @Composable
-fun SignUpScreen() {
+fun SignUpScreen(navController: NavHostController) {
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -64,7 +51,11 @@ fun SignUpScreen() {
                 Icon(
                     painter = painterResource(id = R.drawable.arrow_right),
                     contentDescription = "Back",
-                    modifier = Modifier.size(24.dp),
+                    modifier = Modifier
+                        .size(24.dp)
+                        .clickable {
+                            navController.navigateUp()
+                        },
                     tint = Color.Black
                 )
 
@@ -211,7 +202,12 @@ fun SignUpScreen() {
 
             // Sign Up Button
             Button(
-                onClick = { /* Implement sign up logic */ },
+                onClick = {
+                    // Navigate to home screen and clear the back stack
+                    navController.navigate("home") {
+                        popUpTo("landing") { inclusive = true }
+                    }
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),
@@ -262,7 +258,16 @@ fun SignUpScreen() {
                 Text(
                     text = "SIGN IN",
                     color = Color(0xFF3498DB),
-                    fontWeight = FontWeight.Medium
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier.clickable {
+                        navController.navigate("signin") {
+                            // Pop up to the start destination of the graph to
+                            // avoid building up a large stack of destinations
+                            popUpTo("signin") {
+                                inclusive = true
+                            }
+                        }
+                    }
                 )
             }
         }

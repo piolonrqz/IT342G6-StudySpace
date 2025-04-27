@@ -12,7 +12,7 @@ import com.example.studyspace.R
 val Poppins = FontFamily(
     Font(R.font.poppins_regular),
     Font(R.font.poppins_medium, FontWeight.Medium),
-    Font(R.font.poppins_semibold, FontWeight.SemiBold),
+    Font(R.font.poppins_semi_bold, FontWeight.SemiBold),
     Font(R.font.poppins_bold, FontWeight.Bold)
 )
 
