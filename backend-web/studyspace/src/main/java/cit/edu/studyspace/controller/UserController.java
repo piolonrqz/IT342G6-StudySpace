@@ -13,6 +13,7 @@ import cit.edu.studyspace.dto.UserUpdateDTO;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.http.HttpStatus; // Import HttpStatus
 import org.springframework.http.MediaType; // Import MediaType
 import org.springframework.web.multipart.MultipartFile; // Import MultipartFile
@@ -38,6 +39,9 @@ public class UserController {
 
     @Autowired
     private UserRepo userRepo;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     private final JwtUtil jwtUtil;
 
@@ -129,7 +133,7 @@ public class UserController {
         user.setFirstName(dto.getFirstName());
         user.setLastName(dto.getLastName());
         user.setEmail(dto.getEmail());
-        user.setPassword(dto.getPassword());
+        user.setPassword(passwordEncoder.encode(dto.getPassword()));
         user.setPhoneNumber(dto.getPhoneNumber());
         user.setEmailVerified(dto.isEmailVerified());
         user.setCreatedAt(dto.getCreatedAt());
