@@ -1,10 +1,8 @@
-package com.example.studyspace.ui.theme.Screens
+package com.example.studyspace.ui.theme.screens
 
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -18,19 +16,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
 import com.example.studyspace.R
 
-class MainActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContent {
-            SignInScreen()
-        }
-    }
-}
-
 @Composable
-fun SignInScreen() {
+fun SignInScreen(navController: NavHostController) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
@@ -113,7 +103,12 @@ fun SignInScreen() {
 
             // Sign In Button
             Button(
-                onClick = { /* Implement sign in logic */ },
+                onClick = {
+                    // Navigate to home screen and clear the back stack
+                    navController.navigate("home") {
+                        popUpTo("landing") { inclusive = true }
+                    }
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),
@@ -164,7 +159,10 @@ fun SignInScreen() {
                 Text(
                     text = "SIGN UP",
                     color = Color(0xFF3498DB),
-                    fontWeight = FontWeight.Medium
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier.clickable {
+                        navController.navigate("signup")
+                    }
                 )
             }
         }
