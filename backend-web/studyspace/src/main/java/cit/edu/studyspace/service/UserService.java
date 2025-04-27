@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import jakarta.annotation.PostConstruct;
@@ -33,6 +34,8 @@ public class UserService {
     private JwtUtil jwtUtil;
     @Autowired
     private FileStorageService fileStorageService;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @Value("${file.upload-dir.profile-pictures}")
     private String profilePictureUploadDir;
@@ -60,7 +63,7 @@ public class UserService {
         UserEntity user = userRepo.findByEmail(email);
         
         // Basic plaintext password comparison (Consider using Spring Security's PasswordEncoder)
-        if (user != null && user.getPassword().equals(password)) { 
+        if (user != null && passwordEncoder.matches(password, user.getPassword())) { 
             // User authenticated successfully
             String token = jwtUtil.generateToken(user); // Generate JWT token
 
