@@ -1,4 +1,4 @@
-package com.example.studyspace.Network
+package com.example.studyspace.network
 
 import retrofit2.Response
 import retrofit2.http.GET
@@ -33,12 +33,12 @@ data class LoginResponse(
 )
 
 interface ApiService {
-    @GET("api/v1/user/print")
+    @GET("api/users/print")
     suspend fun getGreeting(): Response<GreetingResponse>
 
-    @POST("api/v1/auth/authenticate")
+    @POST("api/users/login")
     suspend fun login(@Body request: LoginRequest): Response<LoginResponse>
 
-    @POST("api/v1/auth/register")
+    @POST("api/users/save")
     suspend fun register(@Body request: RegisterRequest): Response<RegisterResponse>
 }
