@@ -21,9 +21,23 @@ public class StudyspaceApplication {
     @PostConstruct
     public void initFirebase() {
         try {
-            InputStream serviceAccount = getClass().getClassLoader().getResourceAsStream(
-                firebaseServiceAccountPath.replace("classpath:", "")
-            );
+            InputStream serviceAccount;
+            if (firebaseServiceAccountPath.startsWith("file:")) {
+                // Load from file system path (e.g., Render Secret Files)
+                String filePath = firebaseServiceAccountPath.substring("file:".length());
+                serviceAccount = new FileInputStream(filePath);
+            } else {
+                // Load from classpath (e.g., local development)
+                String resourcePath = firebaseServiceAccountPath.startsWith("classpath:") 
+                                      ? firebaseServiceAccountPath.substring("classpath:".length()) 
+                                      : firebaseServiceAccountPath;
+                serviceAccount = getClass().getClassLoader().getResourceAsStream(resourcePath);
+            }
+
+            if (serviceAccount == null) {
+                throw new RuntimeException("Cannot find Firebase service account file at: " + firebaseServiceAccountPath);
+            }
+
             FirebaseOptions options = FirebaseOptions.builder()
                 .setCredentials(GoogleCredentials.fromStream(serviceAccount))
                 .build();
