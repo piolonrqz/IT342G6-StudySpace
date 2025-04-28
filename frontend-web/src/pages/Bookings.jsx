@@ -261,10 +261,10 @@ const Bookings = () => {
                                                 {/* Space Image */}
                                                 <div className="md:w-1/4 h-48 md:h-auto">
                                                     {spaceImageFilename ? (
-                                                        <img 
-                                                            src={`http://localhost:8080/uploads/${spaceImageFilename}`} 
-                                                            alt={spaceName || 'Study space'} 
-                                                            className="w-full h-full object-cover"
+                                                        <img
+                                                            src={spaceImageFilename} 
+                                                            alt="Space"
+                                                            className="w-16 h-16 object-cover rounded-lg border"
                                                         />
                                                     ) : (
                                                         <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-500">

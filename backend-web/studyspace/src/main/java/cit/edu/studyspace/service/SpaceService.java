@@ -7,12 +7,9 @@ import cit.edu.studyspace.repository.SpaceRepo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import jakarta.annotation.PostConstruct;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,15 +28,11 @@ public class SpaceService {
     @Autowired
     private FileStorageService fileStorageService; // Keep injection
 
-    @Value("${file.upload-dir}")
-    private String spaceImageUploadDir; // Inject space image path property
-
-    private Path spaceImageStorageLocation; // Path object for space images
+    private static final String SPACE_IMAGE_FOLDER = "space_images/";
 
     @PostConstruct // Initialize the path after properties are injected
     public void init() {
-        this.spaceImageStorageLocation = Paths.get(this.spaceImageUploadDir).toAbsolutePath().normalize();
-        logger.info("Space image storage location initialized: {}", this.spaceImageStorageLocation);
+        logger.info("SpaceService initialized");
     }
 
     // Retrieves all spaces from the database.
@@ -71,7 +64,7 @@ public class SpaceService {
         // Handle image storage
         if (imageFile != null && !imageFile.isEmpty()) {
             try {
-                String imageFilename = fileStorageService.storeFile(imageFile, this.spaceImageStorageLocation);
+                String imageFilename = fileStorageService.storeFile(imageFile, SPACE_IMAGE_FOLDER); // Pass folder path
                 space.setImageFilename(imageFilename); // Set the stored filename
                 logger.info("Stored new space image with filename: {}", imageFilename);
             } catch (Exception e) {
@@ -99,7 +92,7 @@ public class SpaceService {
             // Handle new image upload if provided
             if (imageFile != null && !imageFile.isEmpty()) {
                 try {
-                    newImageFilename = fileStorageService.storeFile(imageFile, this.spaceImageStorageLocation);
+                    newImageFilename = fileStorageService.storeFile(imageFile, SPACE_IMAGE_FOLDER); // Pass folder path
                     logger.info("Stored updated space image with filename: {}", newImageFilename);
                 } catch (Exception e) {
                     logger.error("Failed to store updated image for space ID: {}", id, e);
@@ -125,7 +118,7 @@ public class SpaceService {
                     // Avoid deleting the same file if it was somehow re-uploaded with the same name (UUID makes this unlikely)
                     if (!newImageFilename.equals(oldImageFilename)) {
                         logger.info("Attempting to delete old space image: {}", oldImageFilename);
-                        fileStorageService.deleteFile(oldImageFilename, this.spaceImageStorageLocation);
+                        fileStorageService.deleteFile(oldImageFilename);
                     }
                 }
                  // Set the new filename only after attempting to delete the old one
@@ -153,7 +146,7 @@ public class SpaceService {
             if (imageFilename != null && !imageFilename.isBlank()) {
                  try {
                      logger.info("Attempting to delete space image for space ID {}: {}", id, imageFilename);
-                     fileStorageService.deleteFile(imageFilename, this.spaceImageStorageLocation); // Pass path
+                     fileStorageService.deleteFile(imageFilename); // Pass path
                  } catch (Exception e) {
                     // Log the error but proceed with deleting the DB record
                     logger.error("Error deleting associated image file '{}' for space ID {}: {}", imageFilename, id, e.getMessage());

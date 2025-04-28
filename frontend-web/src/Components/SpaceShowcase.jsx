@@ -53,7 +53,7 @@ const SpaceShowcase = ({ searchTerm = "" }) => {
                 <div>
                   {space.imageFilename ? (
                     <img
-                      src={`/uploads/${space.imageFilename}`}
+                      src={space.imageFilename}
                       alt={space.name}
                       className="w-full h-80 object-cover"
                     />

@@ -13,8 +13,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import jakarta.annotation.PostConstruct;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.util.Optional;
@@ -37,15 +35,11 @@ public class UserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    @Value("${file.upload-dir.profile-pictures}")
-    private String profilePictureUploadDir;
-
-    private Path profilePictureStorageLocation;
+    private static final String PROFILE_PICTURE_FOLDER = "profile_pictures/";
 
     @PostConstruct
     public void init() {
-        this.profilePictureStorageLocation = Paths.get(this.profilePictureUploadDir).toAbsolutePath().normalize();
-        logger.info("Profile picture storage location initialized: {}", this.profilePictureStorageLocation);
+        logger.info("UserService initialized");
     }
 
     // Retrieves all users from the database.
@@ -111,7 +105,7 @@ public class UserService {
             // Handle profile picture upload if provided
             if (profilePictureFile != null && !profilePictureFile.isEmpty()) {
                 try {
-                    newProfilePictureFilename = fileStorageService.storeFile(profilePictureFile, this.profilePictureStorageLocation);
+                    newProfilePictureFilename = fileStorageService.storeFile(profilePictureFile, PROFILE_PICTURE_FOLDER); // Pass folder path
                     logger.info("New profile picture stored with filename: {}", newProfilePictureFilename);
                 } catch (Exception e) {
                     logger.error("Failed to store profile picture for user ID: {}", id, e);
@@ -141,7 +135,7 @@ public class UserService {
                 // Delete the old picture *after* successfully storing the new one
                 if (oldProfilePictureFilename != null && !oldProfilePictureFilename.isBlank()) {
                     logger.info("Attempting to delete old profile picture: {}", oldProfilePictureFilename);
-                    fileStorageService.deleteFile(oldProfilePictureFilename, this.profilePictureStorageLocation);
+                    fileStorageService.deleteFile(oldProfilePictureFilename);
                 }
                 // Set the new filename on the entity
                 user.setProfilePictureFilename(newProfilePictureFilename);
@@ -168,7 +162,7 @@ public class UserService {
             if (profilePictureFilename != null && !profilePictureFilename.isBlank()) {
                  try {
                      logger.info("Attempting to delete profile picture for user ID {}: {}", id, profilePictureFilename);
-                     fileStorageService.deleteFile(profilePictureFilename, this.profilePictureStorageLocation);
+                     fileStorageService.deleteFile(profilePictureFilename);
                  } catch (Exception e) {
                     // Log the error but proceed with deleting the DB record
                     logger.error("Error deleting profile picture file '{}' for user ID {}: {}", profilePictureFilename, id, e.getMessage());

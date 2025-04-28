@@ -72,16 +72,14 @@ export const NavigationBar = () => {
                         >
                             {user.profilePictureFilename && !imgError ? (
                                 <img
-                                    // Add a key prop to force re-render if filename changes
                                     key={user.profilePictureFilename}
-                                    // Use absolute URL to backend
-                                    src={`http://localhost:8080/profile-pictures/${user.profilePictureFilename}`}
+                                    src={user.profilePictureFilename}
                                     alt="Profile"
                                     className="w-full h-full object-cover"
                                     onError={() => {
-                                        console.error("[NavigationBar] Image onError triggered for:", `http://localhost:8080/profile-pictures/${user.profilePictureFilename}`);
+                                        console.error("[NavigationBar] Image onError triggered for:", user.profilePictureFilename);
                                         setImgError(true);
-                                    }} // Fallback to initials on error
+                                    }}
                                 />
                             ) : (
                                 // For Google users, we could potentially use the Google profile picture

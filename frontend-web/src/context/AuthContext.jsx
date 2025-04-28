@@ -126,12 +126,9 @@ export const AuthProvider = ({ children }) => {
             setUser(updatedUser);
             localStorage.setItem('currentUser', JSON.stringify(updatedUser));
 
-            console.log('User updated successfully:', updatedUser);
-            // Optionally: show success message to user
 
         } catch (error) {
             console.error('Error updating user:', error);
-            // Handle fetch error (e.g., network issue, display error message)
         }
     };
 

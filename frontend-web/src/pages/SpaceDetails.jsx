@@ -124,10 +124,9 @@ const SpaceDetails = () => {
                         {/* Image */}
                         {space.imageFilename ? (
                             <img
-                                // Use correct path assuming uploads are served relative to backend root
-                                src={`http://localhost:8080/uploads/${space.imageFilename}`}
+                                src={space.imageFilename}
                                 alt={space.name}
-                                className="w-full h-auto max-h-[700px] object-cover rounded-lg shadow-md mb-6 md:mb-8" /* Added max-height, adjusted margin */
+                                className="w-full h-auto max-h-[700px] object-cover rounded-lg shadow-md mb-6 md:mb-8"
                             />
                         ) : (
                             <div className="w-full h-96 bg-gray-200 flex items-center justify-center text-gray-500 rounded-lg shadow-md mb-6 md:mb-8">
