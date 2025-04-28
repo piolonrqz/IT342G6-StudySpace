@@ -43,6 +43,9 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.example.studyspace.R
 
+// Additional imports needed
+import com.example.studyspace.ui.theme.components.StudySpaceCategory
+
 @Composable
 fun HomeScreen(navController: NavHostController) {
     var selectedItem by remember { mutableStateOf(0) }  // Default to Home tab
@@ -80,7 +83,7 @@ fun HomeScreen(navController: NavHostController) {
                     ) {
                         Text(
                             text = "Tokyo, Japan",
-                            fontSize = 14.sp,  // Increased from 12sp to 14sp
+                            fontSize = 14.sp,
                             color = Color.Gray,
                             modifier = Modifier.padding(start = 10.dp)
                         )
@@ -91,11 +94,11 @@ fun HomeScreen(navController: NavHostController) {
                                 imageVector = Icons.Default.LocationOn,
                                 contentDescription = null,
                                 tint = Color(0xFF3498DB),
-                                modifier = Modifier.size(20.dp)  // Increased from 16dp to 20dp
+                                modifier = Modifier.size(20.dp)
                             )
                             Text(
                                 text = "North Europe Luzon",
-                                fontSize = 16.sp,  // Increased from 14sp to 16sp
+                                fontSize = 16.sp,
                                 fontWeight = FontWeight.Medium
                             )
                         }
@@ -145,14 +148,55 @@ fun HomeScreen(navController: NavHostController) {
                     ),
                     singleLine = true
                 )
+
+                Spacer(modifier = Modifier.height(24.dp))
             }
 
+            // Study space categories - added inside the LazyColumn
             item {
-                Spacer(modifier = Modifier.height(80.dp))
+                // Top Rated Section
+                StudySpaceCategory(
+                    categoryTitle = "Top Rated",
+                    imageRes = R.drawable.space1,
+                    rating = "4.8",
+                    reviewCount = "(79)",
+                    spaceName = "Produktiv",
+                    location = "Downtown City Center, 3rd Floor",
+                    price = "250"
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Quiet & Focused Section
+                StudySpaceCategory(
+                    categoryTitle = "Quiet & Focused",
+                    imageRes = R.drawable.space2,
+                    rating = "4.8",
+                    reviewCount = "(78)",
+                    spaceName = "The Company Cebu",
+                    location = "Downtown City Center, 3rd Floor",
+                    price = "450"
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // 24/7 Access Section
+                StudySpaceCategory(
+                    categoryTitle = "24/7 Access",
+                    imageRes = R.drawable.space3,
+                    rating = "4.8",
+                    reviewCount = "(79)",
+                    spaceName = "The Working Place",
+                    location = "Downtown City Center, 3rd Floor",
+                    price = "350"
+                )
+
+                // Add extra space at the bottom to account for the navigation bar
+                Spacer(modifier = Modifier.height(300.dp))
             }
         }
 
-        // Bottom Navigation Bar
+        // Bottom Navigation Bar - remains outside the LazyColumn
         NavigationBar(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
@@ -174,6 +218,7 @@ fun HomeScreen(navController: NavHostController) {
                     )
                 },
                 label = { Text("Home") }
+
             )
             NavigationBarItem(
                 selected = selectedItem == 1,

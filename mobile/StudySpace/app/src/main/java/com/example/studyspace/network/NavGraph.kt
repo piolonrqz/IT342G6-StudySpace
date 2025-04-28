@@ -1,4 +1,4 @@
-package com.example.studyspace.navigation
+package com.example.studyspace.network
 
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
@@ -9,6 +9,7 @@ import com.example.studyspace.ui.theme.screens.ProfileScreen
 import com.example.studyspace.ui.theme.screens.SignInScreen
 import com.example.studyspace.ui.theme.screens.SignUpScreen
 import com.example.studyspace.ui.theme.screens.StudySpaceScreen
+import com.example.studyspace.ui.theme.screens.BookingScreen
 
 @Composable
 fun NavGraph(navController: NavHostController) {
@@ -33,9 +34,9 @@ fun NavGraph(navController: NavHostController) {
         }
 
         // Uncomment and use BookingScreen when you're ready
-//        composable("booking") {
-//            BookingScreen(navController = navController)
-//        }
+        composable("booking") {
+            BookingScreen(navController = navController)
+        }
 
         composable("profile") {
             ProfileScreen(navController = navController)
