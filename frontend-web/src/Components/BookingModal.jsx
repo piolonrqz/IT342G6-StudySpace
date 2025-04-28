@@ -114,9 +114,9 @@ const BookingModal = ({ isOpen, onClose, space }) => {
         const dateString = formatDateFns(date, 'yyyy-MM-dd');
         
         // Call the new endpoint to get existing bookings for the day
-        const response = await fetch(`http://localhost:8080/api/bookings/space/${space.id}/date/${dateString}`, {
+        const response = await fetch(`https://it342g6-studyspace.onrender.com/api/bookings/space/${space.id}/date/${dateString}`, {
           headers: {
-            'Authorization': `Bearer ${token}`
+            'Authorization': `Bearer ${localStorage.getItem('token')}` // Include token if needed
           }
         });
 
@@ -309,7 +309,7 @@ const BookingModal = ({ isOpen, onClose, space }) => {
         totalPrice: totalPrice
       };
       
-      const response = await fetch('http://localhost:8080/api/bookings/save', {
+      const response = await fetch('https://it342g6-studyspace.onrender.com/api/bookings/save', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

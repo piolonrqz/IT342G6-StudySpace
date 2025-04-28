@@ -31,9 +31,9 @@ const Bookings = () => {
             setError(null);
 
             try {
-                const response = await fetch(`http://localhost:8080/api/bookings/user/${user.id}`, {
+                const response = await fetch(`https://it342g6-studyspace.onrender.com/api/bookings/user/${user.id}`, {
                     headers: {
-                        'Authorization': `Bearer ${token}`
+                        'Authorization': `Bearer ${localStorage.getItem('token')}` // Assuming token-based auth
                     }
                 });
 
@@ -85,7 +85,7 @@ const Bookings = () => {
         if (!cancelBookingId) return;
         
         try {
-            const response = await fetch(`http://localhost:8080/api/bookings/${cancelBookingId}/cancel`, {
+            const response = await fetch(`https://it342g6-studyspace.onrender.com/api/bookings/${cancelBookingId}/cancel`, {
                 method: 'PUT',
                 headers: {
                     'Authorization': `Bearer ${token}`,

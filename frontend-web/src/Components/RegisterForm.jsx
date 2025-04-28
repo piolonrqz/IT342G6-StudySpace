@@ -43,11 +43,12 @@ const RegisterForm = () => {
       return;
     }
 
+    // Check if email already exists
+    setCheckingEmail(true);
     try {
-      const checkResponse = await fetch(`http://localhost:8080/api/users/check-email?email=${encodeURIComponent(email)}`);
-      const isEmailUnique = await checkResponse.json();
-
-      if (!isEmailUnique) {
+      const checkResponse = await fetch(`https://it342g6-studyspace.onrender.com/api/users/check-email?email=${encodeURIComponent(email)}`);
+      const emailExists = await checkResponse.json();
+      if (emailExists) {
         setValidationError('Email already exists. Please use a different one.');
         return;
       }
@@ -62,33 +63,39 @@ const RegisterForm = () => {
         role: "USER"
       };
 
-      const response = await fetch("http://localhost:8080/api/users/save", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(user)
-      });
+      // Proceed with registration
+      setLoading(true);
+      try {
+        const response = await fetch("https://it342g6-studyspace.onrender.com/api/users/save", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(user)
+        });
 
-      if (!response.ok) {
-        throw new Error("Failed to create account");
+        if (!response.ok) {
+          throw new Error("Failed to create account");
+        }
+
+        setAdded(true);
+        setValidationError('');
+
+        setTimeout(() => {
+          navigate('/LoginPage');
+        }, 2000);
+
+      } catch (error) {
+        console.error(error);
+        setValidationError('An error occurred. Please try again.');
       }
-
-      setAdded(true);
-      setValidationError('');
-
-      setTimeout(() => {
-        navigate('/LoginPage');
-      }, 2000);
-
     } catch (error) {
       console.error(error);
       setValidationError('An error occurred. Please try again.');
     }
   };
 
-  const handleGoogleSignUp = () => {
-    // Direct browser navigation to Spring Security's OAuth endpoint
-    // This is a full page redirect, not an AJAX request, so no CORS issues
-    window.location.href = 'http://localhost:8080/oauth2/authorization/google';
+  const handleGoogleRegister = () => {
+    // Redirect to Google OAuth2 endpoint for registration/login
+    window.location.href = 'https://it342g6-studyspace.onrender.com/oauth2/authorization/google';
   };
 
   return (
@@ -205,7 +212,7 @@ const RegisterForm = () => {
             <div className="text-center">
               <button
                 type="button"
-                onClick={handleGoogleSignUp}
+                onClick={handleGoogleRegister}
                 className="w-full p-3 bg-white font-semibold hover:border-gray-400 transition flex items-center justify-center"
                 aria-label="Sign up with Google"
                 style={{

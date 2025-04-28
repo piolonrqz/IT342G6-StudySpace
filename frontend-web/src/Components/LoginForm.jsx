@@ -19,7 +19,7 @@ const LoginForm = () => {
     setValidationError('');
 
     try {
-      const response = await fetch("http://localhost:8080/api/users/login", { 
+      const response = await fetch("https://it342g6-studyspace.onrender.com/api/users/login", { 
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -47,10 +47,10 @@ const LoginForm = () => {
       setValidationError(err.message || "An error occurred during login.");
     }
   };
-  const handleGoogleSignIn = () => {
-    // Direct browser navigation to Spring Security's OAuth endpoint
-    // This is a full page redirect, not an AJAX request, so no CORS issues
-    window.location.href = 'http://localhost:8080/oauth2/authorization/google';
+
+  const handleGoogleLogin = () => {
+    // Redirect to Google OAuth2 endpoint
+    window.location.href = 'https://it342g6-studyspace.onrender.com/oauth2/authorization/google';
   };
 
   return (
@@ -131,7 +131,7 @@ const LoginForm = () => {
             <div className="text-center">
               <button
                 type="button"
-                onClick={handleGoogleSignIn}
+                onClick={handleGoogleLogin}
                 className="w-full p-3 bg-white font-semibold hover:border-gray-400 transition flex items-center justify-center"
                 aria-label="Sign in with Google"
                 style={{
