@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/Components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from '@/context/AuthContext';
-import { Loader2 } from 'lucide-react'; 
+import { Loader2, Clock, Users, DollarSign, CalendarDays } from 'lucide-react'; 
 import { format } from 'date-fns'; 
 import { cn } from "@/lib/utils"; // Import the cn utility
 import { format as formatDateFns } from 'date-fns'; // Alias format to avoid conflict
@@ -82,7 +82,7 @@ const BookingModal = ({ isOpen, onClose, space }) => {
   const [slotAvailability, setSlotAvailability] = useState({}); 
   const [isLoadingSlots, setIsLoadingSlots] = useState(false);
   const [slotLoadingError, setSlotLoadingError] = useState(null);
-  const [unavailableSlotTimes, setUnavailableSlotTimes] = useState([]); // New state
+  const [unavailableSlotTimes, setUnavailableSlotTimes] = useState([]);
 
   const timeSlots = useMemo(() => 
     generateTimeSlots(space?.openingTime, space?.closingTime, date),
@@ -116,7 +116,7 @@ const BookingModal = ({ isOpen, onClose, space }) => {
         // Call the new endpoint to get existing bookings for the day
         const response = await fetch(`https://it342g6-studyspace.onrender.com/api/bookings/space/${space.id}/date/${dateString}`, {
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}` // Include token if needed
+            'Authorization': `Bearer ${token}`
           }
         });
 
@@ -309,7 +309,7 @@ const BookingModal = ({ isOpen, onClose, space }) => {
         totalPrice: totalPrice
       };
       
-      const response = await fetch('https://it342g6-studyspace.onrender.com/api/bookings/save', {
+      const response = await fetch(`https://it342g6-studyspace.onrender.com/api/bookings/save`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -365,31 +365,44 @@ const BookingModal = ({ isOpen, onClose, space }) => {
   
   const isConfirmDisabled = isSubmitting || isLoadingSlots || !startTime || availableDurations.length === 0; 
   
+  // Format the current date for display
+  const formattedDate = format(date, "MMMM d, yyyy");
+  
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
-          <DialogTitle>Book {space?.name}</DialogTitle>
-          <DialogDescription> 
+      <DialogContent className="sm:max-w-[550px] p-0 overflow-hidden">
+        <DialogHeader className="p-6 pb-2 bg-[#f9fcff]">
+          <DialogTitle className="text-xl font-semibold text-[#2F9FE5]">Book {space?.name}</DialogTitle>
+          <DialogDescription className="text-base text-gray-600"> 
             Select your preferred date, time, and duration to reserve this space.
           </DialogDescription>
         </DialogHeader>
         
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="date">Select Date</Label>
-            <Calendar
-              id="date"
-              mode="single"
-              selected={date}
-              onSelect={setDate}
-              disabled={disabledDays}
-              className="border rounded-md"
-            />
+        <form onSubmit={handleSubmit} className="px-6 py-4 space-y-5">
+          {/* Calendar section with enhanced styling */}
+          <div className="space-y-3">
+            <div className="flex items-center">
+              <CalendarDays className="h-5 w-5 mr-2 text-[#2F9FE5]" />
+              <Label htmlFor="date" className="text-base font-medium">Select Date</Label>
+            </div>
+            <div className="bg-[#f9fcff] rounded-lg p-2">
+              <Calendar
+                id="date"
+                mode="single"
+                selected={date}
+                onSelect={setDate}
+                disabled={disabledDays}
+                className="rounded-md mx-auto"
+              />
+            </div>
           </div>
           
-          <div className="space-y-2">
-            <Label htmlFor="time">Start Time</Label>
+          {/* Time selection with enhanced styling */}
+          <div className="space-y-3">
+            <div className="flex items-center">
+              <Clock className="h-5 w-5 mr-2 text-[#2F9FE5]" />
+              <Label htmlFor="time" className="text-base font-medium">Start Time</Label>
+            </div>
             <Select 
               value={startTime} 
               onValueChange={(value) => {
@@ -397,7 +410,7 @@ const BookingModal = ({ isOpen, onClose, space }) => {
               }}
               disabled={isLoadingSlots || timeSlots.length === 0 || !!slotLoadingError} 
             >
-              <SelectTrigger id="time">
+              <SelectTrigger id="time" className="h-11">
                 <SelectValue>
                   {isLoadingSlots ? "Loading times..." : 
                    slotLoadingError ? "Error loading times" :
@@ -405,44 +418,50 @@ const BookingModal = ({ isOpen, onClose, space }) => {
                    "Select time"}
                 </SelectValue>
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="max-h-[300px]">
                 {isLoadingSlots ? (
-                  <div className="p-2 text-center text-sm text-gray-500 flex items-center justify-center">
+                  <div className="p-3 text-center text-sm text-gray-500 flex items-center justify-center">
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Checking availability...
                   </div>
                 ) : slotLoadingError ? (
-                   <div className="p-2 text-center text-sm text-red-600">
+                   <div className="p-3 text-center text-sm text-red-600">
                      {slotLoadingError}
                    </div>
                 ) : timeSlots.length === 0 ? (
-                  <div className="p-2 text-center text-sm text-gray-500">
+                  <div className="p-3 text-center text-sm text-gray-500">
                     No available slots for this day.
                   </div>
                 ) : (
-                  timeSlots.map((slot) => {
-                    const isDisabled = slotAvailability[slot.value] === false;
-                    return (
-                      <SelectItem
-                        key={slot.value}
-                        value={slot.value}
-                        disabled={isDisabled}
-                        // Add conditional className
-                        className={cn(
-                          "py-2 mb-0.5", // Add default padding and margin
-                          isDisabled && "bg-gray-100 text-gray-700 focus:bg-gray-100 focus:text-gray-500" 
-                        )}
-                      >
-                        {slot.label}
-                      </SelectItem>
-                    );
-                  })
+                  <div className="grid grid-cols-2 gap-1 p-1">
+                    {timeSlots.map((slot) => {
+                      const isDisabled = slotAvailability[slot.value] === false;
+                      return (
+                        <SelectItem
+                          key={slot.value}
+                          value={slot.value}
+                          disabled={isDisabled}
+                          className={cn(
+                            "py-2.5 px-3 rounded-md mb-1 text-center justify-center", 
+                            isDisabled ? "bg-gray-100 text-gray-400" : "hover:bg-[#ebf6fc] hover:text-[#2F9FE5]",
+                            startTime === slot.value && "bg-[#ebf6fc] text-[#2F9FE5] font-medium"
+                          )}
+                        >
+                          {slot.label}
+                        </SelectItem>
+                      );
+                    })}
+                  </div>
                 )}
               </SelectContent>
             </Select>
           </div>
           
-          <div className="space-y-2">
-            <Label htmlFor="duration">Duration (hours)</Label>
+          {/* Duration selection with enhanced styling */}
+          <div className="space-y-3">
+            <div className="flex items-center">
+              <Clock className="h-5 w-5 mr-2 text-[#2F9FE5]" />
+              <Label htmlFor="duration" className="text-base font-medium">Duration</Label>
+            </div>
             <Select 
                 value={duration.toString()} 
                 onValueChange={(val) => {
@@ -450,32 +469,41 @@ const BookingModal = ({ isOpen, onClose, space }) => {
                 }}
                 disabled={!startTime || availableDurations.length === 0} 
             >
-              <SelectTrigger id="duration">
+              <SelectTrigger id="duration" className="h-11">
                 <SelectValue placeholder={!startTime ? "Select start time first" : "Select duration"} />
               </SelectTrigger>
               <SelectContent>
                 {availableDurations.length > 0 ? (
-                  availableDurations.map((hours) => (
-                    <SelectItem key={hours} value={hours.toString()}>
-                      {hours} {hours === 1 ? 'hour' : 'hours'}
-                    </SelectItem>
-                  ))
+                  <div className="grid grid-cols-2 gap-1 p-1">
+                    {availableDurations.map((hours) => (
+                      <SelectItem key={hours} value={hours.toString()} className={cn(
+                        "py-2.5 px-3 rounded-md mb-1 text-center justify-center",
+                        duration === hours && "bg-[#ebf6fc] text-[#2F9FE5] font-medium"
+                      )}>
+                        {hours} {hours === 1 ? 'hour' : 'hours'}
+                      </SelectItem>
+                    ))}
+                  </div>
                 ) : (
-                  <div className="p-2 text-center text-sm text-gray-500">
+                  <div className="p-3 text-center text-sm text-gray-500">
                     No valid durations for selected start time.
                   </div>
                 )}
               </SelectContent>
             </Select>
             {calculatedEndTime && startTime && availableDurations.length > 0 && (
-              <p className="text-sm text-gray-500 mt-1">
-                Ends at: {calculatedEndTime}
+              <p className="text-sm text-gray-600 mt-1 ml-1">
+                Ends at: <span className="font-medium">{calculatedEndTime}</span>
               </p>
             )}
           </div>
           
-          <div className="space-y-2">
-            <Label htmlFor="participants">Number of Participants</Label>
+          {/* Participants with enhanced styling */}
+          <div className="space-y-3">
+            <div className="flex items-center">
+              <Users className="h-5 w-5 mr-2 text-[#2F9FE5]" />
+              <Label htmlFor="participants" className="text-base font-medium">Number of Participants</Label>
+            </div>
             <Input
               id="participants"
               type="number"
@@ -483,31 +511,36 @@ const BookingModal = ({ isOpen, onClose, space }) => {
               max={space?.capacity || 10}
               value={participants}
               onChange={(e) => setParticipants(parseInt(e.target.value))}
+              className="h-11"
             />
             {space?.capacity && (
-              <p className="text-xs text-gray-500">Maximum capacity: {space.capacity}</p>
+              <p className="text-sm text-gray-600 ml-1">Maximum capacity: {space.capacity} people</p>
             )}
           </div>
           
-          <div className="bg-gray-50 p-3 rounded-md">
-            <div className="flex justify-between">
-              <span>Rate:</span>
+          {/* Price summary with enhanced styling */}
+          <div className="bg-[#f9fcff] p-4 rounded-lg mt-4 border border-[#e1eef9]">
+            <div className="flex justify-between text-gray-600 mb-2">
+              <div className="flex items-center">
+                <DollarSign className="h-4 w-4 mr-1" />
+                <span>Rate:</span>
+              </div>
               <span>₱{space?.price}/hour</span>
             </div>
-            <div className="flex justify-between font-semibold">
+            <div className="flex justify-between font-semibold text-[#2F9FE5]">
               <span>Total:</span>
               <span>₱{totalPrice.toFixed(2)}</span>
             </div>
           </div>
           
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
+          <DialogFooter className="flex space-x-2 pt-4">
+            <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting} className="flex-1 h-11">
               Cancel
             </Button>
             <Button 
               type="submit" 
               disabled={isConfirmDisabled} 
-              className={isSubmitting ? "opacity-70" : ""}
+              className={cn("flex-1 h-11 bg-[#2F9FE5] hover:bg-[#2387c9]", isSubmitting && "opacity-70")}
             >
               {isSubmitting ? "Processing..." : 
                isLoadingSlots ? "Loading..." : 

@@ -216,7 +216,7 @@ const RegisterForm = () => {
                 className="w-full p-3 bg-white font-semibold hover:border-gray-400 transition flex items-center justify-center"
                 aria-label="Sign up with Google"
                 style={{
-                  backgroundImage: "url(/google.png)",
+                  backgroundImage: "url(/google_logo.png)",
                   backgroundRepeat: "no-repeat",
                   backgroundPosition: "center",
                   backgroundSize: "40px 40px",
