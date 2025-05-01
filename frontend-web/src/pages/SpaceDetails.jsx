@@ -53,8 +53,7 @@ const SpaceDetails = () => {
             setIsLoading(true);
             setError(null);
             try {
-                // Construct the correct backend API URL
-                const response = await fetch(`http://localhost:8080/api/space/${id}`); // Use correct backend URL
+                const response = await fetch(`https://it342g6-studyspace.onrender.com/api/space/${id}`); // Use correct backend URL
                 if (!response.ok) {
                     if (response.status === 404) {
                         throw new Error(`Space with ID ${id} not found.`);

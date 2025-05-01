@@ -91,7 +91,7 @@ export const AuthProvider = ({ children }) => {
 
         try {
             // Correct endpoint: /api/users/update/{id}
-            const response = await fetch(`http://localhost:8080/api/users/update/${user.id}`, { 
+            const response = await fetch(`https://it342g6-studyspace.onrender.com/api/users/update/${user.id}`, { 
                 method: 'PUT',
                 headers: {
                     // Content-Type is set automatically by the browser for FormData

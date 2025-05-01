@@ -19,7 +19,7 @@ const SpaceShowcase = ({ searchTerm = "" }) => {
       setIsLoading(true);
       setError(null);
       try {
-        const response = await fetch('/api/space/getAll'); 
+        const response = await fetch('https://it342g6-studyspace.onrender.com/api/space/getAll'); 
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }

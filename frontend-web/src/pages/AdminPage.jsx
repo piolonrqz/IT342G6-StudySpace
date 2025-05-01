@@ -87,8 +87,8 @@ const Sidebar = ({
 const AdminPage = () => {
   const [activeItem, setActiveItem] = useState("user-management");
   const [users, setUsers] = useState(null);
-  const [spaces, setSpaces] = useState(null);
-  const [bookings, setBookings] = useState(null); // State for bookings data
+  const [spaces, setSpaces] = useState([]);
+  const [bookings, setBookings] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const { logout, token } = useAuth(); // Get token for API calls
@@ -114,14 +114,14 @@ const AdminPage = () => {
   const [isBookingDeleteConfirmModalOpen, setIsBookingDeleteConfirmModalOpen] = useState(false); // For Delete confirmation
   const [bookingToDeleteId, setBookingToDeleteId] = useState(null); // ID for deletion
 
-  const API_BASE_URL = "http://localhost:8080/api";
+  const API_BASE_URL = "https://it342g6-studyspace.onrender.com/api";
 
   // --- Fetch Functions ---
   const fetchUsers = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch(`http://localhost:8080/api/users/getAll`);
+      const response = await fetch(`https://it342g6-studyspace.onrender.com/api/users/getAll`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
