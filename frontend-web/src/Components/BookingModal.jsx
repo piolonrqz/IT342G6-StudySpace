@@ -390,7 +390,13 @@ const BookingModal = ({ isOpen, onClose, space }) => {
                 id="date"
                 mode="single"
                 selected={date}
-                onSelect={setDate}
+                onSelect={(selectedDay) => {
+                  // Only update the date if a valid day is selected.
+                  // This prevents setting the date to undefined when clicking the selected day again.
+                  if (selectedDay) {
+                    setDate(selectedDay);
+                  }
+                }}
                 disabled={disabledDays}
                 className="rounded-md mx-auto"
               />
