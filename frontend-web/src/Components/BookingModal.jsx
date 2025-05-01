@@ -370,7 +370,7 @@ const BookingModal = ({ isOpen, onClose, space }) => {
   
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[550px] p-0 overflow-hidden">
+      <DialogContent className="sm:max-w-[700px] md:max-w-[800px] lg:max-w-[900px] p-0 overflow-hidden">
         <DialogHeader className="p-6 pb-2 bg-[#f9fcff]">
           <DialogTitle className="text-xl font-semibold text-[#2F9FE5]">Book {space?.name}</DialogTitle>
           <DialogDescription className="text-base text-gray-600"> 
@@ -379,156 +379,159 @@ const BookingModal = ({ isOpen, onClose, space }) => {
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="px-6 py-4 space-y-5">
-          {/* Calendar section with enhanced styling */}
-          <div className="space-y-3">
-            <div className="flex items-center">
-              <CalendarDays className="h-5 w-5 mr-2 text-[#2F9FE5]" />
-              <Label htmlFor="date" className="text-base font-medium">Select Date</Label>
+          {/* Two column layout for larger screens */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Left column - Calendar */}
+            <div className="space-y-3">
+              <div className="flex items-center">
+                <CalendarDays className="h-5 w-5 mr-2 text-[#2F9FE5]" />
+                <Label htmlFor="date" className="text-base font-medium">Select Date</Label>
+              </div>
+              <div className="bg-[#f9fcff] rounded-lg p-2 flex justify-center">
+                <Calendar
+                  id="date"
+                  mode="single"
+                  selected={date}
+                  onSelect={(selectedDay) => {
+                    if (selectedDay) {
+                      setDate(selectedDay);
+                    }
+                  }}
+                  disabled={disabledDays}
+                  className="rounded-md"
+                />
+              </div>
             </div>
-            <div className="bg-[#f9fcff] rounded-lg p-2">
-              <Calendar
-                id="date"
-                mode="single"
-                selected={date}
-                onSelect={(selectedDay) => {
-                  // Only update the date if a valid day is selected.
-                  // This prevents setting the date to undefined when clicking the selected day again.
-                  if (selectedDay) {
-                    setDate(selectedDay);
-                  }
-                }}
-                disabled={disabledDays}
-                className="rounded-md mx-auto"
-              />
-            </div>
-          </div>
-          
-          {/* Time selection with enhanced styling */}
-          <div className="space-y-3">
-            <div className="flex items-center">
-              <Clock className="h-5 w-5 mr-2 text-[#2F9FE5]" />
-              <Label htmlFor="time" className="text-base font-medium">Start Time</Label>
-            </div>
-            <Select 
-              value={startTime} 
-              onValueChange={(value) => {
-                  setStartTime(value);
-              }}
-              disabled={isLoadingSlots || timeSlots.length === 0 || !!slotLoadingError} 
-            >
-              <SelectTrigger id="time" className="h-11">
-                <SelectValue>
-                  {isLoadingSlots ? "Loading times..." : 
-                   slotLoadingError ? "Error loading times" :
-                   startTime ? timeSlots.find(slot => slot.value === startTime)?.label || startTime : 
-                   "Select time"}
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent className="max-h-[300px]">
-                {isLoadingSlots ? (
-                  <div className="p-3 text-center text-sm text-gray-500 flex items-center justify-center">
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Checking availability...
-                  </div>
-                ) : slotLoadingError ? (
-                   <div className="p-3 text-center text-sm text-red-600">
-                     {slotLoadingError}
-                   </div>
-                ) : timeSlots.length === 0 ? (
-                  <div className="p-3 text-center text-sm text-gray-500">
-                    No available slots for this day.
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-2 gap-1 p-1">
-                    {timeSlots.map((slot) => {
-                      const isDisabled = slotAvailability[slot.value] === false;
-                      return (
-                        <SelectItem
-                          key={slot.value}
-                          value={slot.value}
-                          disabled={isDisabled}
-                          className={cn(
-                            "py-2.5 px-3 rounded-md mb-1 text-center justify-center", 
-                            isDisabled ? "bg-gray-100 text-gray-400" : "hover:bg-[#ebf6fc] hover:text-[#2F9FE5]",
-                            startTime === slot.value && "bg-[#ebf6fc] text-[#2F9FE5] font-medium"
-                          )}
-                        >
-                          {slot.label}
-                        </SelectItem>
-                      );
-                    })}
-                  </div>
+            
+            {/* Right column - Time, Duration, Participants */}
+            <div className="space-y-5">
+              {/* Time selection */}
+              <div className="space-y-3">
+                <div className="flex items-center">
+                  <Clock className="h-5 w-5 mr-2 text-[#2F9FE5]" />
+                  <Label htmlFor="time" className="text-base font-medium">Start Time</Label>
+                </div>
+                <Select 
+                  value={startTime} 
+                  onValueChange={(value) => {
+                      setStartTime(value);
+                  }}
+                  disabled={isLoadingSlots || timeSlots.length === 0 || !!slotLoadingError} 
+                >
+                  <SelectTrigger id="time" className="h-11">
+                    <SelectValue>
+                      {isLoadingSlots ? "Loading times..." : 
+                      slotLoadingError ? "Error loading times" :
+                      startTime ? timeSlots.find(slot => slot.value === startTime)?.label || startTime : 
+                      "Select time"}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent className="max-h-[300px]">
+                    {isLoadingSlots ? (
+                      <div className="p-3 text-center text-sm text-gray-500 flex items-center justify-center">
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Checking availability...
+                      </div>
+                    ) : slotLoadingError ? (
+                      <div className="p-3 text-center text-sm text-red-600">
+                        {slotLoadingError}
+                      </div>
+                    ) : timeSlots.length === 0 ? (
+                      <div className="p-3 text-center text-sm text-gray-500">
+                        No available slots for this day.
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-2 gap-1 p-1">
+                        {timeSlots.map((slot) => {
+                          const isDisabled = slotAvailability[slot.value] === false;
+                          return (
+                            <SelectItem
+                              key={slot.value}
+                              value={slot.value}
+                              disabled={isDisabled}
+                              className={cn(
+                                "py-2.5 px-3 rounded-md mb-1 text-center justify-center", 
+                                isDisabled ? "bg-gray-100 text-gray-400" : "hover:bg-[#ebf6fc] hover:text-[#2F9FE5]",
+                                startTime === slot.value && "bg-[#ebf6fc] text-[#2F9FE5] font-medium"
+                              )}
+                            >
+                              {slot.label}
+                            </SelectItem>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              {/* Duration selection */}
+              <div className="space-y-3">
+                <div className="flex items-center">
+                  <Clock className="h-5 w-5 mr-2 text-[#2F9FE5]" />
+                  <Label htmlFor="duration" className="text-base font-medium">Duration</Label>
+                </div>
+                <Select 
+                    value={duration.toString()} 
+                    onValueChange={(val) => {
+                        setDuration(parseInt(val));
+                    }}
+                    disabled={!startTime || availableDurations.length === 0} 
+                >
+                  <SelectTrigger id="duration" className="h-11">
+                    <SelectValue placeholder={!startTime ? "Select start time first" : "Select duration"} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableDurations.length > 0 ? (
+                      <div className="grid grid-cols-2 gap-1 p-1">
+                        {availableDurations.map((hours) => (
+                          <SelectItem key={hours} value={hours.toString()} className={cn(
+                            "py-2.5 px-3 rounded-md mb-1 text-center justify-center",
+                            duration === hours && "bg-[#ebf6fc] text-[#2F9FE5] font-medium"
+                          )}>
+                            {hours} {hours === 1 ? 'hour' : 'hours'}
+                          </SelectItem>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="p-3 text-center text-sm text-gray-500">
+                        No valid durations for selected start time.
+                      </div>
+                    )}
+                  </SelectContent>
+                </Select>
+                {calculatedEndTime && startTime && availableDurations.length > 0 && (
+                  <p className="text-sm text-gray-600 mt-1 ml-1">
+                    Ends at: <span className="font-medium">{calculatedEndTime}</span>
+                  </p>
                 )}
-              </SelectContent>
-            </Select>
-          </div>
-          
-          {/* Duration selection with enhanced styling */}
-          <div className="space-y-3">
-            <div className="flex items-center">
-              <Clock className="h-5 w-5 mr-2 text-[#2F9FE5]" />
-              <Label htmlFor="duration" className="text-base font-medium">Duration</Label>
-            </div>
-            <Select 
-                value={duration.toString()} 
-                onValueChange={(val) => {
-                    setDuration(parseInt(val));
-                }}
-                disabled={!startTime || availableDurations.length === 0} 
-            >
-              <SelectTrigger id="duration" className="h-11">
-                <SelectValue placeholder={!startTime ? "Select start time first" : "Select duration"} />
-              </SelectTrigger>
-              <SelectContent>
-                {availableDurations.length > 0 ? (
-                  <div className="grid grid-cols-2 gap-1 p-1">
-                    {availableDurations.map((hours) => (
-                      <SelectItem key={hours} value={hours.toString()} className={cn(
-                        "py-2.5 px-3 rounded-md mb-1 text-center justify-center",
-                        duration === hours && "bg-[#ebf6fc] text-[#2F9FE5] font-medium"
-                      )}>
-                        {hours} {hours === 1 ? 'hour' : 'hours'}
-                      </SelectItem>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="p-3 text-center text-sm text-gray-500">
-                    No valid durations for selected start time.
-                  </div>
+              </div>
+              
+              {/* Participants */}
+              <div className="space-y-3">
+                <div className="flex items-center">
+                  <Users className="h-5 w-5 mr-2 text-[#2F9FE5]" />
+                  <Label htmlFor="participants" className="text-base font-medium">Number of Participants</Label>
+                </div>
+                <Input
+                  id="participants"
+                  type="number"
+                  min="1"
+                  max={space?.capacity || 10}
+                  value={participants}
+                  onChange={(e) => setParticipants(parseInt(e.target.value))}
+                  className="h-11"
+                />
+                {space?.capacity && (
+                  <p className="text-sm text-gray-600 ml-1">Maximum capacity: {space.capacity} people</p>
                 )}
-              </SelectContent>
-            </Select>
-            {calculatedEndTime && startTime && availableDurations.length > 0 && (
-              <p className="text-sm text-gray-600 mt-1 ml-1">
-                Ends at: <span className="font-medium">{calculatedEndTime}</span>
-              </p>
-            )}
-          </div>
-          
-          {/* Participants with enhanced styling */}
-          <div className="space-y-3">
-            <div className="flex items-center">
-              <Users className="h-5 w-5 mr-2 text-[#2F9FE5]" />
-              <Label htmlFor="participants" className="text-base font-medium">Number of Participants</Label>
+              </div>
             </div>
-            <Input
-              id="participants"
-              type="number"
-              min="1"
-              max={space?.capacity || 10}
-              value={participants}
-              onChange={(e) => setParticipants(parseInt(e.target.value))}
-              className="h-11"
-            />
-            {space?.capacity && (
-              <p className="text-sm text-gray-600 ml-1">Maximum capacity: {space.capacity} people</p>
-            )}
           </div>
           
-          {/* Price summary with enhanced styling */}
+          {/* Price summary with enhanced styling - Full width at bottom */}
           <div className="bg-[#f9fcff] p-4 rounded-lg mt-4 border border-[#e1eef9]">
             <div className="flex justify-between text-gray-600 mb-2">
               <div className="flex items-center">
-                <DollarSign className="h-4 w-4 mr-1" />
                 <span>Rate:</span>
               </div>
               <span>₱{space?.price}/hour</span>
