@@ -133,6 +133,40 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
+    // Change Password function
+    const changePassword = async (passwordData) => {
+        if (!user || !token) {
+            console.error("Cannot change password: Not logged in.");
+            throw new Error("You must be logged in to change your password."); // Throw error to be caught by caller
+        }
+
+        try {
+            const response = await fetch(`https://it342g6-studyspace.onrender.com/api/users/change-password/${user.id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                },
+                body: JSON.stringify(passwordData), // Send { currentPassword, newPassword }
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ error: 'Failed to parse error response' })); // Try to parse error, provide fallback
+                console.error('Failed to change password:', response.status, errorData);
+                // Throw an error with the message from the backend if available
+                throw new Error(errorData.error || `Failed to change password: ${response.status}`);
+            }
+
+            const result = await response.json();
+            console.log("Password changed successfully:", result);
+            return result; // Return success message or data
+
+        } catch (error) {
+            console.error('Error changing password:', error);
+            // Re-throw the error so the calling component can handle it (e.g., show toast)
+            throw error;
+        }
+    };
 
     // Value provided by the context
     const value = {
@@ -140,7 +174,8 @@ export const AuthProvider = ({ children }) => {
         token,
         login,
         logout,
-        updateUser, // Add updateUser to the context value
+        updateUser,
+        changePassword, // Add changePassword to the context value
         isAuthenticated: !!token && !!user // Helper boolean flag
     };
 

@@ -183,4 +183,25 @@ public class UserService {
             return id + " NOT FOUND!";
         }
     }
+
+    // Changes the password for a given user ID
+    @Operation(summary = "Change user password", description = "Changes the password for a user after verifying the current password")
+    public void changePassword(int id, String currentPassword, String newPassword) {
+        UserEntity user = userRepo.findById(id)
+                .orElseThrow(() -> {
+                    logger.warn("User not found for password change with ID: {}", id);
+                    return new RuntimeException("User not found");
+                });
+
+        // Verify the current password
+        if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
+            logger.warn("Incorrect current password provided for user ID: {}", id);
+            throw new RuntimeException("Incorrect current password");
+        }
+
+        // Encode and set the new password
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepo.save(user);
+        logger.info("Password successfully changed for user ID: {}", id);
+    }
 }
