@@ -259,12 +259,12 @@ const Bookings = () => {
                                         <div key={booking.id} className="border rounded-lg overflow-hidden shadow-sm">
                                             <div className="md:flex">
                                                 {/* Space Image */}
-                                                <div className="md:w-1/4 h-48 md:h-auto">
+                                                <div className="md:w-1/4 h-48 md:h-auto relative">
                                                     {spaceImageFilename ? (
                                                         <img
                                                             src={spaceImageFilename} 
                                                             alt="Space"
-                                                            className="w-16 h-16 object-cover rounded-lg border"
+                                                            className="w-full h-full object-cover"
                                                         />
                                                     ) : (
                                                         <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-500">

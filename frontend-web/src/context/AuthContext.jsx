@@ -38,7 +38,8 @@ export const AuthProvider = ({ children }) => {
             lastName: userData.lastName,
             email: userData.email, // Assuming email is needed/available
             role: userData.role || 'USER', // Default role if not provided
-            profilePictureFilename: userData.profilePictureFilename // Add profile picture filename
+            profilePictureFilename: userData.profilePictureFilename, // Add profile picture filename
+            phoneNumber: userData.phoneNumber
         };
 
         localStorage.setItem('jwtToken', jwtToken);

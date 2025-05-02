@@ -11,7 +11,7 @@ const getInitials = (firstName, lastName) => {
 };
 
 const ProfilePage = () => {
-  const { user, updateUser, logout } = useAuth(); // Add logout
+  const { user, updateUser } = useAuth(); 
   const [formData, setFormData] = useState({
     // Initialize with user data or defaults
     firstName: user?.firstName || "",

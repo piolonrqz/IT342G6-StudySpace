@@ -121,6 +121,12 @@ public class UserService {
             user.setEmail(dto.getEmail());
             user.setPhoneNumber(dto.getPhoneNumber());
 
+            // Update password if provided in DTO
+            if (dto.getPassword() != null && !dto.getPassword().isEmpty()) {
+                user.setPassword(passwordEncoder.encode(dto.getPassword()));
+                logger.info("Password updated for user ID: {}", id);
+            }
+
             // Convert and set Role
             try {
                 UserRole roleEnum = UserRole.valueOf(dto.getRole().toUpperCase());
