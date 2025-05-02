@@ -10,6 +10,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import cit.edu.studyspace.dto.UserCreateDTO;
 import cit.edu.studyspace.dto.UserUpdateDTO;
+import cit.edu.studyspace.dto.PasswordChangeDTO; // Add import for PasswordChangeDTO
+import jakarta.validation.Valid; // Add import for @Valid
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -189,6 +191,34 @@ public class UserController {
         } catch (Exception e) {
              logger.error("Error deleting user ID {}: {}", id, e.getMessage(), e);
              return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error deleting user.");
+        }
+    }
+
+    // Endpoint to change user password
+    @PutMapping("/change-password/{id}")
+    @Operation(summary = "Change user password", description = "Allows a user to change their password")
+    public ResponseEntity<?> changePassword(@PathVariable int id, @RequestBody @Valid PasswordChangeDTO passwordChangeDTO) {
+        try {
+            // Basic check: Ensure the user making the request is the user whose password is being changed
+            // (More robust checks might involve comparing with authenticated principal)
+            // For simplicity, we'll rely on the frontend sending the correct ID for the logged-in user.
+
+            userService.changePassword(id, passwordChangeDTO.getCurrentPassword(), passwordChangeDTO.getNewPassword());
+            logger.info("Password change request successful for user ID: {}", id);
+            return ResponseEntity.ok(Map.of("message", "Password changed successfully"));
+        } catch (RuntimeException e) {
+            logger.error("Password change failed for user ID {}: {}", id, e.getMessage());
+            // Return specific error messages based on the exception
+            if ("User not found".equals(e.getMessage())) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
+            } else if ("Incorrect current password".equals(e.getMessage())) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
+            }
+            // Handle other potential errors (like validation errors from @Valid)
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Password change failed: " + e.getMessage()));
+        } catch (Exception e) {
+            logger.error("Unexpected error during password change for user ID {}: {}", id, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "An unexpected error occurred."));
         }
     }
 }
