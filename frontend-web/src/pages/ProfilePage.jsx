@@ -38,6 +38,8 @@ const ProfilePage = () => {
   const [isCheckingEmail, setIsCheckingEmail] = useState(false); // State to track email validation
   const [emailError, setEmailError] = useState(""); // State for email validation error
   const [phoneError, setPhoneError] = useState(""); // State for phone number validation error
+  const [firstNameError, setFirstNameError] = useState(""); // State for first name validation error
+  const [lastNameError, setLastNameError] = useState(""); // State for last name validation error
   const fileInputRef = useRef(null); // Ref for the hidden file input
   const [imgError, setImgError] = useState(false); // State for current profile pic error
 
@@ -95,8 +97,13 @@ const ProfilePage = () => {
         ...prevData,
         [name]: formattedPhone,
       }));
-      // Clear phone error when phone field is edited
-      setPhoneError("");
+      // Real-time phone number validation
+      if (formattedPhone.length > 0 && formattedPhone.length !== 10) {
+        setPhoneError('Phone number must be exactly 10 digits.');
+      } else {
+        // Clear error if valid (10 digits) or empty
+        setPhoneError("");
+      }
     } else {
       setFormData((prevData) => ({
         ...prevData,
@@ -106,6 +113,13 @@ const ProfilePage = () => {
       // Clear email error when email field is edited
       if (name === 'email') {
         setEmailError("");
+      }
+      // Clear name errors when name fields are edited
+      if (name === 'firstName') {
+        setFirstNameError("");
+      }
+      if (name === 'lastName') {
+        setLastNameError("");
       }
     }
   };
@@ -192,10 +206,23 @@ const ProfilePage = () => {
   const handleSave = async () => {
     // Reset errors
     setEmailError("");
-    setPhoneError("");
+    setPhoneError(""); // Reset just in case, though should be handled by input change
+    setFirstNameError(""); // Reset first name error
+    setLastNameError(""); // Reset last name error
     
     let hasErrors = false;
     
+    // Validate names
+    const nameRegex = /^[A-Za-z\s'-]+$/; // Regex from RegisterForm
+    if (!nameRegex.test(formData.firstName)) {
+      setFirstNameError('First name can only contain letters, spaces, hyphens, and apostrophes.');
+      hasErrors = true;
+    }
+    if (!nameRegex.test(formData.lastName)) {
+      setLastNameError('Last name can only contain letters, spaces, hyphens, and apostrophes.');
+      hasErrors = true;
+    }
+
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
@@ -403,8 +430,9 @@ const ProfilePage = () => {
                 name="firstName"
                 value={formData.firstName}
                 onChange={handleInputChange}
-                className="w-full p-3 border border-gray-300 rounded-[10px] focus:ring-1 focus:ring-gray-300 focus:outline-none"
+                className={`w-full p-3 border ${firstNameError ? 'border-red-500' : 'border-gray-300'} rounded-[10px] focus:ring-1 focus:ring-gray-300 focus:outline-none`}
               />
+              {firstNameError && <p className="text-red-500 text-xs mt-1">{firstNameError}</p>}
             </div>
 
             {/* Last Name */}
@@ -415,14 +443,15 @@ const ProfilePage = () => {
                 name="lastName"
                 value={formData.lastName}
                 onChange={handleInputChange}
-                className="w-full p-3 border border-gray-300 rounded-[10px] focus:ring-1 focus:ring-gray-300 focus:outline-none"
+                className={`w-full p-3 border ${lastNameError ? 'border-red-500' : 'border-gray-300'} rounded-[10px] focus:ring-1 focus:ring-gray-300 focus:outline-none`}
               />
+              {lastNameError && <p className="text-red-500 text-xs mt-1">{lastNameError}</p>}
             </div>
 
             {/* Phone Number with Prefix */}
             <div>
               <label className="block text-sm text-gray-600 mb-2">Phone number</label>
-              <div className="flex rounded-[10px] overflow-hidden border border-gray-300">
+              <div className={`flex rounded-[10px] overflow-hidden border ${phoneError ? 'border-red-500' : 'border-gray-300'}`}> {/* Apply red border on error */}
                 <div className="bg-gray-100 py-3 px-4 text-gray-600 border-r border-gray-300">+63</div>
                 <input
                   type="tel"
@@ -431,6 +460,7 @@ const ProfilePage = () => {
                   onChange={handleInputChange}
                   className={`flex-grow p-3 border-0 focus:ring-1 focus:ring-gray-300 focus:outline-none`}
                   placeholder="9xxxxxxxxx"
+                  maxLength="10" // Keep maxLength for user experience
                 />
               </div>
               {phoneError && <p className="text-red-500 text-xs mt-1">{phoneError}</p>}
