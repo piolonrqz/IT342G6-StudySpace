@@ -19,7 +19,7 @@ const LoginForm = () => {
     setValidationError('');
 
     try {
-      const response = await fetch("https://it342g6-studyspace.onrender.com/api/users/login", { 
+      const response = await fetch("http://localhost:8080/api/users/login", { 
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),

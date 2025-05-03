@@ -43,10 +43,8 @@ const RegisterForm = () => {
       return;
     }
 
-    // Check if email already exists
-    setCheckingEmail(true);
     try {
-      const checkResponse = await fetch(`https://it342g6-studyspace.onrender.com/api/users/check-email?email=${encodeURIComponent(email)}`);
+      const checkResponse = await fetch(`http://localhost:8080/api/users/check-email?email=${encodeURIComponent(email)}`);
       const emailExists = await checkResponse.json();
       if (emailExists) {
         setValidationError('Email already exists. Please use a different one.');
@@ -63,10 +61,8 @@ const RegisterForm = () => {
         role: "USER"
       };
 
-      // Proceed with registration
-      setLoading(true);
       try {
-        const response = await fetch("https://it342g6-studyspace.onrender.com/api/users/save", {
+        const response = await fetch("http://localhost:8080/api/users/save", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(user)

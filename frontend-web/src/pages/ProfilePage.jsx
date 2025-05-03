@@ -2,7 +2,8 @@ import React, { useState, useRef, useEffect } from "react"; // Import useRef, us
 import { useAuth } from "../context/AuthContext";
 import NavigationBar from "../components/NavigationBar";
 import Footer from "../components/Footer";
-import { useToast } from "@/hooks/use-toast"; // Corrected import path using alias
+import { useToast } from "@/hooks/use-toast";
+import { Check, X } from "lucide-react"; // Import Check and X icons from lucide-react
 
 // Helper function to get initials (can be moved to a utils file)
 const getInitials = (firstName, lastName) => {
@@ -14,6 +15,13 @@ const getInitials = (firstName, lastName) => {
 const ProfilePage = () => {
   const { user, updateUser, changePassword } = useAuth(); // Add changePassword from context
   const { toast } = useToast(); // Initialize toast
+  
+  // New state for display name that doesn't change while typing
+  const [displayName, setDisplayName] = useState({
+    firstName: user?.firstName || "",
+    lastName: user?.lastName || "",
+  });
+  
   const [formData, setFormData] = useState({
     // Initialize with user data or defaults
     firstName: user?.firstName || "",
@@ -27,6 +35,9 @@ const ProfilePage = () => {
   });
   const [selectedFile, setSelectedFile] = useState(null); // State for the selected file object
   const [previewUrl, setPreviewUrl] = useState(null); // State for the image preview URL
+  const [isCheckingEmail, setIsCheckingEmail] = useState(false); // State to track email validation
+  const [emailError, setEmailError] = useState(""); // State for email validation error
+  const [phoneError, setPhoneError] = useState(""); // State for phone number validation error
   const fileInputRef = useRef(null); // Ref for the hidden file input
   const [imgError, setImgError] = useState(false); // State for current profile pic error
 
@@ -37,10 +48,20 @@ const ProfilePage = () => {
     confirmNewPassword: "",
   });
   const [passwordErrors, setPasswordErrors] = useState({});
+  const [showPasswordRequirements, setShowPasswordRequirements] = useState(false);
 
+  // Password validation helper functions
+  const hasMinLength = (password) => password && password.length >= 8;
+  const hasNumber = (password) => password && /\d/.test(password);
+  const passwordsMatch = () => 
+    passwordData.newPassword && 
+    passwordData.confirmNewPassword && 
+    passwordData.newPassword === passwordData.confirmNewPassword;
+  
   // Effect to update form data if user object changes after initial load
   useEffect(() => {
     if (user) {
+      // Update both form data and display name when user object changes
       setFormData({
         firstName: user.firstName || "",
         lastName: user.lastName || "",
@@ -48,6 +69,12 @@ const ProfilePage = () => {
         phoneNumber: user.phoneNumber || "",
         role: user.role || 'USER',
       });
+      
+      setDisplayName({
+        firstName: user.firstName || "",
+        lastName: user.lastName || "",
+      });
+      
       setImgError(false); // Reset image error on user update
       // Clear preview if user data is refreshed (e.g., after save)
       // setPreviewUrl(null); // Optional: Decide if preview should persist
@@ -55,13 +82,38 @@ const ProfilePage = () => {
     }
   }, [user]);
 
-
+  // Handle form input change
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
+    
+    if (name === 'phoneNumber') {
+      // Only allow digits for phone number
+      const digits = value.replace(/\D/g, '');
+      // Limit to 10 digits
+      const formattedPhone = digits.slice(0, 10);
+      setFormData((prevData) => ({
+        ...prevData,
+        [name]: formattedPhone,
+      }));
+      // Clear phone error when phone field is edited
+      setPhoneError("");
+    } else {
+      setFormData((prevData) => ({
+        ...prevData,
+        [name]: value,
+      }));
+      
+      // Clear email error when email field is edited
+      if (name === 'email') {
+        setEmailError("");
+      }
+    }
+  };
+  
+  // Function to validate phone number
+  const validatePhoneNumber = (phoneNumber) => {
+    // Check if the phone number has exactly 10 digits
+    return phoneNumber && phoneNumber.length === 10;
   };
   
   // Handle password input change
@@ -86,6 +138,9 @@ const ProfilePage = () => {
             }));
         }
     }
+    if (name === 'newPassword') {
+      setShowPasswordRequirements(true);
+    }
   };
 
   // Handle file selection
@@ -108,13 +163,109 @@ const ProfilePage = () => {
     fileInputRef.current?.click();
   };
 
-  const handleSave = () => {
-    // Pass both formData and the selectedFile to the updateUser context function
-    updateUser(formData, selectedFile);
-    // Optionally clear preview and file state after attempting save
-    // setPreviewUrl(null);
-    // setSelectedFile(null);
-    // fileInputRef.current.value = null; // Clear file input
+  // Check if email is already in use (but ignore the user's current email)
+  const checkEmailAvailability = async (email) => {
+    if (email === user.email) return true; // Skip check if email hasn't changed
+    
+    setIsCheckingEmail(true);
+    try {
+      const response = await fetch(`http://localhost:8080/api/users/check-email?email=${encodeURIComponent(email)}`);
+      if (!response.ok) throw new Error('Failed to check email availability');
+      
+      const isUnique = await response.json(); // Backend returns true if unique, false if exists
+      return isUnique; // Return true if email is available (unique), false if it exists
+    } catch (error) {
+      console.error("Error checking email:", error);
+      // Decide how to handle API errors. Returning false might prevent saving.
+      // Maybe show a specific error toast here? For now, assume not available on error.
+      toast({
+        title: "Email Check Failed",
+        description: "Could not verify email availability. Please try again.",
+        variant: "destructive",
+      });
+      return false; // Assume email is not available if there's an error
+    } finally {
+      setIsCheckingEmail(false);
+    }
+  };
+
+  const handleSave = async () => {
+    // Reset errors
+    setEmailError("");
+    setPhoneError("");
+    
+    let hasErrors = false;
+    
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      setEmailError('Please enter a valid email address.');
+      toast({
+        title: "Invalid Email",
+        description: "Please enter a valid email address.",
+        variant: "destructive",
+      });
+      hasErrors = true;
+    }
+    
+    // Validate phone number
+    if (!validatePhoneNumber(formData.phoneNumber)) {
+      setPhoneError('Please enter a valid 10-digit phone number.');
+      toast({
+        title: "Invalid Phone Number",
+        variant: "destructive",
+      });
+      hasErrors = true;
+    }
+    
+    if (hasErrors) return;
+    
+    try {
+      // Check if email is available if it has changed
+      if (formData.email !== user.email) {
+        const isEmailAvailable = await checkEmailAvailability(formData.email);
+        // isEmailAvailable is true if unique, false if exists
+        if (!isEmailAvailable) { // If email is NOT available (already exists)
+          setEmailError('Email already exists. Please use a different one.');
+          toast({
+            title: "Email Already Exists",
+            description: "This email is already in use. Please use a different one.",
+            variant: "destructive",
+          });
+          return; // Stop the save process
+        }
+      }
+      
+      // Pass both formData and the selectedFile to the updateUser context function
+      await updateUser(formData, selectedFile);
+      
+      // Update the display name only after successful save
+      setDisplayName({
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+      });
+      
+      toast({ // Show success toast
+        title: "Success",
+        description: "Your details have been updated successfully.",
+      });
+      // Optionally clear preview and file state after successful save
+      setPreviewUrl(null);
+      setSelectedFile(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = null; // Clear file input
+      }
+    } catch (error) {
+      console.error("Failed to save details:", error);
+      // Display specific error from backend if available (e.g., from updateUser context)
+      const errorMessage = error.response?.data?.error || error.message || "Failed to update details. Please try again.";
+      setEmailError(errorMessage); // Show error near the email field or a general form error
+      toast({ // Show error toast
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    }
   };
 
   // Handle password change submission
@@ -135,11 +286,14 @@ const ProfilePage = () => {
 
     if (Object.keys(errors).length === 0) {
       try {
-        await changePassword(user.id, passwordData.currentPassword, passwordData.newPassword);
+        // Correctly pass the password data object
+        await changePassword({
+          currentPassword: passwordData.currentPassword,
+          newPassword: passwordData.newPassword,
+        });
         toast({
           title: "Success",
           description: "Password changed successfully.",
-          variant: "success", // Assuming you have a success variant
         });
         // Clear password fields after successful change
         setPasswordData({
@@ -149,9 +303,9 @@ const ProfilePage = () => {
         });
         setPasswordErrors({});
       } catch (error) {
-        console.error("Password change failed:", error);
         // Display specific error from backend if available, otherwise generic message
-        const errorMessage = error.response?.data?.message || error.message || "Failed to change password. Please check your current password.";
+        // Prioritize error.response.data.error as sent by the backend
+        const errorMessage = error.response?.data?.error || error.response?.data?.message || "Failed to change password. Please check your current password.";
          setPasswordErrors({ api: errorMessage }); // Set a general API error
          toast({
            title: "Error",
@@ -226,7 +380,7 @@ const ProfilePage = () => {
               />
             </div>
             <div className="ml-4">
-              <p className="font-medium">{formData.firstName} {formData.lastName}</p>
+              <p className="font-medium">{displayName.firstName} {displayName.lastName}</p>
               <div className="flex space-x-4 mt-2">
                 <button
                   onClick={handleUploadClick} // Trigger file input
@@ -265,17 +419,22 @@ const ProfilePage = () => {
               />
             </div>
 
-            {/* Phone Number */}
+            {/* Phone Number with Prefix */}
             <div>
               <label className="block text-sm text-gray-600 mb-2">Phone number</label>
-              <input
-                type="tel"
-                name="phoneNumber"
-                value={formData.phoneNumber}
-                onChange={handleInputChange}
-                className="w-full p-3 border border-gray-300 rounded-[10px] focus:ring-1 focus:ring-gray-300 focus:outline-none"
-                placeholder="(+63) 921 701 1868"
-              />
+              <div className="flex rounded-[10px] overflow-hidden border border-gray-300">
+                <div className="bg-gray-100 py-3 px-4 text-gray-600 border-r border-gray-300">+63</div>
+                <input
+                  type="tel"
+                  name="phoneNumber"
+                  value={formData.phoneNumber}
+                  onChange={handleInputChange}
+                  className={`flex-grow p-3 border-0 focus:ring-1 focus:ring-gray-300 focus:outline-none`}
+                  placeholder="9xxxxxxxxx"
+                />
+              </div>
+              {phoneError && <p className="text-red-500 text-xs mt-1">{phoneError}</p>}
+              <p className="text-gray-500 text-xs mt-1">Enter 10 digits only, no spaces or special characters</p>
             </div>
 
             {/* Email Address */}
@@ -286,8 +445,9 @@ const ProfilePage = () => {
                 name="email"
                 value={formData.email}
                 onChange={handleInputChange}
-                className="w-full p-3 border border-gray-300 rounded-[10px] focus:ring-1 focus:ring-gray-300 focus:outline-none"
+                className={`w-full p-3 border ${emailError ? 'border-red-500' : 'border-gray-300'} rounded-[10px] focus:ring-1 focus:ring-gray-300 focus:outline-none`}
               />
+              {emailError && <p className="text-red-500 text-xs mt-1">{emailError}</p>}
             </div>
 
             {/* Save Button */}
@@ -295,9 +455,10 @@ const ProfilePage = () => {
               <button
                 type="button"
                 onClick={handleSave}
-                className="w-full md:w-auto px-6 py-3 bg-sky-500 text-white rounded font-medium hover:bg-sky-300 transition"
+                disabled={isCheckingEmail}
+                className={`w-full md:w-auto px-6 py-3 ${isCheckingEmail ? 'bg-gray-400' : 'bg-sky-500 hover:bg-sky-300'} text-white rounded font-medium transition`}
               >
-                Save my details
+                {isCheckingEmail ? 'Checking...' : 'Save my details'}
               </button>
             </div>
           </form>
@@ -306,9 +467,6 @@ const ProfilePage = () => {
         {/* Password Change Section */}
         <div className="bg-white p-6 rounded shadow-sm">
           <h2 className="text-xl font-medium mb-6">Change password</h2>
-          {passwordErrors.api && (
-            <p className="text-red-500 text-sm mb-4">{passwordErrors.api}</p>
-          )}
           <form className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Current Password */}
             <div>
@@ -335,6 +493,29 @@ const ProfilePage = () => {
                 onChange={handlePasswordInputChange}
                 className={`w-full p-3 border ${passwordErrors.newPassword || passwordErrors.match ? 'border-red-500' : 'border-gray-300'} rounded-[10px] focus:ring-1 focus:ring-gray-300 focus:outline-none`}
               />
+              
+              {/* Only show password requirements when user types something */}
+              {passwordData.newPassword && (
+                <div className="mt-2 space-y-1">
+                  <div className="flex items-center">
+                    {hasMinLength(passwordData.newPassword) ? (
+                      <Check className="text-green-500 h-4 w-4 mr-2" />
+                    ) : (
+                      <X className="text-red-500 h-4 w-4 mr-2" />
+                    )}
+                    <span className="text-xs text-gray-600">Password must be at least 8 characters long</span>
+                  </div>
+                  <div className="flex items-center">
+                    {hasNumber(passwordData.newPassword) ? (
+                      <Check className="text-green-500 h-4 w-4 mr-2" />
+                    ) : (
+                      <X className="text-red-500 h-4 w-4 mr-2" />
+                    )}
+                    <span className="text-xs text-gray-600">At least one number</span>
+                  </div>
+                </div>
+              )}
+              
               {passwordErrors.newPassword && <p className="text-red-500 text-xs mt-1">{passwordErrors.newPassword}</p>}
             </div>
 
@@ -348,7 +529,20 @@ const ProfilePage = () => {
                 onChange={handlePasswordInputChange}
                 className={`w-full p-3 border ${passwordErrors.match ? 'border-red-500' : 'border-gray-300'} rounded-[10px] focus:ring-1 focus:ring-gray-300 focus:outline-none`}
               />
-              {passwordErrors.match && <p className="text-red-500 text-xs mt-1">{passwordErrors.match}</p>}
+              
+              {/* Real-time password matching validation */}
+              {(passwordData.newPassword && passwordData.confirmNewPassword) && (
+                <div className="mt-2">
+                  <div className="flex items-center">
+                    {passwordsMatch() ? (
+                      <Check className="text-green-500 h-4 w-4 mr-2" />
+                    ) : (
+                      <X className="text-red-500 h-4 w-4 mr-2" />
+                    )}
+                    <span className="text-xs text-gray-600">Passwords {passwordsMatch() ? 'match' : 'do not match'}</span>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Change Password Button */}
