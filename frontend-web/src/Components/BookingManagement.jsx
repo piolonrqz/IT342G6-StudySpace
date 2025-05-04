@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Button } from "@/components/ui/button";
+import { Button } from "@/Components/ui/button";
 import { format } from "date-fns";
 
 export const BookingManagement = ({ bookings, onEdit, onCancel, onDelete }) => {

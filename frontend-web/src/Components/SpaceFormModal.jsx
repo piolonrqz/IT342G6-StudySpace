@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/Components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -7,18 +7,18 @@ import {
   DialogTitle,
   DialogDescription,
   DialogClose,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea"; // Use Textarea for description
-import { Checkbox } from "@/components/ui/checkbox"; // Use Checkbox for availability
+} from "@/Components/ui/dialog";
+import { Input } from "@/Components/ui/input";
+import { Label } from "@/Components/ui/label";
+import { Textarea } from "@/Components/ui/textarea"; // Use Textarea for description
+import { Checkbox } from "@/Components/ui/checkbox"; // Use Checkbox for availability
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"; // Use Select for spaceType
+} from "@/Components/ui/select"; // Use Select for spaceType
 
 // Define possible space types (should match your backend Enum)
 const SPACE_TYPES = ["MEETING_ROOM", "CONFERENCE_ROOM", "OPEN_SPACE"];

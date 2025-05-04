@@ -1,5 +1,5 @@
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/Components/ui/button";
+import { Textarea } from "@/Components/ui/textarea";
 import {
   Dialog,
   DialogContent,
@@ -8,7 +8,7 @@ import {
   DialogDescription,
   DialogFooter,
   DialogClose, // Import DialogClose
-} from "@/components/ui/dialog";
+} from "@/Components/ui/dialog";
 import { useState } from "react";
 
 export const ConfirmationModal = ({
