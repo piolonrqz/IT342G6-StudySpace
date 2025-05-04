@@ -13,6 +13,7 @@ import Bookings from './pages/Bookings.jsx';
 import AdminPage from './pages/AdminPage.jsx';
 import SpaceDetails from './pages/SpaceDetails';
 import ProfilePage from './pages/ProfilePage';
+import NotFoundPage from './pages/NotFoundPage.jsx'; // Import the 404 page
 // You might also need NavigationBar and Footer if they are part of the main layout
 // import NavigationBar from './Components/NavigationBar';
 // import Footer from './Components/Footer';
@@ -46,6 +47,8 @@ function App() {
               </ProtectedAdminRoute>
             }
           />
+          {/* Catch-all route for 404 Not Found */}
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
         {/* Render the Toaster component here */}
         <Toaster /> 

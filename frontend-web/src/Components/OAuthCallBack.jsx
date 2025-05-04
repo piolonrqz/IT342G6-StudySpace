@@ -23,6 +23,11 @@ const OAuthCallBack = () => {
     const firstName = searchParams.get('firstName');
     const lastName = searchParams.get('lastName');
     const profilePictureFilename = searchParams.get('profilePictureFilename');
+    // Read the hasPassword parameter and convert to boolean
+    const hasPasswordParam = searchParams.get('hasPassword');
+    const hasPassword = hasPasswordParam === 'true'; // Convert string 'true'/'false' to boolean
+    // Read the phoneNumber parameter
+    const phoneNumber = searchParams.get('phoneNumber');
   
     if (token && role && userId) {
       // Create a user object with the data from URL parameters
@@ -32,9 +37,9 @@ const OAuthCallBack = () => {
         lastName: lastName || '',
         email: email || '',
         role: role,
-        // Add profilePictureFilename if available, otherwise set to null
-        // This makes it clear this is a Google user without a custom profile picture
-        profilePictureFilename: profilePictureFilename || null
+        profilePictureFilename: profilePictureFilename || null,
+        hasPassword: hasPassword, // Include the hasPassword status
+        phoneNumber: phoneNumber || '' // Include the phone number, default to empty string if null
       };
 
       try {

@@ -257,10 +257,9 @@ export const UserFormModal = ({
     }
 
     // If all validations pass, call the onSave prop
-    // Include the full phone number with prefix for saving
+    // Save only the digits entered by the user for the phone number
     const saveData = {
         ...formData,
-        phoneNumber: `+63${formData.phoneNumber}`, // Add prefix back
         profilePictureFile // Pass the file object
     };
     // Remove password from saveData if it's empty (meaning user didn't want to change it during edit)

@@ -11,29 +11,30 @@ const formatPrice = (price) => {
     if (price === null || price === undefined || isNaN(Number(price))) {
       return 'N/A';
     }
-    return `${Number(price).toFixed(2)}`; // Return only the number part for styling flexibility
+    return `₱${Number(price).toFixed(2)}`;
 };
+
 
 // Helper function to format space type enum
 const formatSpaceType = (type) => {
     if (!type) return 'N/A';
     return type
-        .split('_') // Split by underscore
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()) // Capitalize first letter, lowercase rest
-        .join(' '); // Join with space
+        .split('_')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join(' ');
 };
 
 // Helper function to format time string (HH:mm) to AM/PM
 const formatTime = (timeString) => {
-    if (!timeString || !/^\d{2}:\d{2}$/.test(timeString)) return 'N/A'; // Basic validation
+    if (!timeString || !/^\d{2}:\d{2}$/.test(timeString)) return 'N/A';
 
     const [hours, minutes] = timeString.split(':');
     const hour = parseInt(hours, 10);
     const minute = parseInt(minutes, 10);
 
     const ampm = hour >= 12 ? 'PM' : 'AM';
-    const formattedHour = hour % 12 === 0 ? 12 : hour % 12; // Convert 0 or 12 hour to 12
-    const formattedMinutes = minute < 10 ? `0${minute}` : minute; // Add leading zero to minutes
+    const formattedHour = hour % 12 === 0 ? 12 : hour % 12;
+    const formattedMinutes = minute < 10 ? `0${minute}` : minute;
 
     return `${formattedHour}:${formattedMinutes} ${ampm}`;
 };
@@ -45,7 +46,7 @@ const SpaceDetails = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
-    const { isAuthenticated, user } = useAuth(); // Get user object from useAuth
+    const { isAuthenticated, user } = useAuth();
     const { toast } = useToast();
 
     useEffect(() => {
@@ -91,8 +92,6 @@ const SpaceDetails = () => {
 
     // Format price only when space data is available
     const formattedPrice = space ? formatPrice(space.price) : 'N/A';
-
-    // Format type and times only when space data is available
     const formattedSpaceType = space ? formatSpaceType(space.spaceType) : 'N/A';
     const formattedOpeningTime = space ? formatTime(space.openingTime) : 'N/A';
     const formattedClosingTime = space ? formatTime(space.closingTime) : 'N/A';
@@ -122,75 +121,145 @@ const SpaceDetails = () => {
     const isAdmin = user?.role === 'ADMIN';
 
     return (
-        <div className="flex flex-col min-h-screen">
+        <div className="flex flex-col min-h-screen bg-gray-50">
             <NavigationBar />
 
             <main className="flex-grow">
-                {isLoading && <div className="text-center text-gray-500 py-10">Loading space details...</div>}
-                {error && <div className="text-center text-red-500 py-10">{error}</div>}
+                {isLoading && (
+                    <div className="flex justify-center items-center py-20">
+                        <div className="animate-pulse flex flex-col items-center">
+                            <div className="w-12 h-12 border-4 border-sky-500 border-t-transparent rounded-full animate-spin"></div>
+                            <p className="mt-4 text-gray-500 font-poppins">Loading space details...</p>
+                        </div>
+                    </div>
+                )}
+                
+                {error && (
+                    <div className="max-w-md mx-auto my-12 p-6 bg-red-50 rounded-lg border border-red-200 text-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto mb-4 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <h3 className="text-lg font-semibold text-red-700 mb-2 font-poppins">Error Loading Space</h3>
+                        <p className="text-red-600 font-poppins">{error}</p>
+                    </div>
+                )}
 
                 {!isLoading && !error && space && (
-                    // Reduce padding and font sizes
-                    <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-10"> {/* Use container and standard padding */}
-                        {/* Image */}
-                        {space.imageFilename ? (
-                            <img
-                                src={space.imageFilename}
-                                alt={space.name}
-                                className="w-full h-auto max-h-[700px] object-cover rounded-lg shadow-md mb-6 md:mb-8"
-                            />
-                        ) : (
-                            <div className="w-full h-96 bg-gray-200 flex items-center justify-center text-gray-500 rounded-lg shadow-md mb-6 md:mb-8">
-                                No Image Available
-                            </div>
-                        )}
-
-                        {/* Details and Booking Button */}
-                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mt-6 md:mt-8"> {/* Adjusted margin, flex direction for medium screens */}
-                            <div className="flex flex-col gap-1 mb-4 md:mb-0"> {/* Reduced gap, added bottom margin for small screens */}
-                                <h1 className="text-3xl md:text-3xl font-bold text-black font-poppins">{space.name}</h1> {/* Reduced size */}
-                                <span className="text-xl md:text-1xl text-gray-600 font-poppins">{space.location}</span> {/* Reduced size */}
-                                {/* Price */}
-                                <div className="flex items-baseline gap-1.5 mt-1"> {/* Reduced gap, added top margin */}
-                                    <span className="text-2xl md:text-1xl font-semibold text-sky-500 font-poppins"> {/* Reduced size, adjusted weight */}
-                                        ₱{formattedPrice}
+                    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                        <div className="bg-white rounded-xl shadow-md overflow-hidden">
+                            {/* Hero Image Section */}
+                            <div className="relative h-80 sm:h-96 md:h-[400px] lg:h-[500px] overflow-hidden">
+                                {space.imageFilename ? (
+                                    <img
+                                        src={space.imageFilename}
+                                        alt={space.name}
+                                        className="w-full h-full object-cover"
+                                    />
+                                ) : (
+                                    <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-500">
+                                        <div className="flex flex-col items-center">
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                            </svg>
+                                            <span>No Image Available</span>
+                                        </div>
+                                    </div>
+                                )}
+                                
+                                {/* Space Type Badge */}
+                                <div className="absolute top-4 left-4">
+                                    <span className="inline-flex items-center px-3 py-1.5 bg-sky-100 text-sky-800 rounded-full text-sm font-medium font-poppins">
+                                        {formattedSpaceType}
                                     </span>
-                                    {formattedPrice !== 'N/A' && (
-                                        <span className="text-base md:text-lg text-gray-500 font-poppins">/ hr</span> 
-                                    )}
                                 </div>
                             </div>
-
-                            {/* Booking Button */}
-                            <button
-                                onClick={handleBookNowClick}
-                                disabled={isAdmin} // Disable button if user is ADMIN
-                                className={`text-white shadow-md text-base md:text-lg font-medium cursor-pointer bg-sky-500 px-6 py-2.5 rounded-md transition-colors font-poppins w-full md:w-auto ${isAdmin ? 'opacity-50 cursor-not-allowed' : 'hover:bg-sky-600'}`} // Add disabled styles
-                            >
-                                Book Now
-                            </button>
+                            
+                            {/* Content Section */}
+                            <div className="p-6 md:p-8">
+                                {/* Header with Title, Location and Booking Button */}
+                                <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-6 mb-8">
+                                    <div className="space-y-3">
+                                        <h1 className="text-3xl font-bold text-gray-800 font-poppins">{space.name}</h1>
+                                        <div className="flex items-center text-gray-600">
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                            </svg>
+                                            <p className="font-poppins">{space.location}</p>
+                                        </div>
+                                        
+                                        {/* Price */}
+                                        <div className="flex items-center">
+                                            <div className="flex items-center text-2xl font-semibold text-sky-500 font-poppins">
+                                                <span>{formattedPrice}</span>
+                                                {formattedPrice !== 'N/A' && (
+                                                    <span className="text-base text-gray-500 ml-1">/ hour</span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    {/* Booking Button */}
+                                    <div className="w-full md:w-auto">
+                                        <button
+                                            onClick={handleBookNowClick}
+                                            disabled={isAdmin}
+                                            className={`text-white shadow-md text-base font-medium rounded-lg px-8 py-3 transition-all w-full md:w-auto font-poppins
+                                            ${isAdmin 
+                                                ? 'bg-gray-400 cursor-not-allowed' 
+                                                : 'bg-sky-500 hover:bg-sky-600 hover:shadow-lg transform hover:-translate-y-0.5'}`}
+                                        >
+                                            {isAdmin ? 'Admin Cannot Book' : 'Book Now'}
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                {/* Key Info Cards */}
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+                                    <div className="bg-gray-50 rounded-lg p-4 flex flex-col items-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-sky-500 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                                        </svg>
+                                        <span className="text-sm text-gray-500 font-poppins">Capacity</span>
+                                        <span className="text-xl font-semibold text-gray-800 font-poppins">{space.capacity}</span>
+                                    </div>
+                                    <div className="bg-gray-50 rounded-lg p-4 flex flex-col items-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-sky-500 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        <span className="text-sm text-gray-500 font-poppins">Opening Time</span>
+                                        <span className="text-xl font-semibold text-gray-800 font-poppins">{formattedOpeningTime}</span>
+                                    </div>
+                                    <div className="bg-gray-50 rounded-lg p-4 flex flex-col items-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-sky-500 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                        <span className="text-sm text-gray-500 font-poppins">Closing Time</span>
+                                        <span className="text-xl font-semibold text-gray-800 font-poppins">{formattedClosingTime}</span>
+                                    </div>
+                                </div>
+                                
+                                {/* Description */}
+                                <div className="border-t border-gray-200 pt-6">
+                                    <h2 className="text-2xl font-semibold text-gray-800 mb-4 font-poppins">Description</h2>
+                                    <div className="prose max-w-none text-gray-700 font-poppins">
+                                        <p className="leading-relaxed">{space.description || "No description available for this space."}</p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-
-                        {/* Description */}
-                        <div className="mt-6 md:mt-8 border-t pt-6 md:pt-8"> {/* Added border-top and padding */}
-                             <h2 className="text-2xl font-semibold mb-3 font-poppins">Description</h2> {/* Added heading */}
-                             <p className="text-base md:text-lg text-gray-700 leading-relaxed font-poppins">{space.description}</p> {/* Reduced size */}
-                        </div>
-
-                         {/* Optional: Add other details like capacity, type, hours */}
-                         <div className="mt-6 text-base md:text-lg text-gray-700 space-y-1 font-poppins"> {/* Reduced size/spacing */}
-                             <p><strong>Capacity:</strong> {space.capacity}</p>
-                             {/* Use the formatted space type */}
-                             <p><strong>Type:</strong> {formattedSpaceType}</p>
-                             {/* Display formatted opening and closing times separately */}
-                             <p><strong>Opening Time:</strong> {formattedOpeningTime}</p>
-                             <p><strong>Closing Time:</strong> {formattedClosingTime}</p>
-                         </div>
-                    </section>
+                    </div>
                 )}
-                 {!isLoading && !error && !space && (
-                     <div className="text-center text-gray-500 py-10">Space details could not be loaded.</div>
-                 )}
+                
+                {!isLoading && !error && !space && (
+                    <div className="flex flex-col items-center justify-center py-16">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <h2 className="text-xl font-semibold text-gray-700 mb-2 font-poppins">Space Not Found</h2>
+                        <p className="text-gray-500 font-poppins">The space details could not be loaded.</p>
+                    </div>
+                )}
             </main>
 
             {/* Booking Modal */}

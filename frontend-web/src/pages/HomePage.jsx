@@ -13,7 +13,7 @@ export const HeroSection = () => {
         </p>
         <Link
           to="/SpacesPage" // Redirect to SpacesPage
-          className="px-6 py-3 w-32 h-14 text-white bg-sky-500 rounded-3xl hover:bg-sky-400 font-poppins"
+          className="flex items-center justify-center px-6 py-3 w-32 h-14 text-white bg-sky-500 rounded-3xl hover:bg-sky-400 font-poppins" // Added flex, items-center, justify-center
         >
           Book now
         </Link>
@@ -41,7 +41,7 @@ export const SpaceShowcase = () => {
       <div className="grid grid-cols-3 gap-10 px-4">
         {/* Space Card 1 */}
         <div className="rounded-lg overflow-hidden shadow-md transform scale-95">
-          <img src="/space1.png" alt="The Lumina Loft" className="w-full h-max object-cover" />
+          <img src="/space1.png" alt="The Lumina Loft" className="w-full h-max object-cover" loading="lazy" />
           <div className="p-3">
             <h3 className="text-2xl font-semibold mb-1 font-poppins">Produktiv</h3>
             <p className="text-gray-500 text-lg font-poppins">Fuente Osmeña • 4.5 (128)</p>
@@ -50,7 +50,7 @@ export const SpaceShowcase = () => {
 
         {/* Space Card 2 */}
         <div className="rounded-lg overflow-hidden shadow-md transform scale-95">
-          <img src="/space2.png" alt="The Lumina Loft" className="w-full h-max object-cover" />
+          <img src="/space2.png" alt="The Lumina Loft" className="w-full h-max object-cover" loading="lazy" />
           <div className="p-3">
             <h3 className="text-2xl font-semibold mb-1 font-poppins">The Company CEBU</h3>
             <p className="text-gray-500 text-lg font-poppins">Cebu IT Park • 4.7 (209)</p>
@@ -59,7 +59,7 @@ export const SpaceShowcase = () => {
 
         {/* Space Card 3 */}
         <div className="rounded-lg overflow-hidden shadow-md transform scale-95">
-          <img src="/space3.png" alt="The Lumina Loft" className="w-full h-max object-cover" />
+          <img src="/space3.png" alt="The Lumina Loft" className="w-full h-max object-cover" loading="lazy" />
           <div className="p-3">
             <h3 className="text-2xl font-semibold mb-1 font-poppins">WorkNook</h3>
             <p className="text-gray-500 text-lg font-poppins">Ayala Business Park • 4.6 (157)</p>
@@ -83,7 +83,7 @@ export const TaglineSection = () => {
   );
 };
 
-// PlatformDescription Section Component (No changes needed)
+// PlatformDescription Section Component
 export const PlatformDescriptionSection = () => {
   return (
     <section className="px-4 md:px-12 py-8 bg-white md:w-1/2">
@@ -93,9 +93,13 @@ export const PlatformDescriptionSection = () => {
           <p className="text-gray-600 mb-4 font-poppins text-2xl">
             From students to teams, see why StudySpace is the leading platform to find and book your ideal space.
           </p>
-          <button className="px-6 py-3 w-48 text-white bg-gray-900 rounded-3xl font-poppins">
+          {/* Changed button to Link */}
+          <Link 
+            to="/SpacesPage" 
+            className="inline-block text-center px-6 py-3 w-48 text-white bg-gray-900 rounded-3xl font-poppins hover:bg-gray-700" // Added inline-block, text-center and hover effect
+          >
             Get Started
-          </button>
+          </Link>
         </div>
       </div>
     </section>
@@ -112,7 +116,7 @@ export const WhyChooseUsSection = () => {
           {/* Feature 1 */}
           <div className="flex flex-col items-center md:items-start max-w-md">
             <div className="mb-2 flex-shrink-0">
-              <img src="/point-icon.png" alt="Feature Icon" className="w-10 h-10 rounded-full shadow" />
+              <img src="/point-icon.png" alt="Feature Icon" className="w-10 h-10 rounded-full shadow" loading="lazy" />
             </div>
             <div>
               <h3 className="font-sm text-2xl mb-1 font-poppins bg-indigo-200">Find Your Ideal Space, Effortlessly</h3>
@@ -122,7 +126,7 @@ export const WhyChooseUsSection = () => {
           {/* Feature 2 */}
           <div className="flex flex-col items-center md:items-start max-w-md">
             <div className="mb-2 flex-shrink-0">
-              <img src="/lens-icon.png" alt="Feature Icon" className="w-10 h-10 rounded-full shadow" />
+              <img src="/lens-icon.png" alt="Feature Icon" className="w-10 h-10 rounded-full shadow" loading="lazy" />
             </div>
             <div>
               <h3 className="font-sm text-2xl mb-1 font-poppins bg-indigo-200">Real-Time Availability, Easy Booking</h3>
@@ -132,7 +136,7 @@ export const WhyChooseUsSection = () => {
           {/* Feature 3 */}
           <div className="flex flex-col items-center md:items-start max-w-md">
             <div className="mb-2 flex-shrink-0">
-              <img src="/shield-icon.png" alt="Feature Icon" className="w-10 h-10 rounded-full shadow" />
+              <img src="/shield-icon.png" alt="Feature Icon" className="w-10 h-10 rounded-full shadow" loading="lazy" />
             </div>
             <div>
               <h3 className="font-sm text-2xl mb-1 font-poppins bg-indigo-200">Trusted by Students and Teams</h3>
@@ -141,7 +145,7 @@ export const WhyChooseUsSection = () => {
           </div>
         </div>
         <div className="md:w-1/2 flex justify-center ml-10">
-          <img src="/student-image.png" alt="Student studying" className="rounded-lg shadow-md mb-6 w-96 h-auto" />
+          <img src="/student-image.png" alt="Student studying" className="rounded-lg shadow-md mb-6 w-96 h-auto" loading="lazy" />
         </div>
       </div>
       {/* Testimonials */}
