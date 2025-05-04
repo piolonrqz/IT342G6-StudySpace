@@ -1,6 +1,6 @@
 import React from 'react';
-import { Button } from "@/components/ui/button";
-import { DialogDescription } from "@/components/ui/dialog";
+import { Button } from "@/Components/ui/button";
+import { DialogDescription } from "@/Components/ui/dialog";
 
 // Define and export the SpaceManagement component
 export const SpaceManagement = ({ spaces, onEdit, onDelete, onAdd }) => {

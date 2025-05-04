@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button } from "@/components/ui/button"; // Import Button component
+import { Button } from "@/Components/ui/button"; // Import Button component
 
 // Helper function to get initials
 const getInitials = (firstName, lastName) => {
