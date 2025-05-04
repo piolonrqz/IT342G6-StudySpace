@@ -92,7 +92,7 @@ export const AuthProvider = ({ children }) => {
 
         try {
             // Update URL to use production URL
-            const response = await fetch(`http://localhost:8080/api/users/update/${user.id}`, { 
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/users/update/${user.id}`, { 
                 method: 'PUT',
                 headers: {
                     // Content-Type is set automatically by the browser for FormData
@@ -179,7 +179,7 @@ export const AuthProvider = ({ children }) => {
         }
 
         try {
-            const response = await fetch(`http://localhost:8080/api/users/change-password/${user.id}`, {
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/users/change-password/${user.id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -229,7 +229,7 @@ export const AuthProvider = ({ children }) => {
         try {
             // Assuming the backend endpoint is POST /api/users/set-password/{id}
             // And it expects { newPassword: "..." }
-            const response = await fetch(`http://localhost:8080/api/users/set-password/${user.id}`, { // Use correct production URL if needed
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/users/set-password/${user.id}`, { // Use correct production URL if needed
                 method: 'POST', 
                 headers: {
                     'Content-Type': 'application/json',

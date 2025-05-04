@@ -154,7 +154,7 @@ export const UserFormModal = ({
     setEmailError(""); // Clear previous email errors
     try {
       // Use the same endpoint as ProfilePage
-      const response = await fetch(`http://localhost:8080/api/users/check-email?email=${encodeURIComponent(email)}`);
+      const response = await fetch(`https://it342g6-studyspace.onrender.com/api/users/check-email?email=${encodeURIComponent(email)}`);
       if (!response.ok) {
         // Try to get error message from backend response
         let errorMsg = 'Failed to check email availability';

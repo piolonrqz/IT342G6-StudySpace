@@ -119,7 +119,7 @@ const RegisterForm = () => {
 
     try {
       // Check email availability
-      const checkResponse = await fetch(`http://localhost:8080/api/users/check-email?email=${encodeURIComponent(email)}`);
+      const checkResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/users/check-email?email=${encodeURIComponent(email)}`);
       const isEmailUnique = await checkResponse.json();
 
       if (!checkResponse.ok) {
@@ -152,7 +152,7 @@ const RegisterForm = () => {
         role: "USER"
       };
 
-      const response = await fetch("http://localhost:8080/api/users/save", {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/users/save`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(user)
@@ -197,7 +197,7 @@ const RegisterForm = () => {
 
   const handleGoogleRegister = () => {
     // Redirect to Google OAuth2 endpoint for registration/login
-    window.location.href = 'https://it342g6-studyspace.onrender.com/oauth2/authorization/google';
+    window.location.href = `${import.meta.env.VITE_API_BASE_URL}/oauth2/authorization/google`;
   };
 
   // 6. Update JSX with new fields, error displays, and loading states
