@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext.jsx'; // Import AuthProvider
 import { Toaster } from "@/Components/ui/toaster"; // Import the Toaster
 
-import Homepage from './pages/Homepage.jsx';
+import Homepage from './pages/HomePage.jsx';
 import SpacesPage from './pages/SpacesPage.jsx';
 import LoginPage from './pages/LoginPage.jsx';
 import RegisterPage from './pages/RegisterPage.jsx';
