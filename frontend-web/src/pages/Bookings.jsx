@@ -206,7 +206,7 @@ const Bookings = () => {
                             onClick={() => setActiveFilter(filter)}
                             className="capitalize"
                         >
-                            {filter === 'Booked' ? 'Upcoming' : filter} {/* Display 'Booked' as 'Upcoming' */}
+                            {filter}
                         </Button>
                     ))}
                 </div>

@@ -19,7 +19,6 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
-import java.util.Map;
 
 @Component
 public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
@@ -61,6 +60,9 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
             user.setRole(UserRole.USER); // Default role
             user = userRepo.save(user);
         }
+
+        // Determine if the user has a password set
+        boolean hasPassword = user.getPassword() != null && !user.getPassword().isEmpty();
         
         // Generate JWT token
         String token = jwtUtil.generateToken(user);
@@ -76,7 +78,13 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
             .queryParam("userId", user.getId())
             .queryParam("email", URLEncoder.encode(user.getEmail(), StandardCharsets.UTF_8))
             .queryParam("firstName", URLEncoder.encode(user.getFirstName(), StandardCharsets.UTF_8))
-            .queryParam("lastName", URLEncoder.encode(user.getLastName(), StandardCharsets.UTF_8));
+            .queryParam("lastName", URLEncoder.encode(user.getLastName(), StandardCharsets.UTF_8))
+            .queryParam("hasPassword", String.valueOf(hasPassword)); // Add hasPassword status
+
+        // Add phoneNumber if it exists and is not empty
+        if (user.getPhoneNumber() != null && !user.getPhoneNumber().isEmpty()) {
+            uriBuilder.queryParam("phoneNumber", URLEncoder.encode(user.getPhoneNumber(), StandardCharsets.UTF_8));
+        }
             
         // Add profilePictureFilename if it exists
         if (user.getProfilePictureFilename() != null && !user.getProfilePictureFilename().isEmpty()) {

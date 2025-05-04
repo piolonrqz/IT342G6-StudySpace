@@ -22,6 +22,7 @@ import java.time.format.DateTimeParseException; // Import DateTimeParseException
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors; // Import Collectors
+import java.math.BigDecimal;
 import java.time.LocalDate; // Import LocalDate
 
 @Service
@@ -263,9 +264,9 @@ public class BookingService {
                 .collect(Collectors.toList());
     }
 
-    // Update booking details (Status, Participants) by Admin
+    // Update booking details (Status, Participants, Price) by Admin
     @Transactional
-    @Operation(summary = "Update booking by admin", description = "Updates status and/or number of people for a booking")
+    @Operation(summary = "Update booking by admin", description = "Updates status, number of people, and/or total price for a booking")
     public BookingResponseDTO updateBookingByAdmin(int bookingId, BookingUpdateAdminDTO updateDTO) {
         // Find booking or throw 404
         BookingEntity booking = bookingRepo.findById(bookingId)
@@ -299,7 +300,7 @@ public class BookingService {
         }
 
         // Update Number of People if provided and different
-        if (updateDTO.getNumberOfPeople() != null && updateDTO.getNumberOfPeople() != booking.getNumberOfPeople()) {
+        if (updateDTO.getNumberOfPeople() != null && !updateDTO.getNumberOfPeople().equals(booking.getNumberOfPeople())) { // Use equals for Integer comparison
             // Validate against space capacity
             if (booking.getSpace() != null && updateDTO.getNumberOfPeople() > booking.getSpace().getCapacity()) {
                  throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Number of participants (" + updateDTO.getNumberOfPeople() + ") exceeds space capacity (" + booking.getSpace().getCapacity() + ").");
@@ -309,6 +310,25 @@ public class BookingService {
             }
             booking.setNumberOfPeople(updateDTO.getNumberOfPeople());
             updated = true;
+        }
+
+        // Update Total Price if provided and different
+        // Use Double comparison (handle potential nulls and floating point comparison carefully)
+        if (updateDTO.getTotalPrice() != null) {
+            // Check if the booking's current price is different or null
+            // Note: Direct comparison of doubles can be tricky due to precision.
+            // For this update logic, checking if the new value is provided and differs significantly might be enough.
+            // A simple check for difference: (handle null case for booking.getTotalPrice())
+            boolean priceChanged = booking.getTotalPrice() == null || !booking.getTotalPrice().equals(updateDTO.getTotalPrice());
+
+            if (priceChanged) {
+                // Add validation if needed (e.g., price must be non-negative)
+                if (updateDTO.getTotalPrice() < 0.0) { // Compare Double with 0.0
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Total price cannot be negative.");
+                }
+                booking.setTotalPrice(updateDTO.getTotalPrice()); // Pass the Double
+                updated = true;
+            }
         }
 
         if (updated) {
