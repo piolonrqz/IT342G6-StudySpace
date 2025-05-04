@@ -31,7 +31,7 @@ const Bookings = () => {
             setError(null);
 
             try {
-                const response = await fetch(`https://it342g6-studyspace.onrender.com/api/bookings/user/${user.id}`, {
+                const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/bookings/user/${user.id}`, {
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }
@@ -85,7 +85,7 @@ const Bookings = () => {
         if (!cancelBookingId) return;
         
         try {
-            const response = await fetch(`https://it342g6-studyspace.onrender.com/api/bookings/${cancelBookingId}/cancel`, {
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/bookings/${cancelBookingId}/cancel`, {
                 method: 'PUT',
                 headers: {
                     'Authorization': `Bearer ${token}`,

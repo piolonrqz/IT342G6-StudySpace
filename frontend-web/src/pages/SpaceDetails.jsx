@@ -53,7 +53,7 @@ const SpaceDetails = () => {
             setIsLoading(true);
             setError(null);
             try {
-                const response = await fetch(`https://it342g6-studyspace.onrender.com/api/space/${id}`); // Use correct backend URL
+                const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/space/${id}`); // Use environment variable
                 if (!response.ok) {
                     if (response.status === 404) {
                         throw new Error(`Space with ID ${id} not found.`);

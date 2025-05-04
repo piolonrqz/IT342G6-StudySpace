@@ -114,14 +114,16 @@ const AdminPage = () => {
   const [isBookingDeleteConfirmModalOpen, setIsBookingDeleteConfirmModalOpen] = useState(false); // For Delete confirmation
   const [bookingToDeleteId, setBookingToDeleteId] = useState(null); // ID for deletion
 
-  const API_BASE_URL = "https://it342g6-studyspace.onrender.com/api";
+  // Use environment variable for base URL
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   // --- Fetch Functions ---
   const fetchUsers = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch(`https://it342g6-studyspace.onrender.com/api/users/getAll`);
+      // Use API_BASE_URL variable
+      const response = await fetch(`${API_BASE_URL}/api/users/getAll`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -153,7 +155,8 @@ const AdminPage = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${API_BASE_URL}/space/getAll`);
+      // Use API_BASE_URL variable
+      const response = await fetch(`${API_BASE_URL}/api/space/getAll`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -172,7 +175,8 @@ const AdminPage = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${API_BASE_URL}/bookings/detailed`, {
+      // Use API_BASE_URL variable
+      const response = await fetch(`${API_BASE_URL}/api/bookings/detailed`, {
         headers: { 'Authorization': `Bearer ${token}` } // Add Authorization header
       });
       if (!response.ok) {
@@ -231,7 +235,7 @@ const AdminPage = () => {
     setIsLoading(true); 
     setError(null);
     try {
-      const response = await fetch(`${API_BASE_URL}/users/delete/${userToDeleteId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/users/delete/${userToDeleteId}`, {
         method: 'DELETE',
       });
       if (!response.ok) {
@@ -258,7 +262,7 @@ const AdminPage = () => {
      setIsLoading(true);
      setError(null);
      const isEditing = !!editingUser; // Check if we are editing
-     const url = isEditing ? `${API_BASE_URL}/users/update/${editingUser.id}` : `${API_BASE_URL}/users/save`;
+     const url = isEditing ? `${API_BASE_URL}/api/users/update/${editingUser.id}` : `${API_BASE_URL}/api/users/save`;
      const method = isEditing ? 'PUT' : 'POST';
 
      try {
@@ -346,7 +350,7 @@ const AdminPage = () => {
     setIsLoading(true); 
     setError(null);
     try {
-      const response = await fetch(`${API_BASE_URL}/space/delete/${spaceToDeleteId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/space/delete/${spaceToDeleteId}`, {
         method: 'DELETE',
       });
       
@@ -376,7 +380,7 @@ const AdminPage = () => {
     setIsLoading(true);
     setError(null);
     const isEditing = !!editingSpace; // Use editingSpace state to determine Add vs Edit
-    const url = isEditing ? `${API_BASE_URL}/space/update/${editingSpace.id}` : `${API_BASE_URL}/space/save`;
+    const url = isEditing ? `${API_BASE_URL}/api/space/update/${editingSpace.id}` : `${API_BASE_URL}/api/space/save`;
     const method = isEditing ? 'PUT' : 'POST';
 
     let response; // Define response variable outside try block to access in catch
@@ -467,7 +471,7 @@ const AdminPage = () => {
     console.log("Saving booking update:", updateData);
     setIsLoading(true);
     setError(null);
-    const url = `${API_BASE_URL}/bookings/updateAdmin/${editingBooking.id}`;
+    const url = `${API_BASE_URL}/api/bookings/updateAdmin/${editingBooking.id}`;
 
     try {
         const response = await fetch(url, {
@@ -513,7 +517,7 @@ const AdminPage = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${API_BASE_URL}/bookings/${bookingToCancelId}/cancel`, {
+      const response = await fetch(`${API_BASE_URL}/api/bookings/${bookingToCancelId}/cancel`, {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json',
@@ -553,7 +557,7 @@ const AdminPage = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${API_BASE_URL}/bookings/delete/${bookingToDeleteId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/bookings/delete/${bookingToDeleteId}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` } // Add token
       });

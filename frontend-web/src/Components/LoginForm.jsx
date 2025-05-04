@@ -20,7 +20,7 @@ const LoginForm = () => {
     setValidationError('');
 
     try {
-      const response = await fetch("http://localhost:8080/api/users/login", { 
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/users/login`, { 
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -50,8 +50,8 @@ const LoginForm = () => {
   };
 
   const handleGoogleLogin = () => {
-    // Redirect to Google OAuth2 endpoint
-    window.location.href = 'http://localhost:8080/oauth2/authorization/google';
+    // Redirect to Google OAuth2 endpoint - Construct URL using the base URL
+    window.location.href = `${import.meta.env.VITE_API_BASE_URL}/oauth2/authorization/google`;
   };
 
   return (

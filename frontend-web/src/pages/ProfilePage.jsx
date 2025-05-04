@@ -183,7 +183,7 @@ const ProfilePage = () => {
     
     setIsCheckingEmail(true);
     try {
-      const response = await fetch(`http://localhost:8080/api/users/check-email?email=${encodeURIComponent(email)}`);
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/users/check-email?email=${encodeURIComponent(email)}`);
       if (!response.ok) throw new Error('Failed to check email availability');
       
       const isUnique = await response.json(); // Backend returns true if unique, false if exists
