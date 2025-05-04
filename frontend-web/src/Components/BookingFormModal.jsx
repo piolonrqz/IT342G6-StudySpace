@@ -9,13 +9,6 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { format, parseISO } from 'date-fns';
 
 // Helper to format date/time for display
@@ -38,22 +31,22 @@ export const BookingFormModal = ({
   error,
 }) => {
   const [formData, setFormData] = useState({
-    status: "",
     numberOfPeople: 1,
+    totalPrice: 0, // Added totalPrice
   });
 
   // Populate form when booking data is available
   useEffect(() => {
     if (booking) {
       setFormData({
-        status: booking.status || "",
         numberOfPeople: booking.numberOfPeople || 1,
+        totalPrice: booking.totalPrice || 0, // Populate totalPrice
       });
     } else {
       // Reset form if no booking
       setFormData({
-        status: "",
         numberOfPeople: 1,
+        totalPrice: 0, // Reset totalPrice
       });
     }
   }, [booking]);
@@ -62,8 +55,8 @@ export const BookingFormModal = ({
     e.preventDefault();
     // Pass only the fields that can be updated
     onSave({
-        status: formData.status,
-        numberOfPeople: parseInt(formData.numberOfPeople, 10) || 1 // Ensure it's an integer
+        numberOfPeople: parseInt(formData.numberOfPeople, 10) || 1, // Ensure it's an integer
+        totalPrice: parseFloat(formData.totalPrice) || 0 // Ensure it's a float
     });
   };
 
@@ -73,7 +66,7 @@ export const BookingFormModal = ({
         <DialogHeader>
           <DialogTitle>Edit Booking #{booking?.id}</DialogTitle>
           <DialogDescription>
-            Update the status or participant count for this booking.
+            Update the participant count or total price for this booking. {/* Updated description */}
           </DialogDescription>
         </DialogHeader>
 
@@ -87,25 +80,6 @@ export const BookingFormModal = ({
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Status Selection */}
-          <div>
-            <Label htmlFor="booking-status">Status</Label>
-            <Select
-              value={formData.status}
-              onValueChange={(value) => setFormData({ ...formData, status: value })}
-            >
-              <SelectTrigger id="booking-status">
-                <SelectValue placeholder="Select status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="BOOKED">Booked</SelectItem>
-                <SelectItem value="CANCELLED">Cancelled</SelectItem>
-                <SelectItem value="COMPLETED">Completed</SelectItem>
-                {/* Add other statuses if applicable */}
-              </SelectContent>
-            </Select>
-          </div>
-
           {/* Number of Participants Input */}
           <div>
             <Label htmlFor="booking-participants">Number of Participants</Label>
@@ -123,6 +97,20 @@ export const BookingFormModal = ({
              {/* {booking?.space?.capacity && <p className="text-xs text-gray-500 mt-1">Max capacity: {booking.space.capacity}</p>} */}
           </div>
 
+          {/* Total Price Input Added */}
+          <div>
+            <Label htmlFor="booking-total-price">Total Price (₱)</Label>
+            <Input
+              id="booking-total-price"
+              type="number"
+              step="0.01" // Allow decimal values for price
+              min="0"
+              value={formData.totalPrice}
+              onChange={(e) => setFormData({ ...formData, totalPrice: e.target.value })}
+              required
+            />
+          </div>
+
           {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
 
           <div className="flex justify-end gap-2 pt-4">
@@ -131,7 +119,7 @@ export const BookingFormModal = ({
             </Button>
             <Button type="submit" disabled={isLoading} className="bg-[#2F9FE5] hover:bg-[#2387c9]">
               {isLoading ? "Saving..." : "Save Changes"}
-            </Button>
+            </Button> {/* Added missing closing tag */}
           </div>
         </form>
       </DialogContent>

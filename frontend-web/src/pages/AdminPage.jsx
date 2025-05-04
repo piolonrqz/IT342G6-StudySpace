@@ -468,7 +468,6 @@ const AdminPage = () => {
   // Save Booking (Update Status/Participants)
   const handleSaveBooking = async (updateData) => {
     if (!editingBooking) return;
-    console.log("Saving booking update:", updateData);
     setIsLoading(true);
     setError(null);
     const url = `${API_BASE_URL}/api/bookings/updateAdmin/${editingBooking.id}`;
@@ -485,18 +484,17 @@ const AdminPage = () => {
 
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({ message: 'Failed to parse error response' }));
-            throw new Error(`Failed to update booking: ${response.status} - ${errorData.message || errorData.error || 'Unknown error'}`);
+            throw new Error(`Failed to update booking: ${errorData.message || errorData.error || 'Unknown error'}`);
         }
 
         const savedBooking = await response.json();
-        console.log("Booking updated successfully:", savedBooking);
         toast({ title: "Booking Updated", description: `Booking #${savedBooking.id} has been updated.` });
         setIsBookingModalOpen(false);
         setEditingBooking(null);
         fetchBookings(); // Refresh list
     } catch (e) {
-        console.error("Failed to save booking update:", e);
-        setError(`Failed to update booking. ${e.message}`);
+        // console.error("Failed to save booking update:", e);
+        setError(`${e.message}`);
         // Keep modal open on error
     } finally {
         setIsLoading(false);

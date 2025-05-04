@@ -36,9 +36,10 @@ const SpaceShowcase = ({ searchTerm = "" }) => {
     fetchSpaces();
   }, []);
 
-  // Filter spaces based on searchTerm
+  // Filter spaces based on searchTerm and availability
   const filteredSpaces = spaces.filter(space =>
-    space.name.toLowerCase().includes(searchTerm.toLowerCase())
+    space.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
+    space.available // Check if available is true (matches JSON field name)
   );
 
   return (

@@ -45,7 +45,7 @@ const SpaceDetails = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
-    const { isAuthenticated } = useAuth();
+    const { isAuthenticated, user } = useAuth(); // Get user object from useAuth
     const { toast } = useToast();
 
     useEffect(() => {
@@ -106,8 +106,20 @@ const SpaceDetails = () => {
             });
             return;
         }
+        // Check if user is ADMIN before opening modal (redundant if button is disabled, but good practice)
+        if (user?.role === 'ADMIN') {
+             toast({
+                 title: "Action Not Allowed",
+                 description: "Administrators cannot book spaces.",
+                 variant: "destructive"
+             });
+             return;
+        }
         setIsBookingModalOpen(true);
     };
+
+    // Determine if the button should be disabled
+    const isAdmin = user?.role === 'ADMIN';
 
     return (
         <div className="flex flex-col min-h-screen">
@@ -152,7 +164,8 @@ const SpaceDetails = () => {
                             {/* Booking Button */}
                             <button
                                 onClick={handleBookNowClick}
-                                className="text-white shadow-md text-base md:text-lg font-medium cursor-pointer bg-sky-500 px-6 py-2.5 rounded-md hover:bg-sky-600 transition-colors font-poppins w-full md:w-auto" /* Adjusted size, padding, added width control */
+                                disabled={isAdmin} // Disable button if user is ADMIN
+                                className={`text-white shadow-md text-base md:text-lg font-medium cursor-pointer bg-sky-500 px-6 py-2.5 rounded-md transition-colors font-poppins w-full md:w-auto ${isAdmin ? 'opacity-50 cursor-not-allowed' : 'hover:bg-sky-600'}`} // Add disabled styles
                             >
                                 Book Now
                             </button>
