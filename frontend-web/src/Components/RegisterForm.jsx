@@ -270,14 +270,14 @@ const RegisterForm = () => {
             {/* Phone Number with Prefix */}
             <div>
               <label className="block text-sm text-gray-700 mb-1">Phone number</label>
-              <div className={`flex rounded-lg overflow-hidden border ${errors.phoneNumber ? 'border-red-500' : 'border-gray-300'}`}>
+              <div className={`flex rounded-lg overflow-hidden border ${errors.phoneNumber ? 'border-red-500' : 'border-gray-300'} focus-within:ring-2 focus-within:ring-sky-500`}>
                 <div className="bg-gray-100 py-3 px-4 text-gray-600 border-r border-gray-300">+63</div>
                 <input
                   type="tel" // Use tel type
                   name="phoneNumber" // Add name attribute
                   value={phoneNumber}
                   onChange={handleInputChange} // Use unified handler
-                  className={`flex-grow p-3 border-0 focus:ring-2 focus:ring-sky-500 focus:outline-none`}
+                  className={`flex-grow p-3 border-0 focus:outline-none`}
                   placeholder="9xxxxxxxxx"
                   required
                   maxLength="10" // Max length attribute

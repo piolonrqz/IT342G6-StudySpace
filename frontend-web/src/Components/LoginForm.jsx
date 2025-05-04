@@ -137,23 +137,16 @@ const LoginForm = () => {
 
           <div className="mt-6">
             <hr className="mb-4 border-t border-gray-300" />
-            <div className="text-center">
-              <button
+            <div className="text-center text-sm text-gray-500 mb-2">Or sign in with</div>
+            <button
                 type="button"
                 onClick={handleGoogleLogin}
-                className="w-full p-3 bg-white font-semibold hover:border-gray-400 transition flex items-center justify-center"
+                className="w-full p-3 bg-white border border-gray-300 rounded-lg font-semibold hover:bg-gray-50 transition flex items-center justify-center gap-2"
                 aria-label="Sign in with Google"
-                style={{
-                  backgroundImage: "url(/google_logo.png)",
-                  backgroundRepeat: "no-repeat",
-                  backgroundPosition: "center",
-                  backgroundSize: "40px 40px",
-                  padding: "20px",
-                }}
-              >
-                <span className="sr-only">Sign in with Google</span>
-              </button>
-            </div>
+            >
+                <img src="/google_logo.png" alt="Google logo" className="h-5 w-5" />
+                Google
+            </button>
           </div>
         </div>
       </div>
