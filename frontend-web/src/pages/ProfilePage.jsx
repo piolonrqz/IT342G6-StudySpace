@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react"; // Import useRef, useEffect
 import { useAuth } from "../context/AuthContext";
-import NavigationBar from "../components/NavigationBar";
-import Footer from "../components/Footer";
+import NavigationBar from "../Components/NavigationBar";
+import Footer from "../Components/Footer";
 import { useToast } from "@/hooks/use-toast";
 import { Check, X } from "lucide-react"; // Import Check and X icons from lucide-react
 
