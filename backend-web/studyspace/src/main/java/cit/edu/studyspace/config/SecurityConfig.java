@@ -93,7 +93,7 @@ public class SecurityConfig {
     public CorsFilter corsFilter() {
         CorsConfiguration configuration = new CorsConfiguration();
         // Keep your allowed origins, methods, headers etc.
-        configuration.setAllowedOrigins(List.of("http://localhost:5173")); // Only frontend needed usually
+        configuration.setAllowedOrigins(List.of("http://localhost:5173", "https://it-342-g6-study-space-i6r8.vercel.app")); // Only frontend needed usually
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD"));
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Requested-With", "Accept", "Origin", "Access-Control-Request-Method", "Access-Control-Request-Headers"));
         configuration.setAllowCredentials(true);
