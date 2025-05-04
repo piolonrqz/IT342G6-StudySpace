@@ -39,7 +39,8 @@ export const AuthProvider = ({ children }) => {
             email: userData.email, // Assuming email is needed/available
             role: userData.role || 'USER', // Default role if not provided
             profilePictureFilename: userData.profilePictureFilename, // Add profile picture filename
-            phoneNumber: userData.phoneNumber
+            phoneNumber: userData.phoneNumber,
+            hasPassword: userData.hasPassword // Add hasPassword flag from backend
         };
 
         localStorage.setItem('jwtToken', jwtToken);
@@ -154,6 +155,8 @@ export const AuthProvider = ({ children }) => {
                 // Update role if it's returned, otherwise keep existing
                 role: updatedUserData.role ? updatedUserData.role.toUpperCase() : user.role, 
                 profilePictureFilename: updatedUserData.profilePictureFilename || user.profilePictureFilename, // Update filename if returned
+                // Preserve hasPassword from the existing user state during update
+                hasPassword: user.hasPassword 
             };
 
             // Update state and localStorage
@@ -176,7 +179,7 @@ export const AuthProvider = ({ children }) => {
         }
 
         try {
-            const response = await fetch(`https://it342g6-studyspace.onrender.com/api/users/change-password/${user.id}`, {
+            const response = await fetch(`http://localhost:8080/api/users/change-password/${user.id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -193,7 +196,7 @@ export const AuthProvider = ({ children }) => {
                 } catch (parseError) {
                     // If JSON parsing fails, use response text or status
                     const errorText = await response.text().catch(() => "Unknown error");
-                    throw new Error(`Failed to change password: ${response.status} - ${errorText || 'Unknown error'}`);
+                    throw new Error(`Failed to change password: ${response.status} - ${errorText || 'Incorrect current password'}`);
                 }
             }
 
@@ -212,6 +215,58 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
+    // Set Password function (for users without a password)
+    const setPassword = async (newPasswordData) => {
+        if (!user || !token) {
+            console.error("Cannot set password: Not logged in.");
+            throw new Error("You must be logged in to set your password.");
+        }
+        if (user.hasPassword) {
+            console.error("Cannot set password: User already has a password.");
+            throw new Error("User already has a password. Use change password instead.");
+        }
+
+        try {
+            // Assuming the backend endpoint is POST /api/users/set-password/{id}
+            // And it expects { newPassword: "..." }
+            const response = await fetch(`http://localhost:8080/api/users/set-password/${user.id}`, { // Use correct production URL if needed
+                method: 'POST', 
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                },
+                body: JSON.stringify(newPasswordData), // Send { newPassword }
+            });
+
+            if (!response.ok) {
+                try {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || errorData.message || `Failed to set password: ${response.status}`);
+                } catch (parseError) {
+                    const errorText = await response.text().catch(() => "Unknown error");
+                    throw new Error(`Failed to set password: ${response.status} - ${errorText || 'Unknown error'}`);
+                }
+            }
+
+            // Update user state and localStorage to reflect that a password is now set
+            const updatedUser = { ...user, hasPassword: true };
+            setUser(updatedUser);
+            localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+
+            // Try to parse the response as JSON (might contain a success message)
+            try {
+                const result = await response.json();
+                return result;
+            } catch (parseError) {
+                return { message: "Password set successfully" };
+            }
+
+        } catch (error) {
+            // Re-throw the error for the calling component
+            throw error;
+        }
+    };
+
     // Value provided by the context
     const value = {
         user,
@@ -219,7 +274,8 @@ export const AuthProvider = ({ children }) => {
         login,
         logout,
         updateUser,
-        changePassword, // Add changePassword to the context value
+        changePassword, // Existing function
+        setPassword,    // Add setPassword to the context value
         isAuthenticated: !!token && !!user // Helper boolean flag
     };
 

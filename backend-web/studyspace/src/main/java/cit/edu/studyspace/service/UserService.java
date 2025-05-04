@@ -73,6 +73,10 @@ public class UserService {
             authResponse.put("role", user.getRole().name()); // Convert enum to String
             authResponse.put("profilePictureFilename", user.getProfilePictureFilename()); // *** ADD THIS LINE ***
 
+            // Check if the user has a password set
+            boolean hasPassword = user.getPassword() != null && !user.getPassword().isEmpty();
+            authResponse.put("hasPassword", hasPassword);
+
             return authResponse; // Return the map
         } else {
             // Throw an exception for invalid credentials
@@ -194,6 +198,10 @@ public class UserService {
                 });
 
         // Verify the current password
+        if (user.getPassword() == null || user.getPassword().isEmpty()) {
+            logger.warn("Attempted to change password for user ID {} who has no password set. Use set-password instead.", id);
+            throw new RuntimeException("User does not have a password set. Use the set password feature.");
+        }
         if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
             logger.warn("Incorrect current password provided for user ID: {}", id);
             throw new RuntimeException("Incorrect current password");
@@ -203,5 +211,26 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepo.save(user);
         logger.info("Password successfully changed for user ID: {}", id);
+    }
+
+    // Sets the password for a given user ID, only if no password is currently set
+    @Operation(summary = "Set user password", description = "Sets the initial password for a user who doesn't have one (e.g., OAuth users)")
+    public void setPassword(int id, String newPassword) {
+        UserEntity user = userRepo.findById(id)
+                .orElseThrow(() -> {
+                    logger.warn("User not found for password set with ID: {}", id);
+                    return new RuntimeException("User not found");
+                });
+
+        // Verify that the user does NOT already have a password
+        if (user.getPassword() != null && !user.getPassword().isEmpty()) {
+            logger.warn("Attempted to set password for user ID {} who already has a password. Use change-password instead.", id);
+            throw new RuntimeException("User already has a password set. Use the change password feature.");
+        }
+
+        // Encode and set the new password
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepo.save(user);
+        logger.info("Password successfully set for user ID: {}", id);
     }
 }

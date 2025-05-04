@@ -191,15 +191,11 @@ const AdminPage = () => {
 
   // Fetch data based on active item
   useEffect(() => {
-    setError(null); // Clear error when switching tabs
-    if (activeItem === "user-management") {
-      fetchUsers();
-    } else if (activeItem === "space-management") {
-      fetchSpaces();
-    } else if (activeItem === "booking-management") {
-      fetchBookings(); // Call fetchBookings
-    }
-  }, [activeItem, fetchUsers, fetchSpaces, fetchBookings]); // Add fetchBookings dependency
+    // Fetch all data initially when the component mounts
+    fetchUsers();
+    fetchSpaces();
+    fetchBookings();
+  }, [fetchUsers, fetchSpaces, fetchBookings]); // Run once on mount by depending on the stable fetch functions
 
   // --- CRUD Handlers --- User ---
 

@@ -11,6 +11,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import cit.edu.studyspace.dto.UserCreateDTO;
 import cit.edu.studyspace.dto.UserUpdateDTO;
 import cit.edu.studyspace.dto.PasswordChangeDTO; // Add import for PasswordChangeDTO
+import cit.edu.studyspace.dto.PasswordSetDTO; // Import the new DTO
 import jakarta.validation.Valid; // Add import for @Valid
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -229,11 +230,38 @@ public class UserController {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
             } else if ("Incorrect current password".equals(e.getMessage())) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
+            } else if (e.getMessage() != null && e.getMessage().startsWith("User does not have a password set")) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
             }
             // Handle other potential errors (like validation errors from @Valid)
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Password change failed: " + e.getMessage()));
         } catch (Exception e) {
             logger.error("Unexpected error during password change for user ID {}: {}", id, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "An unexpected error occurred."));
+        }
+    }
+
+    // Endpoint to set user password (for users without one)
+    @PostMapping("/set-password/{id}")
+    @Operation(summary = "Set user password", description = "Sets the initial password for a user who doesn\'t have one")
+    public ResponseEntity<?> setPassword(@PathVariable int id, @RequestBody @Valid PasswordSetDTO passwordSetDTO) {
+        try {
+            // Similar basic check as changePassword
+            userService.setPassword(id, passwordSetDTO.getNewPassword());
+            logger.info("Password set request successful for user ID: {}", id);
+            return ResponseEntity.ok(Map.of("message", "Password set successfully"));
+        } catch (RuntimeException e) {
+            logger.error("Password set failed for user ID {}: {}", id, e.getMessage());
+            // Return specific error messages based on the exception
+            if ("User not found".equals(e.getMessage())) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
+            } else if (e.getMessage() != null && e.getMessage().startsWith("User already has a password set")) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
+            }
+            // Handle other potential errors (like validation errors from @Valid)
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Password set failed: " + e.getMessage()));
+        } catch (Exception e) {
+            logger.error("Unexpected error during password set for user ID {}: {}", id, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "An unexpected error occurred."));
         }
     }

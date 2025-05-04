@@ -13,7 +13,7 @@ const getInitials = (firstName, lastName) => {
 };
 
 const ProfilePage = () => {
-  const { user, updateUser, changePassword } = useAuth(); // Add changePassword from context
+  const { user, updateUser, changePassword, setPassword } = useAuth(); // Add setPassword from context
   const { toast } = useToast(); // Initialize toast
   
   // New state for display name that doesn't change while typing
@@ -296,15 +296,27 @@ const ProfilePage = () => {
   };
 
   // Handle password change submission
-  const handleChangePassword = async () => {
+  const handlePasswordSubmit = async () => {
     const errors = {};
-    if (!passwordData.currentPassword) errors.currentPassword = "Current password is required.";
-    if (!passwordData.newPassword) errors.newPassword = "New password is required.";
-    // Basic regex for password complexity (example: min 8 chars, 1 letter, 1 number)
-    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*?&]{8,}$/;
-    if (passwordData.newPassword && !passwordRegex.test(passwordData.newPassword)) {
-        errors.newPassword = "Password must be at least 8 characters long and include at least one letter and one number.";
+    const isSettingPassword = !user.hasPassword; // Determine if setting or changing
+
+    // Validate current password only if changing
+    if (!isSettingPassword && !passwordData.currentPassword) {
+      errors.currentPassword = "Current password is required.";
     }
+
+    // Validate new password
+    if (!passwordData.newPassword) {
+      errors.newPassword = "New password is required.";
+    } else {
+      // Basic regex for password complexity (example: min 8 chars, 1 letter, 1 number)
+      const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*?&]{8,}$/;
+      if (!passwordRegex.test(passwordData.newPassword)) {
+        errors.newPassword = "Password must be at least 8 characters long and include at least one letter and one number.";
+      }
+    }
+
+    // Validate password confirmation
     if (passwordData.newPassword !== passwordData.confirmNewPassword) {
       errors.match = "New passwords do not match.";
     }
@@ -313,41 +325,51 @@ const ProfilePage = () => {
 
     if (Object.keys(errors).length === 0) {
       try {
-        // Correctly pass the password data object
-        await changePassword({
-          currentPassword: passwordData.currentPassword,
-          newPassword: passwordData.newPassword,
-        });
-        toast({
-          title: "Success",
-          description: "Password changed successfully.",
-        });
-        // Clear password fields after successful change
+        if (isSettingPassword) {
+          // Call setPassword if user doesn't have a password
+          await setPassword({ newPassword: passwordData.newPassword });
+          toast({
+            title: "Success",
+            description: "Password set successfully.",
+          });
+        } else {
+          // Call changePassword if user already has a password
+          await changePassword({
+            currentPassword: passwordData.currentPassword,
+            newPassword: passwordData.newPassword,
+          });
+          toast({
+            title: "Success",
+            description: "Password changed successfully.",
+          });
+        }
+
+        // Clear password fields after successful operation
         setPasswordData({
           currentPassword: "",
           newPassword: "",
           confirmNewPassword: "",
         });
         setPasswordErrors({});
+        setShowPasswordRequirements(false); // Hide requirements again
+
       } catch (error) {
-        // Display specific error from backend if available, otherwise generic message
-        // Prioritize error.response.data.error as sent by the backend
-        const errorMessage = error.response?.data?.error || error.response?.data?.message || "Failed to change password. Please check your current password.";
-         setPasswordErrors({ api: errorMessage }); // Set a general API error
-         toast({
-           title: "Error",
-           description: errorMessage,
-           variant: "destructive",
-         });
+        const errorMessage = error.response?.data?.error || error.response?.data?.message || `Failed to ${isSettingPassword ? 'set' : 'change'} password. Please try again.`;
+        setPasswordErrors({ api: errorMessage }); // Set a general API error
+        toast({
+          title: "Incorrect current password",
+          description: errorMessage,
+          variant: "destructive",
+        });
       }
     } else {
-         // Optionally toast validation errors
-         const firstError = Object.values(errors)[0];
-         toast({
-             title: "Validation Error",
-             description: firstError,
-             variant: "destructive",
-         });
+      // Optionally toast validation errors
+      const firstError = Object.values(errors)[0];
+      toast({
+        title: "Validation Error",
+        description: firstError,
+        variant: "destructive",
+      });
     }
   };
 
@@ -494,24 +516,29 @@ const ProfilePage = () => {
           </form>
         </div>
 
-        {/* Password Change Section */}
+        {/* Password Section */}
         <div className="bg-white p-6 rounded shadow-sm">
-          <h2 className="text-xl font-medium mb-6">Change password</h2>
+          {/* Conditionally render title */}
+          <h2 className="text-xl font-medium mb-6">
+            {user?.hasPassword ? "Change password" : "Set password"}
+          </h2>
           <form className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Current Password */}
-            <div>
-              <label className="block text-sm text-gray-600 mb-2">Current password</label>
-              <input
-                type="password"
-                name="currentPassword"
-                value={passwordData.currentPassword}
-                onChange={handlePasswordInputChange}
-                className={`w-full p-3 border ${passwordErrors.currentPassword ? 'border-red-500' : 'border-gray-300'} rounded-[10px] focus:ring-1 focus:ring-gray-300 focus:outline-none`}
-              />
-              {passwordErrors.currentPassword && <p className="text-red-500 text-xs mt-1">{passwordErrors.currentPassword}</p>}
-            </div>
-            {/* Spacer div */}
-            <div></div>
+            {/* Current Password - Conditionally render */}
+            {user?.hasPassword && (
+              <div>
+                <label className="block text-sm text-gray-600 mb-2">Current password</label>
+                <input
+                  type="password"
+                  name="currentPassword"
+                  value={passwordData.currentPassword}
+                  onChange={handlePasswordInputChange}
+                  className={`w-full p-3 border ${passwordErrors.currentPassword ? 'border-red-500' : 'border-gray-300'} rounded-[10px] focus:ring-1 focus:ring-gray-300 focus:outline-none`}
+                />
+                {passwordErrors.currentPassword && <p className="text-red-500 text-xs mt-1">{passwordErrors.currentPassword}</p>}
+              </div>
+            )}
+            {/* Spacer div - Conditionally render only if current password is shown */}
+            {user?.hasPassword && <div></div>}
 
             {/* New Password */}
             <div>
@@ -575,14 +602,22 @@ const ProfilePage = () => {
               )}
             </div>
 
-            {/* Change Password Button */}
+            {/* API Error Display */}
+            {passwordErrors.api && (
+                <div className="md:col-span-2 text-red-500 text-sm">
+                    {passwordErrors.api}
+                </div>
+            )}
+
+            {/* Submit Button */}
             <div className="md:col-span-2 mt-4">
               <button
                 type="button"
-                onClick={handleChangePassword}
+                onClick={handlePasswordSubmit} // Use the updated handler
                 className="w-full md:w-auto px-6 py-3 bg-sky-500 text-white rounded font-medium hover:bg-sky-300 transition"
               >
-                Change password
+                {/* Conditionally render button text */}
+                {user?.hasPassword ? "Change password" : "Set password"}
               </button>
             </div>
           </form>
