@@ -38,8 +38,8 @@ public class OAuthController {
     @GetMapping("/google")
     @Operation(summary = "Initiate Google OAuth", description = "Redirects to Google's OAuth page")
     public void initiateGoogleOAuth(HttpServletResponse response) throws IOException {
-        // Use absolute URL instead of relative URL to prevent any path resolution issues
-        response.sendRedirect("http://localhost:8080/oauth2/authorization/google");
+        // Use dynamic URL instead of hardcoded localhost to work in all environments
+        response.sendRedirect("/oauth2/authorization/google");
     }
     
     @GetMapping("/user-exists")
