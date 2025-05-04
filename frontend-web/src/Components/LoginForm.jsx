@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext'; // Import useAuth hook
+import { Eye, EyeOff } from 'lucide-react'; // Import Eye and EyeOff icons
 
 const LoginForm = () => {
   const [email, setEmail] = useState('');
@@ -19,7 +20,7 @@ const LoginForm = () => {
     setValidationError('');
 
     try {
-      const response = await fetch("https://it342g6-studyspace.onrender.com/api/users/login", { 
+      const response = await fetch("http://localhost:8080/api/users/login", { 
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -50,7 +51,7 @@ const LoginForm = () => {
 
   const handleGoogleLogin = () => {
     // Redirect to Google OAuth2 endpoint
-    window.location.href = 'https://it342g6-studyspace.onrender.com/oauth2/authorization/google';
+    window.location.href = 'http://localhost:8080/oauth2/authorization/google';
   };
 
   return (
@@ -88,23 +89,31 @@ const LoginForm = () => {
 
             <div>
               <label className="block text-sm text-gray-700 mb-2">Password</label>
-              <input
-                type={showPassword ? "text" : "password"}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none"
-                placeholder="Enter your password"
-                required
-              />
-              <div className="text-right mt-1">
+              {/* Add relative positioning to the container div */}
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  // Add padding to the right for the icon
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none pr-10"
+                  placeholder="Enter your password"
+                  required
+                />
+                {/* Position the button absolutely within the relative container */}
                 <button
                   type="button"
                   onClick={handleClickShowPassword}
-                  className="text-xs text-gray-500 hover:text-sky-600"
+                  // Use absolute positioning and icon styling
+                  className="absolute inset-y-0 right-0 px-3 flex items-center text-sm text-gray-600 hover:text-sky-600"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
                 >
-                  {showPassword ? "Hide Password" : "Show Password"}
+                  {/* Render Eye or EyeOff icon */}
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
+              {/* Remove the old text-based button container */}
+              {/* <div className="text-right mt-1"> ... </div> */}
             </div>
 
             {validationError && (
@@ -128,23 +137,16 @@ const LoginForm = () => {
 
           <div className="mt-6">
             <hr className="mb-4 border-t border-gray-300" />
-            <div className="text-center">
-              <button
+            <div className="text-center text-sm text-gray-500 mb-2">Or sign in with</div>
+            <button
                 type="button"
                 onClick={handleGoogleLogin}
-                className="w-full p-3 bg-white font-semibold hover:border-gray-400 transition flex items-center justify-center"
+                className="w-full p-3 bg-white border border-gray-300 rounded-lg font-semibold hover:bg-gray-50 transition flex items-center justify-center gap-2"
                 aria-label="Sign in with Google"
-                style={{
-                  backgroundImage: "url(/google_logo.png)",
-                  backgroundRepeat: "no-repeat",
-                  backgroundPosition: "center",
-                  backgroundSize: "40px 40px",
-                  padding: "20px",
-                }}
-              >
-                <span className="sr-only">Sign in with Google</span>
-              </button>
-            </div>
+            >
+                <img src="/google_logo.png" alt="Google logo" className="h-5 w-5" />
+                Google
+            </button>
           </div>
         </div>
       </div>

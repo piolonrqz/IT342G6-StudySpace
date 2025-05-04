@@ -61,9 +61,9 @@ export const BookingManagement = ({ bookings, onEdit, onCancel, onDelete }) => {
               key={filter}
               variant={activeFilter === filter ? "default" : "outline"}
               onClick={() => setActiveFilter(filter)}
-              className="capitalize"
+              className={`capitalize ${activeFilter === filter ? 'bg-[#2F9FE5] hover:bg-[#2387c9]' : ''}`}
             >
-              {filter === 'Booked' ? 'Upcoming' : filter}
+              {filter}
             </Button>
           ))}
         </div>

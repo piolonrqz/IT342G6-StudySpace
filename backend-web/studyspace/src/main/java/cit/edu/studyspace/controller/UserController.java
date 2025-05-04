@@ -11,6 +11,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import cit.edu.studyspace.dto.UserCreateDTO;
 import cit.edu.studyspace.dto.UserUpdateDTO;
 import cit.edu.studyspace.dto.PasswordChangeDTO; // Add import for PasswordChangeDTO
+import cit.edu.studyspace.dto.PasswordSetDTO; // Import the new DTO
 import jakarta.validation.Valid; // Add import for @Valid
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +22,7 @@ import org.springframework.http.MediaType; // Import MediaType
 import org.springframework.web.multipart.MultipartFile; // Import MultipartFile
 import org.slf4j.Logger; // Use SLF4J Logger
 import org.slf4j.LoggerFactory; // Use SLF4J Logger
+import org.springframework.dao.DataIntegrityViolationException; // Import DataIntegrityViolationException
 
 import org.springframework.web.bind.annotation.*;
 
@@ -150,7 +152,7 @@ public class UserController {
 
     @PutMapping(value = "/update/{id}", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE}) // Consume multipart
     @Operation(summary = "Update user", description = "Update user using DTO and optionally upload a profile picture")
-    public ResponseEntity<UserEntity> updateUser(
+    public ResponseEntity<?> updateUser( // Changed return type to ResponseEntity<?> to allow error objects
             @PathVariable int id,
             @RequestPart("userData") UserUpdateDTO dto, // User data as JSON part
             @RequestPart(value = "profilePictureFile", required = false) MultipartFile profilePictureFile // Optional file part
@@ -165,13 +167,28 @@ public class UserController {
                 logger.warn("User not found for update with ID: {}", id);
                 return ResponseEntity.notFound().build();
             }
+        } catch (DataIntegrityViolationException e) { // Catch specific constraint violation
+            logger.error("Data integrity violation during user update for ID {}: {}", id, e.getMessage());
+            // Check if the error is due to the unique email constraint
+            if (e.getMessage() != null && e.getMessage().contains("UK4xad1enskw4j1t2866f7sodrx")) { // Check for specific constraint name
+                 return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", "Email already exists."));
+            }
+            // Handle other data integrity issues if necessary, otherwise return a generic bad request
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Data integrity violation."));
         } catch (IllegalArgumentException e) {
              logger.error("Invalid argument during user update for ID {}: {}", id, e.getMessage());
-             return ResponseEntity.badRequest().body(null); // Or return an error object
+             // Return specific error message for invalid role
+             if (e.getMessage() != null && e.getMessage().startsWith("Invalid role provided")) {
+                 return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+             }
+             return ResponseEntity.badRequest().body(Map.of("error", "Invalid data provided.")); // Generic invalid data message
         } catch (RuntimeException e) {
             logger.error("Error updating user ID {}: {}", id, e.getMessage(), e);
-            // Handle potential file storage exceptions from the service
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null); // Or return an error object
+            // Handle potential file storage exceptions from the service more specifically if needed
+            if (e.getMessage() != null && e.getMessage().contains("Could not store profile picture file")) {
+                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "Failed to save profile picture."));
+            }
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "An unexpected error occurred during update.")); // Generic internal server error
         }
     }
 
@@ -213,11 +230,38 @@ public class UserController {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
             } else if ("Incorrect current password".equals(e.getMessage())) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
+            } else if (e.getMessage() != null && e.getMessage().startsWith("User does not have a password set")) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
             }
             // Handle other potential errors (like validation errors from @Valid)
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Password change failed: " + e.getMessage()));
         } catch (Exception e) {
             logger.error("Unexpected error during password change for user ID {}: {}", id, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "An unexpected error occurred."));
+        }
+    }
+
+    // Endpoint to set user password (for users without one)
+    @PostMapping("/set-password/{id}")
+    @Operation(summary = "Set user password", description = "Sets the initial password for a user who doesn\'t have one")
+    public ResponseEntity<?> setPassword(@PathVariable int id, @RequestBody @Valid PasswordSetDTO passwordSetDTO) {
+        try {
+            // Similar basic check as changePassword
+            userService.setPassword(id, passwordSetDTO.getNewPassword());
+            logger.info("Password set request successful for user ID: {}", id);
+            return ResponseEntity.ok(Map.of("message", "Password set successfully"));
+        } catch (RuntimeException e) {
+            logger.error("Password set failed for user ID {}: {}", id, e.getMessage());
+            // Return specific error messages based on the exception
+            if ("User not found".equals(e.getMessage())) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
+            } else if (e.getMessage() != null && e.getMessage().startsWith("User already has a password set")) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
+            }
+            // Handle other potential errors (like validation errors from @Valid)
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Password set failed: " + e.getMessage()));
+        } catch (Exception e) {
+            logger.error("Unexpected error during password set for user ID {}: {}", id, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "An unexpected error occurred."));
         }
     }
