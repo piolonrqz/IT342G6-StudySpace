@@ -1,5 +1,6 @@
 package com.example.studyspace.ui.theme.screens
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -11,6 +12,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -19,14 +21,40 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.example.studyspace.R
+import com.example.studyspace.network.ApiService
+import com.example.studyspace.network.RegisterRequest
+import com.example.studyspace.network.RetrofitClient
+import kotlinx.coroutines.launch
 
 @Composable
-fun SignUpScreen(navController: NavHostController) {
-    var name by remember { mutableStateOf("") }
+fun SignUpScreen(navController: NavHostController, apiService: ApiService) {
+    var fname by remember { mutableStateOf("") }
+    var lname by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
     var acceptedTerms by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf("") }
+    var isLoading by remember { mutableStateOf(false) }
+    val coroutineScope = rememberCoroutineScope()
+    val context = LocalContext.current
+
+    fun validateFields(): Boolean {
+        if (fname.isBlank() || lname.isBlank() || email.isBlank() || password.isBlank() || confirmPassword.isBlank()) {
+            errorMessage = "All fields are required."
+            return false
+        }
+        if (password != confirmPassword) {
+            errorMessage = "Passwords do not match."
+            return false
+        }
+        if (!acceptedTerms) {
+            errorMessage = "You must accept the terms & policy."
+            return false
+        }
+        errorMessage = ""
+        return true
+    }
 
     Box(
         modifier = Modifier
@@ -78,18 +106,18 @@ fun SignUpScreen(navController: NavHostController) {
                     .padding(bottom = 24.dp)
             )
 
-            // Name field
+            // First Name field
             Text(
-                text = "Name",
+                text = "First Name",
                 modifier = Modifier
                     .align(Alignment.Start)
                     .padding(bottom = 8.dp),
                 color = Color.Gray
             )
             OutlinedTextField(
-                value = name,
-                onValueChange = { name = it },
-                placeholder = { Text("ex: jon smith", color = Color.LightGray) },
+                value = fname,
+                onValueChange = { fname = it },
+                placeholder = { Text("ex: John", color = Color.LightGray) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 16.dp)
@@ -101,7 +129,29 @@ fun SignUpScreen(navController: NavHostController) {
                     focusedIndicatorColor = Color.Transparent
                 )
             )
-
+            // Second Name
+            Text(
+                text = "Last Name",
+                modifier = Modifier
+                    .align(Alignment.Start)
+                    .padding(bottom = 8.dp),
+                color = Color.Gray
+            )
+            OutlinedTextField(
+                value = lname,
+                onValueChange = { lname = it },
+                placeholder = { Text("ex: Doe", color = Color.LightGray) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp)
+                    .background(Color(0xFFF5F5F5), RoundedCornerShape(4.dp)),
+                colors = TextFieldDefaults.colors(
+                    unfocusedContainerColor = Color(0xFFF5F5F5),
+                    focusedContainerColor = Color(0xFFF5F5F5),
+                    unfocusedIndicatorColor = Color.Transparent,
+                    focusedIndicatorColor = Color.Transparent
+                )
+            )
             // Email field
             Text(
                 text = "Email",
@@ -200,14 +250,53 @@ fun SignUpScreen(navController: NavHostController) {
                 Text(text = ".", color = Color.Gray)
             }
 
+            // Error message display
+            if (errorMessage.isNotEmpty()) {
+                Text(
+                    text = errorMessage,
+                    color = Color.Red,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+            }
+
             // Sign Up Button
             Button(
                 onClick = {
-                    // Navigate to home screen and clear the back stack
-                    navController.navigate("home") {
-                        popUpTo("landing") { inclusive = true }
+                    if (!validateFields()) return@Button
+                    isLoading = true
+                    coroutineScope.launch {
+                        try {
+                            val response = RetrofitClient.apiService.register(
+                                RegisterRequest(
+                                    email,
+                                    fname,
+                                    lname,
+                                    password
+                                )
+                            )
+                            if (response.isSuccessful) {
+                                val registerResponse = response.body()
+                                if (registerResponse != null) {
+                                    Toast.makeText(context, "Registration successful!", Toast.LENGTH_SHORT).show()
+                                    navController.navigate("home") {
+                                        popUpTo("landing") { inclusive = true }
+                                    }
+                                } else {
+                                    errorMessage = "Registration failed: Empty response."
+                                }
+                            } else {
+                                // Try to extract error message from backend
+                                val errorBody = response.errorBody()?.string()
+                                errorMessage = errorBody ?: "Registration failed: ${response.message()}"
+                            }
+                        } catch (e: Exception) {
+                            errorMessage = "Error: ${e.localizedMessage}"
+                        } finally {
+                            isLoading = false
+                        }
                     }
                 },
+                enabled = !isLoading,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),
@@ -216,11 +305,18 @@ fun SignUpScreen(navController: NavHostController) {
                 ),
                 shape = RoundedCornerShape(4.dp)
             ) {
-                Text(
-                    text = "SIGN UP",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Medium
-                )
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        color = Color.White,
+                        modifier = Modifier.size(24.dp)
+                    )
+                } else {
+                    Text(
+                        text = "SIGN UP",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
             }
 
             // Or sign up with text

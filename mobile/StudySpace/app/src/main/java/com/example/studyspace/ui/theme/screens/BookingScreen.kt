@@ -55,10 +55,11 @@ import com.example.studyspace.R
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
+import com.example.studyspace.network.ApiService
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BookingScreen(navController: NavHostController) {
+fun BookingScreen(navController: NavHostController, apiService: ApiService) {
     var selectedItem by remember { mutableStateOf(1) }  // Default to Booking tab
 
     Scaffold(

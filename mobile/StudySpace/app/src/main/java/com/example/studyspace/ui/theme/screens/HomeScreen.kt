@@ -11,13 +11,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-//import androidx.compose.material.icons.filled.Book
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
@@ -27,6 +26,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -36,19 +36,77 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.example.studyspace.R
-
-// Additional imports needed
+import com.example.studyspace.network.ApiService
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 import com.example.studyspace.ui.theme.components.StudySpaceCategory
+import android.content.Context
 
 @Composable
 fun HomeScreen(navController: NavHostController) {
-    var selectedItem by remember { mutableStateOf(0) }  // Default to Home tab
+    var selectedItem by remember { mutableStateOf(0) }
+    var userName by remember { mutableStateOf("") }
+    var spaces by remember { mutableStateOf(listOf<Map<String, Any>>()) }
+    var isLoading by remember { mutableStateOf(true) }
+    val context = LocalContext.current
+
+    // TODO: Replace with your actual JWT token retrieval logic
+    fun getJwtToken(context: Context): String? {
+        // Example: return context.getSharedPreferences("auth", Context.MODE_PRIVATE).getString("jwt", null)
+        return null // Replace with actual implementation
+    }
+
+    val retrofit = remember {
+        Retrofit.Builder()
+            .baseUrl("http://10.0.2.2:8080/")
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+    }
+    val apiService = remember { retrofit.create(ApiService::class.java) }
+
+    LaunchedEffect(Unit) {
+        isLoading = true
+        // Fetch user name
+        val token = getJwtToken(context)
+        if (token != null && token.isNotBlank()) {
+            try {
+                val response = withContext(Dispatchers.IO) {
+                    apiService.getCurrentUser("Bearer $token")
+                }
+                if (response.isSuccessful) {
+                    val body = response.body()
+                    userName = body?.get("firstName")?.toString() ?: "User"
+                } else {
+                    userName = "User"
+                }
+            } catch (e: Exception) {
+                userName = "User"
+            }
+        } else {
+            userName = "User"
+        }
+        // Fetch spaces
+        try {
+            val response = withContext(Dispatchers.IO) { apiService.getAllSpaces() }
+            if (response.isSuccessful) {
+                spaces = response.body() ?: emptyList()
+            } else {
+                spaces = emptyList()
+            }
+        } catch (e: Exception) {
+            spaces = emptyList()
+        }
+        isLoading = false
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
@@ -56,18 +114,15 @@ fun HomeScreen(navController: NavHostController) {
                 .fillMaxSize()
                 .padding(horizontal = 20.dp)
         ) {
-            // Add more space at the top
             item {
                 Spacer(modifier = Modifier.height(75.dp))
             }
-
-            // Top bar with profile and location - side by side but larger
+            // Top bar with profile only (no location)
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Profile image - made larger
                     Image(
                         painter = painterResource(id = R.drawable.momo),
                         contentDescription = "Profile Picture",
@@ -76,38 +131,10 @@ fun HomeScreen(navController: NavHostController) {
                             .clip(CircleShape),
                         contentScale = ContentScale.Crop,
                     )
-
-                    // Location info - made larger
-                    Column(
-                        horizontalAlignment = Alignment.Start
-                    ) {
-                        Text(
-                            text = "Tokyo, Japan",
-                            fontSize = 14.sp,
-                            color = Color.Gray,
-                            modifier = Modifier.padding(start = 10.dp)
-                        )
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.LocationOn,
-                                contentDescription = null,
-                                tint = Color(0xFF3498DB),
-                                modifier = Modifier.size(20.dp)
-                            )
-                            Text(
-                                text = "North Europe Luzon",
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Medium
-                            )
-                        }
-                    }
                 }
-
                 Spacer(modifier = Modifier.height(24.dp))
                 Text(
-                    text = "Hello, Heaven",
+                    text = "Hello, $userName",
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -116,7 +143,6 @@ fun HomeScreen(navController: NavHostController) {
                     fontSize = 14.sp,
                     color = Color.Gray
                 )
-
                 Spacer(modifier = Modifier.height(16.dp))
                 OutlinedTextField(
                     value = "",
@@ -148,55 +174,38 @@ fun HomeScreen(navController: NavHostController) {
                     ),
                     singleLine = true
                 )
-
                 Spacer(modifier = Modifier.height(24.dp))
             }
-
-            // Study space categories - added inside the LazyColumn
-            item {
-                // Top Rated Section
-                StudySpaceCategory(
-                    categoryTitle = "Top Rated",
-                    imageRes = R.drawable.space1,
-                    rating = "4.8",
-                    reviewCount = "(79)",
-                    spaceName = "Produktiv",
-                    location = "Downtown City Center, 3rd Floor",
-                    price = "250"
-                )
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                // Quiet & Focused Section
-                StudySpaceCategory(
-                    categoryTitle = "Quiet & Focused",
-                    imageRes = R.drawable.space2,
-                    rating = "4.8",
-                    reviewCount = "(78)",
-                    spaceName = "The Company Cebu",
-                    location = "Downtown City Center, 3rd Floor",
-                    price = "450"
-                )
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                // 24/7 Access Section
-                StudySpaceCategory(
-                    categoryTitle = "24/7 Access",
-                    imageRes = R.drawable.space3,
-                    rating = "4.8",
-                    reviewCount = "(79)",
-                    spaceName = "The Working Place",
-                    location = "Downtown City Center, 3rd Floor",
-                    price = "350"
-                )
-
-                // Add extra space at the bottom to account for the navigation bar
-                Spacer(modifier = Modifier.height(300.dp))
+            // Dynamic study spaces
+            if (isLoading) {
+                item {
+                    Text("Loading spaces...", color = Color.Gray, modifier = Modifier.padding(16.dp))
+                }
+            } else if (spaces.isEmpty()) {
+                item {
+                    Text("No spaces available.", color = Color.Gray, modifier = Modifier.padding(16.dp))
+                }
+            } else {
+                items(spaces.size) { idx ->
+                    val space = spaces[idx]
+                    val imageUrl = space["imageFilename"]?.toString()?.let { "http://10.0.2.2:8080/images/$it" }
+                    StudySpaceCategory(
+                        categoryTitle = space["category"]?.toString() ?: "Space",
+                        imageUrl = imageUrl,
+                        rating = space["rating"]?.toString() ?: "4.8",
+                        reviewCount = "(0)",
+                        spaceName = space["name"]?.toString() ?: "Space Name",
+                        location = space["location"]?.toString() ?: "Location",
+                        price = space["price"]?.toString() ?: "0"
+                    )
+                    Spacer(modifier = Modifier.height(24.dp))
+                }
+                item {
+                    Spacer(modifier = Modifier.height(300.dp))
+                }
             }
         }
-
-        // Bottom Navigation Bar - remains outside the LazyColumn
+        // Bottom Navigation Bar
         NavigationBar(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
@@ -204,7 +213,7 @@ fun HomeScreen(navController: NavHostController) {
             NavigationBarItem(
                 selected = selectedItem == 0,
                 onClick = {
-                    if (selectedItem != 0) {  // Only navigate if not already on Home
+                    if (selectedItem != 0) {
                         selectedItem = 0
                         navController.navigate("home") {
                             popUpTo("home") { inclusive = true }
@@ -223,7 +232,7 @@ fun HomeScreen(navController: NavHostController) {
             NavigationBarItem(
                 selected = selectedItem == 1,
                 onClick = {
-                    if (selectedItem != 1) {  // Only navigate if not already on Booking
+                    if (selectedItem != 1) {
                         selectedItem = 1
                         navController.navigate("booking") {
                             popUpTo("booking") { inclusive = true }
@@ -241,7 +250,7 @@ fun HomeScreen(navController: NavHostController) {
             NavigationBarItem(
                 selected = selectedItem == 2,
                 onClick = {
-                    if (selectedItem != 2) {  // Only navigate if not already on Profile
+                    if (selectedItem != 2) {
                         selectedItem = 2
                         navController.navigate("profile") {
                             popUpTo("profile") { inclusive = true }
