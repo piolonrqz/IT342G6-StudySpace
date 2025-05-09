@@ -11,27 +11,34 @@ public class UserCreateDTO {
     private String firstName;
 
     @Schema(description = "User's last name", example = "Doe")
+    @Column(nullable = true)
     private String lastName;
 
     @Schema(description = "User's email address", example = "john.doe@example.com")
     private String email;
 
     @Schema(description = "User's password", example = "password123")
+    @Column(nullable = true)
     private String password;
 
     @Schema(description = "Phone number", example = "09123456789")
+    @Column(nullable = true)
     private String phoneNumber;
 
     @Schema(description = "Is the email verified?", example = "true")
+    @Column(nullable = true)
     private boolean emailVerified;
 
     @Schema(description = "Account creation time", example = "2025-04-13T14:26:34.692")
+    @Column(nullable = true)
     private LocalDateTime createdAt;
 
     @Schema(description = "Last updated time", example = "2025-04-13T14:26:34.692")
+    @Column(nullable = true)
     private LocalDateTime updatedAt;
 
     @Schema(description = "Last login time", example = "2025-04-13T14:26:34.692")
+    @Column(nullable = true)
     private LocalDateTime lastLogin;
 
     @Schema(description = "User role", example = "USER")
