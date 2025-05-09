@@ -40,157 +40,135 @@ fun CustomDivider() {
 
 @Composable
 fun ProfileScreen(navController: NavHostController) {
-    var selectedItem by remember { mutableIntStateOf(2) } // Default to Profile tab
+    var selectedItem by remember { mutableStateOf(2) } // Default to Profile tab
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        // Profile heading
-        Text(
-            text = "Profile",
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
+    Scaffold(
+        bottomBar = {
+            NavigationBar(
+                // Consistent with HomeScreen and BookingScreen
+            ) {
+                NavigationBarItem(
+                    selected = selectedItem == 0,
+                    onClick = {
+                        if (selectedItem != 0) {
+                            selectedItem = 0
+                            navController.navigate("home") {
+                                popUpTo("home") { inclusive = true }
+                            }
+                        }
+                    },
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Default.Home,
+                            contentDescription = "Home"
+                        )
+                    },
+                    label = { Text("Home") }
+                )
+                NavigationBarItem(
+                    selected = selectedItem == 1,
+                    onClick = {
+                        if (selectedItem != 1) {
+                            selectedItem = 1
+                            navController.navigate("booking") {
+                                popUpTo("booking") { inclusive = true }
+                            }
+                        }
+                    },
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Default.DateRange,
+                            contentDescription = "Booking"
+                        )
+                    },
+                    label = { Text("Booking") }
+                )
+                NavigationBarItem(
+                    selected = selectedItem == 2,
+                    onClick = {
+                        // Already on profile, do nothing
+                    },
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Default.Person,
+                            contentDescription = "Profile"
+                        )
+                    },
+                    label = { Text("Profile") }
+                )
+            }
+        }
+    ) { paddingValues ->
+        Column(
             modifier = Modifier
-                .align(Alignment.Start)
-                .padding(vertical = 16.dp)
-        )
-
-        // Profile picture
-        Image(
-            painter = painterResource(id = R.drawable.momo),
-            contentDescription = "Profile Picture",
-            modifier = Modifier
-                .size(100.dp)
-                .clip(CircleShape),
-            contentScale = ContentScale.Crop
-        )
-
-        // Name
-        Text(
-            text = "Damon Fine",
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(top = 16.dp)
-        )
-
-        // Email
-        Text(
-            text = "yunyun619@gmail.com",
-            fontSize = 14.sp,
-            color = Color.Gray,
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
-
-        // First custom divider
-        CustomDivider()
-
-        // Menu items
-        ProfileMenuItem(
-            icon = R.drawable.profile,
-            title = "Personal details",
-            onClick = { /* Handle personal details click */ }
-        )
-
-        ProfileMenuItem(
-            icon = R.drawable.settings,
-            title = "Settings",
-            onClick = { /* Handle settings click */ }
-        )
-
-        ProfileMenuItem(
-            icon = R.drawable.faq,
-            title = "FAQ",
-            onClick = { /* Handle FAQ click */ }
-        )
-
-        // Second custom divider
-        CustomDivider()
-
-        // Log out button
-        Spacer(modifier = Modifier.weight(1f))
-
-        Button(
-            onClick = { /* Handle logout click */ },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(50.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF3498DB)
-            ),
-            shape = RoundedCornerShape(8.dp)
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "Log Out",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Medium
+                text = "Profile",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier
+                    .align(Alignment.Start)
+                    .padding(vertical = 16.dp)
             )
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Navigation Bar with correct navigation
-        NavigationBar(
-            modifier = Modifier
-                .align(Alignment.CenterHorizontally)
-        ) {
-            NavigationBarItem(
-                selected = selectedItem == 0,
-                onClick = {
-                    if (selectedItem != 0) {  // Only navigate if not already on Home
-                        selectedItem = 0
-                        navController.navigate("home") {
-                            popUpTo("home") { inclusive = true }
-                        }
-                    }
-                },
-                icon = {
-                    Icon(
-                        imageVector = Icons.Default.Home,
-                        contentDescription = "Home"
-                    )
-                },
-                label = { Text("Home") }
+            Image(
+                painter = painterResource(id = R.drawable.momo),
+                contentDescription = "Profile Picture",
+                modifier = Modifier
+                    .size(100.dp)
+                    .clip(CircleShape),
+                contentScale = ContentScale.Crop
             )
-            NavigationBarItem(
-                selected = selectedItem == 1,
-                onClick = {
-                    if (selectedItem != 1) {  // Only navigate if not already on Booking
-                        selectedItem = 1
-                        navController.navigate("booking") {
-                            popUpTo("booking") { inclusive = true }
-                        }
-                    }
-                },
-                icon = {
-                    Icon(
-                        imageVector = Icons.Default.DateRange,
-                        contentDescription = "Booking"
-                    )
-                },
-                label = { Text("Booking") }
+            Text(
+                text = "Damon Fine",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(top = 16.dp)
             )
-            NavigationBarItem(
-                selected = selectedItem == 2,
-                onClick = {
-                    // Prevent redundant navigation to the same profile screen
-                    if (selectedItem != 2) {
-                        selectedItem = 2
-                        navController.navigate("profile") {
-                            popUpTo("profile") { inclusive = false }
-                        }
-                    }
-                },
-                icon = {
-                    Icon(
-                        imageVector = Icons.Default.Person,
-                        contentDescription = "Profile"
-                    )
-                },
-                label = { Text("Profile") }
+            Text(
+                text = "yunyun619@gmail.com",
+                fontSize = 14.sp,
+                color = Color.Gray,
+                modifier = Modifier.padding(bottom = 16.dp)
             )
+            CustomDivider()
+            ProfileMenuItem(
+                icon = R.drawable.profile,
+                title = "Personal details",
+                onClick = { /* Handle personal details click */ }
+            )
+            ProfileMenuItem(
+                icon = R.drawable.settings,
+                title = "Settings",
+                onClick = { /* Handle settings click */ }
+            )
+            ProfileMenuItem(
+                icon = R.drawable.faq,
+                title = "FAQ",
+                onClick = { /* Handle FAQ click */ }
+            )
+            CustomDivider()
+            Spacer(modifier = Modifier.weight(1f))
+            Button(
+                onClick = { /* Handle logout click */ },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF3498DB)
+                ),
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                Text(
+                    text = "Log Out",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }

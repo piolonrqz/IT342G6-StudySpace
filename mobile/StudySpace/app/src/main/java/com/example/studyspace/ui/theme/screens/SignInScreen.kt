@@ -1,5 +1,6 @@
 package com.example.studyspace.ui.theme.screens
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -11,6 +12,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -18,11 +20,19 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.example.studyspace.R
+import com.example.studyspace.network.ApiService
+import com.example.studyspace.network.LoginRequest
+import kotlinx.coroutines.launch
 
 @Composable
-fun SignInScreen(navController: NavHostController) {
+fun SignInScreen(navController: NavHostController, apiService: ApiService) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var isLoading by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
 
     Box(
         modifier = Modifier
@@ -44,7 +54,7 @@ fun SignInScreen(navController: NavHostController) {
                     .padding(bottom = 32.dp)
             )
 
-            // Sign in header
+            // Header
             Text(
                 text = "Sign in your account",
                 fontSize = 24.sp,
@@ -52,21 +62,15 @@ fun SignInScreen(navController: NavHostController) {
                 modifier = Modifier.padding(bottom = 32.dp)
             )
 
-            // Email field
-            Text(
-                text = "Email",
-                modifier = Modifier
-                    .align(Alignment.Start)
-                    .padding(bottom = 8.dp),
-                color = Color.Gray
-            )
+            // Email Field
+            Text("Email", color = Color.Gray, modifier = Modifier.align(Alignment.Start))
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
                 placeholder = { Text("ex: jon.smith@email.com", color = Color.LightGray) },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 16.dp)
+                    .padding(vertical = 8.dp)
                     .background(Color(0xFFF5F5F5), RoundedCornerShape(4.dp)),
                 colors = TextFieldDefaults.colors(
                     unfocusedContainerColor = Color(0xFFF5F5F5),
@@ -76,14 +80,8 @@ fun SignInScreen(navController: NavHostController) {
                 )
             )
 
-            // Password field
-            Text(
-                text = "Password",
-                modifier = Modifier
-                    .align(Alignment.Start)
-                    .padding(bottom = 8.dp),
-                color = Color.Gray
-            )
+            // Password Field
+            Text("Password", color = Color.Gray, modifier = Modifier.align(Alignment.Start))
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
@@ -91,7 +89,7 @@ fun SignInScreen(navController: NavHostController) {
                 visualTransformation = PasswordVisualTransformation(),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 24.dp)
+                    .padding(vertical = 8.dp)
                     .background(Color(0xFFF5F5F5), RoundedCornerShape(4.dp)),
                 colors = TextFieldDefaults.colors(
                     unfocusedContainerColor = Color(0xFFF5F5F5),
@@ -104,37 +102,71 @@ fun SignInScreen(navController: NavHostController) {
             // Sign In Button
             Button(
                 onClick = {
-                    // Navigate to home screen and clear the back stack
-                    navController.navigate("home") {
-                        popUpTo("landing") { inclusive = true }
+                    if (email.isBlank() || password.isBlank()) {
+                        errorMessage = "Please fill all fields."
+                        return@Button
+                    }
+
+                    isLoading = true
+                    errorMessage = null
+
+                    coroutineScope.launch {
+                        try {
+                            val response = apiService.login(LoginRequest(email, password))
+                            if (response.isSuccessful) {
+                                val body = response.body()
+                                if (body?.token?.isNotBlank() == true) {
+                                    Toast.makeText(context, "Login successful!", Toast.LENGTH_SHORT).show()
+                                    navController.navigate("home") {
+                                        popUpTo("landing") { inclusive = true }
+                                    }
+                                } else {
+                                    errorMessage = "Login failed: Unexpected response."
+                                }
+                            } else {
+                                val errorBody = response.errorBody()?.string()
+                                errorMessage = errorBody ?: "Login failed: ${response.message()}"
+                            }
+                        } catch (e: Exception) {
+                            errorMessage = "Error: ${e.localizedMessage}"
+                        } finally {
+                            isLoading = false
+                        }
                     }
                 },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF3498DB)
-                ),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF3498DB)),
                 shape = RoundedCornerShape(4.dp)
             ) {
+                if (isLoading) {
+                    CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                } else {
+                    Text("SIGN IN", fontSize = 16.sp, fontWeight = FontWeight.Medium)
+                }
+            }
+
+            // Error Message
+            errorMessage?.let {
                 Text(
-                    text = "SIGN IN",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Medium
+                    text = it,
+                    color = Color.Red,
+                    modifier = Modifier.padding(top = 8.dp)
                 )
             }
 
-            // Or sign in with text
+            // Divider
             Text(
                 text = "or sign in with",
-                modifier = Modifier.padding(vertical = 24.dp),
-                color = Color.Gray
+                color = Color.Gray,
+                modifier = Modifier.padding(vertical = 24.dp)
             )
 
-            // Google sign in button
+            // Google Sign-In (Placeholder)
             Box(
                 modifier = Modifier
-                    .size(width = 48.dp, height = 48.dp)
+                    .size(48.dp)
                     .clip(RoundedCornerShape(4.dp))
                     .background(Color(0xFFF5F5F5))
                     .padding(12.dp),
@@ -147,22 +179,17 @@ fun SignInScreen(navController: NavHostController) {
                 )
             }
 
-            // Sign up text
+            // Navigate to Sign Up
             Row(
                 modifier = Modifier.padding(top = 32.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "Don't have an account? ",
-                    color = Color.Gray
-                )
+                Text("Don't have an account? ", color = Color.Gray)
                 Text(
                     text = "SIGN UP",
                     color = Color(0xFF3498DB),
                     fontWeight = FontWeight.Medium,
-                    modifier = Modifier.clickable {
-                        navController.navigate("signup")
-                    }
+                    modifier = Modifier.clickable { navController.navigate("signup") }
                 )
             }
         }

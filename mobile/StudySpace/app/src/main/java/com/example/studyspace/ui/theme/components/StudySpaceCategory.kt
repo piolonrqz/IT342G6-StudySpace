@@ -1,6 +1,5 @@
 package com.example.studyspace.ui.theme.components
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -24,16 +23,16 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 
 @Composable
 fun StudySpaceCategory(
     categoryTitle: String,
-    imageRes: Int,
+    imageUrl: String?,
     rating: String,
     reviewCount: String,
     spaceName: String,
@@ -77,9 +76,9 @@ fun StudySpaceCategory(
                     .padding(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Space image
-                Image(
-                    painter = painterResource(id = imageRes),
+                // Space image using Coil
+                AsyncImage(
+                    model = imageUrl,
                     contentDescription = spaceName,
                     modifier = Modifier
                         .size(84.dp)
