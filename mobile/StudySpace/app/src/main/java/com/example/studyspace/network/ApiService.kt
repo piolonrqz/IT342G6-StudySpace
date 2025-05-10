@@ -37,6 +37,7 @@ data class LoginResponse(
     val token: String? = null,
     val role: String? = null,
     val userId: Any? = null,
+    val profilePictureFilename: String? = null,
     val error: String? = null
 )
 
@@ -59,4 +60,7 @@ interface ApiService {
 
     @GET("api/space/{id}")
     suspend fun getSpaceById(@Path("id") id: Int): Response<Map<String, Any>>
+    
+    @GET("api/bookings/user/{userId}")
+    suspend fun getUserBookings(@Path("userId") userId: Long, @Header("Authorization") token: String): Response<List<com.example.studyspace.model.BookingResponseDTO>>
 }

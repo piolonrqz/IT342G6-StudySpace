@@ -1,10 +1,13 @@
 package com.example.studyspace.ui.theme.screens
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -111,14 +114,52 @@ fun SignInScreen(navController: NavHostController, apiService: ApiService) {
                     errorMessage = null
 
                     coroutineScope.launch {
-                        try {
-                            val response = apiService.login(LoginRequest(email, password))
-                            if (response.isSuccessful) {
+                        try {                            val response = apiService.login(LoginRequest(email, password))
+                            if (response.isSuccessful) {                                
                                 val body = response.body()
-                                if (body?.token?.isNotBlank() == true) {
-                                    Toast.makeText(context, "Login successful!", Toast.LENGTH_SHORT).show()
-                                    navController.navigate("home") {
-                                        popUpTo("landing") { inclusive = true }
+                                if (body?.token?.isNotBlank() == true) {                                    // Save the JWT token and profile info to SharedPreferences
+                                    val editor = context.getSharedPreferences("auth_prefs", android.content.Context.MODE_PRIVATE).edit()
+                                    editor.putString("jwt_token", body.token)
+                                    
+                                    // Save profile picture filename if it exists
+                                    body.profilePictureFilename?.let { profilePic ->
+                                        editor.putString("profile_picture", profilePic)
+                                        Log.d("SignInScreen", "Saved profile picture: $profilePic")
+                                    }
+                                    
+                                    // Save the userId
+                                    body.userId?.let { userId ->
+                                        when (userId) {
+                                            is Int -> editor.putLong("user_id", userId.toLong())
+                                            is Long -> editor.putLong("user_id", userId)
+                                            is String -> {
+                                                try {
+                                                    editor.putLong("user_id", userId.toLong())
+                                                    Log.d("SignInScreen", "Saved user ID from string: $userId")
+                                                } catch (e: NumberFormatException) {
+                                                    Log.e("SignInScreen", "Failed to parse user ID: $userId", e)
+                                                }
+                                            }
+                                            else -> {
+                                                Log.e("SignInScreen", "Unexpected userId type: ${userId::class.java.name}")
+                                                try {
+                                                    editor.putLong("user_id", userId.toString().toLong())
+                                                    Log.d("SignInScreen", "Saved user ID after conversion: $userId")
+                                                } catch (e: Exception) {
+                                                    Log.e("SignInScreen", "Failed to convert and save user ID", e)
+                                                }
+                                            }
+                                        }
+                                    }
+                                    
+                                    editor.apply()
+                                    
+                                    // Use the main thread to show Toast and navigate
+                                    withContext(Dispatchers.Main) {
+                                        Toast.makeText(context, "Login successful!", Toast.LENGTH_SHORT).show()
+                                        navController.navigate("home") {
+                                            popUpTo("landing") { inclusive = true }
+                                        }
                                     }
                                 } else {
                                     errorMessage = "Login failed: Unexpected response."

@@ -1,11 +1,14 @@
 package com.example.studyspace.network
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.studyspace.ui.theme.screens.*
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun NavGraph(navController: NavHostController) {    // Use the singleton RetrofitClient with proper timeout settings
     val apiService = RetrofitClient.apiService

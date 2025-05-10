@@ -8,10 +8,10 @@ import java.util.concurrent.TimeUnit
 
 object RetrofitClient {
     // Use this for local development with Spring Boot (when using the Android emulator)
-    private const val BASE_URL = "http://10.0.2.2:8080"
+    //const val BASE_URL = "http://10.0.2.2:8080"
     
     // Use this for production with your deployed backend
-    // private const val BASE_URL = "https://it342g6-studyspace.onrender.com"
+    private const val BASE_URL = "https://it342g6-studyspace.onrender.com"
 
     val apiService: ApiService by lazy {
         val gson = GsonBuilder()
