@@ -288,9 +288,17 @@ fun SignUpScreen(navController: NavHostController, apiService: ApiService) {
                                 // Try to extract error message from backend
                                 val errorBody = response.errorBody()?.string()
                                 errorMessage = errorBody ?: "Registration failed: ${response.message()}"
+                            }                        } catch (e: Exception) {
+                            // Provide more helpful error messages based on exception type
+                            errorMessage = when {
+                                e.message?.contains("timeout", ignoreCase = true) == true -> 
+                                    "Connection timed out. The server may be busy or experiencing slow response times. Please try again later."
+                                e.message?.contains("Unable to resolve host") == true -> 
+                                    "Network error: Unable to connect to the server. Please check your internet connection."
+                                else -> "Error: ${e.localizedMessage ?: "Unknown error occurred"}"
                             }
-                        } catch (e: Exception) {
-                            errorMessage = "Error: ${e.localizedMessage}"
+                            // Log the exception for debugging
+                            e.printStackTrace()
                         } finally {
                             isLoading = false
                         }

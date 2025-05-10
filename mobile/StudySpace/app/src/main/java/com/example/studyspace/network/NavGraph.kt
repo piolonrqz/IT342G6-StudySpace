@@ -5,18 +5,10 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.studyspace.ui.theme.screens.*
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
 
 @Composable
-fun NavGraph(navController: NavHostController) {
-
-    // Create Retrofit API instance
-    val apiService = Retrofit.Builder()
-        .baseUrl("https://it342g6-studyspace.onrender.com") // Localhost for emulator
-        .addConverterFactory(GsonConverterFactory.create())
-        .build()
-        .create(ApiService::class.java)
+fun NavGraph(navController: NavHostController) {    // Use the singleton RetrofitClient with proper timeout settings
+    val apiService = RetrofitClient.apiService
 
     NavHost(
         navController = navController,

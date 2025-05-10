@@ -44,10 +44,9 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.example.studyspace.R
 import com.example.studyspace.network.ApiService
+import com.example.studyspace.network.RetrofitClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
 import com.example.studyspace.ui.theme.components.StudySpaceCategory
 import android.content.Context
 
@@ -63,15 +62,8 @@ fun HomeScreen(navController: NavHostController) {
     fun getJwtToken(context: Context): String? {
         // Example: return context.getSharedPreferences("auth", Context.MODE_PRIVATE).getString("jwt", null)
         return null // Replace with actual implementation
-    }
-
-    val retrofit = remember {
-        Retrofit.Builder()
-            .baseUrl("http://10.0.2.2:8080/")
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-    }
-    val apiService = remember { retrofit.create(ApiService::class.java) }
+    }    // Use the singleton RetrofitClient with proper timeout settings
+    val apiService = RetrofitClient.apiService
 
     LaunchedEffect(Unit) {
         isLoading = true
