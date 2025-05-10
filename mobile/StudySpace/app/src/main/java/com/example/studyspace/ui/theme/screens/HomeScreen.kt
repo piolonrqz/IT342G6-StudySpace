@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import coil3.compose.AsyncImage
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -56,6 +57,7 @@ import com.example.studyspace.ui.theme.components.StudySpaceBottomNavigationBar
 fun HomeScreen(navController: NavHostController) {
     var selectedItem by remember { mutableStateOf(0) }
     var userName by remember { mutableStateOf("") }
+    var profilePicture by remember { mutableStateOf<String?>(null) }
     var spaces by remember { mutableStateOf(listOf<Map<String, Any>>()) }
     var isLoading by remember { mutableStateOf(true) }
     val context = LocalContext.current
@@ -75,11 +77,14 @@ fun HomeScreen(navController: NavHostController) {
         return token
     }    // Use the singleton RetrofitClient with proper timeout settings
     val apiService = RetrofitClient.apiService
-
     LaunchedEffect(Unit) {
-        isLoading = true
-        // Fetch user name
+        isLoading = true        // Fetch user name and profile picture
         val token = getJwtToken(context)
+        // Get the profile picture from SharedPreferences
+        val sharedPreferences = context.getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
+        profilePicture = sharedPreferences.getString("profile_picture", null)
+        Log.d(TAG, "Profile picture from SharedPreferences: $profilePicture")
+        
         if (token != null && token.isNotBlank()) {
             try {
                 val response = withContext(Dispatchers.IO) {
@@ -88,14 +93,18 @@ fun HomeScreen(navController: NavHostController) {
                 if (response.isSuccessful) {
                     val body = response.body()
                     userName = body?.get("firstName")?.toString() ?: "User"
+                    // We're now getting profile picture from SharedPreferences above instead
                 } else {
                     userName = "User"
+                    Log.e(TAG, "Failed to get user data: ${response.code()} ${response.message()}")
                 }
             } catch (e: Exception) {
                 userName = "User"
+                Log.e(TAG, "Exception fetching user data: ${e.message}")
             }
         } else {
             userName = "User"
+            Log.d(TAG, "No token available to fetch user data")
         }
         // Fetch spaces
         try {
@@ -123,19 +132,38 @@ fun HomeScreen(navController: NavHostController) {
                 Spacer(modifier = Modifier.height(75.dp))
             }
             // Top bar with profile only (no location)
-            item {
-                Row(
+            item {                Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.momo),
-                        contentDescription = "Profile Picture",
-                        modifier = Modifier
-                            .size(75.dp)
-                            .clip(CircleShape),
-                        contentScale = ContentScale.Crop,
-                    )
+                ) {                    // Using Coil to load the user's profile picture
+                    if (profilePicture != null) {
+                        // Import Coil's AsyncImage at the top of the file
+                        androidx.compose.foundation.layout.Box(
+                            modifier = Modifier
+                                .size(75.dp)
+                                .clip(CircleShape)
+                        ) {
+                            Log.d(TAG, "Loading profile picture from: $profilePicture")
+                            
+                            AsyncImage(
+                                model = profilePicture, // Use the Firebase URL directly
+                                contentDescription = "Profile Picture",
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Crop,
+                                error = painterResource(id = R.drawable.momo) // Fallback image
+                            )
+                        }
+                    } else {
+                        // Fallback to default image if no profile picture is available
+                        Image(
+                            painter = painterResource(id = R.drawable.momo),
+                            contentDescription = "Default Profile Picture",
+                            modifier = Modifier
+                                .size(75.dp)
+                                .clip(CircleShape),
+                            contentScale = ContentScale.Crop,
+                        )
+                    }
                 }
                 Spacer(modifier = Modifier.height(24.dp))
                 Text(

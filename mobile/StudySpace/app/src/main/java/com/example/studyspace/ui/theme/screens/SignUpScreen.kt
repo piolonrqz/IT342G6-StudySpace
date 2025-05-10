@@ -5,6 +5,8 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -274,12 +276,19 @@ fun SignUpScreen(navController: NavHostController, apiService: ApiService) {
                                     password = password
                                 )
                             )
-                            if (response.isSuccessful) {
-                                val registerResponse = response.body()
+                            if (response.isSuccessful) {                                val registerResponse = response.body()
                                 if (registerResponse != null) {
-                                    Toast.makeText(context, "Registration successful!", Toast.LENGTH_SHORT).show()
-                                    navController.navigate("home") {
-                                        popUpTo("landing") { inclusive = true }
+                                    // Save the JWT token to SharedPreferences
+                                    val editor = context.getSharedPreferences("auth_prefs", android.content.Context.MODE_PRIVATE).edit()
+                                    editor.putString("jwt_token", registerResponse.token)
+                                    // No profile picture for new registrations usually, but could set default if needed                                    editor.apply()
+                                    
+                                    // Use the main thread to show Toast and navigate
+                                    withContext(Dispatchers.Main) {
+                                        Toast.makeText(context, "Registration successful!", Toast.LENGTH_SHORT).show()
+                                        navController.navigate("home") {
+                                            popUpTo("landing") { inclusive = true }
+                                        }
                                     }
                                 } else {
                                     errorMessage = "Registration failed: Empty response."
