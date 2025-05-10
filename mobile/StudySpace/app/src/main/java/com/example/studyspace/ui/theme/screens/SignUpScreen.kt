@@ -265,13 +265,13 @@ fun SignUpScreen(navController: NavHostController, apiService: ApiService) {
                     if (!validateFields()) return@Button
                     isLoading = true
                     coroutineScope.launch {
-                        try {
+                        try {                           
                             val response = RetrofitClient.apiService.register(
                                 RegisterRequest(
-                                    email,
-                                    fname,
-                                    lname,
-                                    password
+                                    email = email,
+                                    firstName = fname,
+                                    lastName = lname,
+                                    password = password
                                 )
                             )
                             if (response.isSuccessful) {

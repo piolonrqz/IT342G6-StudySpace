@@ -100,6 +100,8 @@ fun HomeScreen(navController: NavHostController) {
         isLoading = false
     }
 
+    val groupedSpaces = spaces.groupBy { it["spaceType"]?.toString() ?: "Unknown Type" }
+
     Box(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
             modifier = Modifier
@@ -178,19 +180,26 @@ fun HomeScreen(navController: NavHostController) {
                     Text("No spaces available.", color = Color.Gray, modifier = Modifier.padding(16.dp))
                 }
             } else {
-                items(spaces.size) { idx ->
-                    val space = spaces[idx]
-                    val imageUrl = space["imageFilename"]?.toString()?.let { "http://10.0.2.2:8080/images/$it" }
-                    StudySpaceCategory(
-                        categoryTitle = space["category"]?.toString() ?: "Space",
-                        imageUrl = imageUrl,
-                        rating = space["rating"]?.toString() ?: "4.8",
-                        reviewCount = "(0)",
-                        spaceName = space["name"]?.toString() ?: "Space Name",
-                        location = space["location"]?.toString() ?: "Location",
-                        price = space["price"]?.toString() ?: "0"
-                    )
-                    Spacer(modifier = Modifier.height(24.dp))
+                groupedSpaces.forEach { (spaceType, spacesInGroup) ->
+                    item {
+                        Text(
+                            text = spaceType.replace("_", " "),
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(vertical = 16.dp)
+                        )
+                    }
+                    items(spacesInGroup.size) { idx ->
+                        val space = spacesInGroup[idx]
+                        val imageFilename = space["imageFilename"]?.toString() ?: "default_image.jpg"
+                        StudySpaceCategory(
+                            imageFilename = imageFilename,
+                            spaceName = space["name"]?.toString() ?: "Space Name",
+                            location = space["location"]?.toString() ?: "Location",
+                            price = space["price"]?.toString() ?: "0"
+                        )
+                        Spacer(modifier = Modifier.height(24.dp))
+                    }
                 }
                 item {
                     Spacer(modifier = Modifier.height(300.dp))

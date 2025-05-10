@@ -27,138 +27,88 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImage
+import coil3.compose.AsyncImage
 
 @Composable
 fun StudySpaceCategory(
-    categoryTitle: String,
-    imageUrl: String?,
-    rating: String,
-    reviewCount: String,
+    imageFilename: String?,
     spaceName: String,
     location: String,
     price: String
 ) {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        // Category header with title and "See all" link
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(100.dp)
+            .shadow(4.dp, RoundedCornerShape(12.dp)),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White)
+    ) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = categoryTitle,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.weight(1f)
-            )
-            Text(
-                text = "See all",
-                fontSize = 14.sp,
-                color = Color(0xFF3498DB),
-                modifier = Modifier.clickable { /* Handle see all click */ }
-            )
-        }
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        // Study space card
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(100.dp)
-                .shadow(4.dp, RoundedCornerShape(12.dp)),
-            shape = RoundedCornerShape(12.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White)
-        ) {
-            Row(
+            // Space image using Coil
+            AsyncImage(
+                model = imageFilename,
+                contentDescription = spaceName,
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(8.dp),
-                verticalAlignment = Alignment.CenterVertically
+                    .size(84.dp)
+                    .clip(RoundedCornerShape(8.dp)),
+                contentScale = ContentScale.Crop
+            )
+
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(horizontal = 12.dp)
             ) {
-                // Space image using Coil
-                AsyncImage(
-                    model = imageUrl,
-                    contentDescription = spaceName,
-                    modifier = Modifier
-                        .size(84.dp)
-                        .clip(RoundedCornerShape(8.dp)),
-                    contentScale = ContentScale.Crop
+
+                // Space name
+                Text(
+                    text = spaceName,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
 
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(horizontal = 12.dp)
+                // Location
+                Text(
+                    text = location,
+                    fontSize = 14.sp,
+                    color = Color.Gray,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+
+            // Price tag
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.padding(end = 6.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.Bottom
                 ) {
-                    // Rating row
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Star,
-                            contentDescription = null,
-                            tint = Color(0xFF4E7BFF),  // Blue star color
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Text(
-                            text = rating,
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Medium,
-                            modifier = Modifier.padding(start = 4.dp)
-                        )
-                        Text(
-                            text = reviewCount,
-                            fontSize = 14.sp,
-                            color = Color.Gray,
-                            modifier = Modifier.padding(start = 2.dp)
-                        )
-                    }
-
-                    // Space name
                     Text(
-                        text = spaceName,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-
-                    // Location
-                    Text(
-                        text = location,
+                        text = "P",  // Currency symbol
                         fontSize = 14.sp,
-                        color = Color.Gray,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                        fontWeight = FontWeight.Bold
                     )
-                }
-
-                // Price tag
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.padding(end = 6.dp)
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.Bottom
-                    ) {
-                        Text(
-                            text = "₮",  // Currency symbol
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Text(
-                            text = price,
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
                     Text(
-                        text = "/hr",
-                        fontSize = 12.sp,
-                        color = Color.Gray
+                        text = price,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold
                     )
                 }
+                Text(
+                    text = "/hr",
+                    fontSize = 12.sp,
+                    color = Color.Gray
+                )
             }
         }
     }
