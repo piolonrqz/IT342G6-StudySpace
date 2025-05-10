@@ -44,12 +44,13 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.example.studyspace.R
 import com.example.studyspace.network.ApiService
+import com.example.studyspace.network.RetrofitClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
 import com.example.studyspace.ui.theme.components.StudySpaceCategory
 import android.content.Context
+import android.util.Log // Import Android's Log class
+import com.example.studyspace.ui.theme.components.StudySpaceBottomNavigationBar
 
 @Composable
 fun HomeScreen(navController: NavHostController) {
@@ -58,20 +59,22 @@ fun HomeScreen(navController: NavHostController) {
     var spaces by remember { mutableStateOf(listOf<Map<String, Any>>()) }
     var isLoading by remember { mutableStateOf(true) }
     val context = LocalContext.current
+    val TAG = "HomeScreen" // Tag for logging
 
     // TODO: Replace with your actual JWT token retrieval logic
     fun getJwtToken(context: Context): String? {
         // Example: return context.getSharedPreferences("auth", Context.MODE_PRIVATE).getString("jwt", null)
-        return null // Replace with actual implementation
-    }
-
-    val retrofit = remember {
-        Retrofit.Builder()
-            .baseUrl("http://10.0.2.2:8080/")
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-    }
-    val apiService = remember { retrofit.create(ApiService::class.java) }
+        // Actual implementation:
+        val sharedPreferences = context.getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
+        val token = sharedPreferences.getString("jwt_token", null)
+        if (token != null) {
+            Log.d(TAG, "Retrieved JWT Token: $token") // Log the token if found
+        } else {
+            Log.d(TAG, "JWT Token not found in SharedPreferences.") // Log if not found
+        }
+        return token
+    }    // Use the singleton RetrofitClient with proper timeout settings
+    val apiService = RetrofitClient.apiService
 
     LaunchedEffect(Unit) {
         isLoading = true
@@ -107,6 +110,8 @@ fun HomeScreen(navController: NavHostController) {
         }
         isLoading = false
     }
+
+    val groupedSpaces = spaces.groupBy { it["spaceType"]?.toString() ?: "Unknown Type" }
 
     Box(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
@@ -186,19 +191,26 @@ fun HomeScreen(navController: NavHostController) {
                     Text("No spaces available.", color = Color.Gray, modifier = Modifier.padding(16.dp))
                 }
             } else {
-                items(spaces.size) { idx ->
-                    val space = spaces[idx]
-                    val imageUrl = space["imageFilename"]?.toString()?.let { "http://10.0.2.2:8080/images/$it" }
-                    StudySpaceCategory(
-                        categoryTitle = space["category"]?.toString() ?: "Space",
-                        imageUrl = imageUrl,
-                        rating = space["rating"]?.toString() ?: "4.8",
-                        reviewCount = "(0)",
-                        spaceName = space["name"]?.toString() ?: "Space Name",
-                        location = space["location"]?.toString() ?: "Location",
-                        price = space["price"]?.toString() ?: "0"
-                    )
-                    Spacer(modifier = Modifier.height(24.dp))
+                groupedSpaces.forEach { (spaceType, spacesInGroup) ->
+                    item {
+                        Text(
+                            text = spaceType.replace("_", " "),
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(vertical = 16.dp)
+                        )
+                    }
+                    items(spacesInGroup.size) { idx ->
+                        val space = spacesInGroup[idx]
+                        val imageFilename = space["imageFilename"]?.toString() ?: "default_image.jpg"
+                        StudySpaceCategory(
+                            imageFilename = imageFilename,
+                            spaceName = space["name"]?.toString() ?: "Space Name",
+                            location = space["location"]?.toString() ?: "Location",
+                            price = space["price"]?.toString() ?: "0"
+                        )
+                        Spacer(modifier = Modifier.height(24.dp))
+                    }
                 }
                 item {
                     Spacer(modifier = Modifier.height(300.dp))
@@ -206,65 +218,11 @@ fun HomeScreen(navController: NavHostController) {
             }
         }
         // Bottom Navigation Bar
-        NavigationBar(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-        ) {
-            NavigationBarItem(
-                selected = selectedItem == 0,
-                onClick = {
-                    if (selectedItem != 0) {
-                        selectedItem = 0
-                        navController.navigate("home") {
-                            popUpTo("home") { inclusive = true }
-                        }
-                    }
-                },
-                icon = {
-                    Icon(
-                        imageVector = Icons.Default.Home,
-                        contentDescription = "Home"
-                    )
-                },
-                label = { Text("Home") }
-
-            )
-            NavigationBarItem(
-                selected = selectedItem == 1,
-                onClick = {
-                    if (selectedItem != 1) {
-                        selectedItem = 1
-                        navController.navigate("booking") {
-                            popUpTo("booking") { inclusive = true }
-                        }
-                    }
-                },
-                icon = {
-                    Icon(
-                        imageVector = Icons.Default.DateRange,
-                        contentDescription = "Booking"
-                    )
-                },
-                label = { Text("Booking") }
-            )
-            NavigationBarItem(
-                selected = selectedItem == 2,
-                onClick = {
-                    if (selectedItem != 2) {
-                        selectedItem = 2
-                        navController.navigate("profile") {
-                            popUpTo("profile") { inclusive = true }
-                        }
-                    }
-                },
-                icon = {
-                    Icon(
-                        imageVector = Icons.Default.Person,
-                        contentDescription = "Profile"
-                    )
-                },
-                label = { Text("Profile") }
-            )
-        }
+        StudySpaceBottomNavigationBar(
+            selectedItem = selectedItem,
+            navController = navController,
+            onItemSelected = { newItem -> selectedItem = newItem },
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
     }
 }

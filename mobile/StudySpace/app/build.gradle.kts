@@ -47,9 +47,12 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.compiler)
 
-    implementation("io.coil-kt:coil-compose:2.4.0")
+    implementation(libs.coil.compose)
+    implementation(libs.coil.network.okhttp)
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation("com.squareup.okhttp3:okhttp:4.11.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)

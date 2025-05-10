@@ -16,7 +16,10 @@ data class RegisterRequest(
     val email: String,
     val firstName: String,
     val lastName: String,
-    val password: String
+    val password: String,
+    val phoneNumber: String? = null,
+    val emailVerified: Boolean = false,
+    val role: String = "USER"
 )
 
 data class RegisterResponse(
